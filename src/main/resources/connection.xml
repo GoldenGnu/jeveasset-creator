@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<connection>
+  <host>127.0.0.1</host>
+  <port>1433</port>
+  <database></database>
+  <username></username>
+  <password></password>
+</connection>

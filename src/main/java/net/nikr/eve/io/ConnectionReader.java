@@ -49,7 +49,7 @@ public class ConnectionReader extends AbstractXmlReader {
 		Log.info("Connection loaded");
 		Connection con = null;
 		try {
-			Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+			Class.forName("net.sourceforge.jtds.jdbc.Driver");
 			String connectionUrl = connectionData.getConnectionUrl();
 			con = DriverManager.getConnection(connectionUrl);
 		} catch (ClassNotFoundException ex) {

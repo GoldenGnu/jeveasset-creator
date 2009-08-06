@@ -55,13 +55,11 @@ public class ConnectionData {
 	}
 
 	public String getConnectionUrl(){
-		Log.debug("jdbc:sqlserver://"+host+":"+port+";"
-					+ "databaseName="+database+";"
-					+ "user="+username+";"
-					+ "password="+password+";");
-		return "jdbc:sqlserver://"+host+":"+port+";"
-					+ "databaseName="+database+";"
+		String connectionUrl = "jdbc:jtds:sqlserver://"+host+":"+port
+					+ "/"+database+";"
 					+ "user="+username+";"
 					+ "password="+password+";";
+		Log.debug(connectionUrl);
+		return connectionUrl;
 	}
 }

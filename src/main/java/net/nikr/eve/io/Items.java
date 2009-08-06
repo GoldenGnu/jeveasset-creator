@@ -50,7 +50,7 @@ public class Items extends AbstractXmlWriter {
 	}
 
 	private static boolean createItems(Document xmldoc, Connection con) throws XmlException {
-		
+
 		Statement stmt = null;
 		String query = "";
 		ResultSet rs = null;
@@ -64,7 +64,7 @@ public class Items extends AbstractXmlWriter {
 			while (rs.next()) {
 				realCount = rs.getInt("count");
 			}
-			
+
 			stmt = con.createStatement();
 			query = "SELECT"
 				+ " dbo.invTypes.typeID"
@@ -99,6 +99,9 @@ public class Items extends AbstractXmlWriter {
 				boolean bMarketGroup = (nMarketGroup != 0);
 				node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup));
 				parentNode.appendChild(node);
+
+				addMaterials(con, xmldoc, node, id);
+
 				count++;
 			}
 			if (realCount != count){
@@ -139,7 +142,30 @@ public class Items extends AbstractXmlWriter {
 			Log.error("Items not saved (SQL): "+ex.getMessage(), ex);
 		}
 		return "";
-		
+
+	}
+
+	private static void addMaterials(Connection con, Document xmldoc, Element parentNode, int typeID){
+		Statement stmt = null;
+		String query = "";
+		ResultSet rs = null;
+		try {
+			stmt = con.createStatement();
+			query = "SELECT * FROM typeActivityMaterials  WHERE typeID = "+typeID+" AND activityID = 6";
+			rs = stmt.executeQuery(query);
+			if (rs == null) return;
+			while (rs.next()) {
+				int requiredTypeID = rs.getInt("requiredTypeID");
+				int quantity = rs.getInt("quantity");
+
+				Element node = xmldoc.createElementNS(null, "material");
+				node.setAttributeNS(null, "materialid", String.valueOf(requiredTypeID));
+				node.setAttributeNS(null, "quantity", String.valueOf(quantity));
+				parentNode.appendChild(node);
+			}
+		} catch (SQLException ex) {
+			return;
+		}
 	}
 
 }

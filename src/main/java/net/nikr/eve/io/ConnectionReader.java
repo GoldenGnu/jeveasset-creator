@@ -69,43 +69,53 @@ public class ConnectionReader extends AbstractXmlReader {
 
 		//Host
 		NodeList hostNode = element.getElementsByTagName("host");
-		if (hostNode.getLength() != 1){
+		if (hostNode.getLength() == 1){
+			Element hostElement = (Element) hostNode.item(0);
+			connectionData.setHost(hostElement.getTextContent());
+		} else {
 			throw new XmlException("Wrong host element count.");
 		}
-		Element hostElement = (Element) hostNode.item(0);
-		connectionData.setHost(hostElement.getNodeValue());
+		
 
 		//Port
 		NodeList portNode = element.getElementsByTagName("port");
-		if (portNode.getLength() != 1){
+		if (portNode.getLength() == 1){
+			Element portElement = (Element) portNode.item(0);
+			connectionData.setPort(portElement.getTextContent());
+		} else {
 			throw new XmlException("Wrong port element count.");
 		}
-		Element portElement = (Element) portNode.item(0);
-		connectionData.setPort(portElement.getNodeValue());
+		
 
 		//Database
 		NodeList databaseNode = element.getElementsByTagName("database");
-		if (databaseNode.getLength() != 1){
+		if (databaseNode.getLength() == 1){
+			Element databaseElement = (Element) databaseNode.item(0);
+			connectionData.setDatabase(databaseElement.getTextContent());
+		} else {
 			throw new XmlException("Wrong database element count.");
 		}
-		Element databaseElement = (Element) databaseNode.item(0);
-		connectionData.setDatabase(databaseElement.getNodeValue());
+		
 
 		//Username
 		NodeList usernameNode = element.getElementsByTagName("username");
-		if (usernameNode.getLength() != 1){
+		if (usernameNode.getLength() == 1){
+			Element usernameElement = (Element) usernameNode.item(0);
+			connectionData.setUsername(usernameElement.getTextContent());
+		} else {
 			throw new XmlException("Wrong username element count.");
 		}
-		Element usernameElement = (Element) usernameNode.item(0);
-		connectionData.setUsername(usernameElement.getNodeValue());
+		
 
 		//Password
 		NodeList passwordNode = element.getElementsByTagName("password");
-		if (passwordNode.getLength() != 1){
+		if (passwordNode.getLength() == 1){
+			Element passwordElement = (Element) passwordNode.item(0);
+			connectionData.setPassword(passwordElement.getTextContent());
+		} else {
 			throw new XmlException("Wrong password element count.");
 		}
-		Element passwordElement = (Element) passwordNode.item(0);
-		connectionData.setPassword(passwordElement.getNodeValue());
+		
 		return connectionData;
 	}
 }

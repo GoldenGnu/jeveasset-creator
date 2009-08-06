@@ -66,19 +66,6 @@ public class Locations extends AbstractXmlWriter {
 				node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
 				parentNode.appendChild(node);
 			}
-			/*
-			stmt = con.createStatement();
-			query = "SELECT stationID, regionID, stationName FROM dbo.staStations";
-			rs = stmt.executeQuery(query);
-			if (rs == null) return false;
-			while (rs.next()) {
-				Element node = xmldoc.createElementNS(null, "row");
-				node.setAttributeNS(null, "id", String.valueOf(rs.getInt("stationID")));
-				node.setAttributeNS(null, "name", String.valueOf(rs.getString("stationName")));
-				node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
-				parentNode.appendChild(node);
-			}
-			 */
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
 		}

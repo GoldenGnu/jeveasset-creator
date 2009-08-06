@@ -65,7 +65,7 @@ public class Main {
 			JOptionPane.showMessageDialog(null, s, "Error", JOptionPane.ERROR_MESSAGE);
 			System.exit(1);
 		}
-		Log.init(Main.class);
+		Log.init(Main.class, "Please email the latest error.txt in the logs directory to niklaskr@gmail.com");
 
 		initLookAndFeel();
 

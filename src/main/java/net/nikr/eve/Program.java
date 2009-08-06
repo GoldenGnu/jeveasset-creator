@@ -27,6 +27,7 @@ import java.sql.Connection;
 import net.nikr.eve.gui.Frame;
 import net.nikr.eve.io.ConnectionReader;
 import net.nikr.eve.io.XmlException;
+import net.nikr.log.Log;
 
 
 public class Program {
@@ -36,6 +37,7 @@ public class Program {
 
 
 	public Program() {
+		Log.enableDebug();
 		Connection con = ConnectionReader.loadConnection();
 		Frame frame = new Frame(con);
 		frame.setVisible(true);

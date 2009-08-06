@@ -21,6 +21,8 @@
 
 package net.nikr.eve;
 
+import net.nikr.log.Log;
+
 
 public class ConnectionData {
 	String host;
@@ -53,15 +55,13 @@ public class ConnectionData {
 	}
 
 	public String getConnectionUrl(){
-		return "jdbc:sqlserver://127.0.0.1:1433;"
-					+ "databaseName=eve_export;"
-					+ "user=sa;"
-					+ "password=sa;";
-		/*
+		Log.debug("jdbc:sqlserver://"+host+":"+port+";"
+					+ "databaseName="+database+";"
+					+ "user="+username+";"
+					+ "password="+password+";");
 		return "jdbc:sqlserver://"+host+":"+port+";"
 					+ "databaseName="+database+";"
 					+ "user="+username+";"
 					+ "password="+password+";";
-		 */
 	}
 }

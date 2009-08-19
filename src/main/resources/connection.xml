@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<connection>
+	<!--<driver>${database.driver}</driver>
+	<driverURLPart>${database.urlPart}</driverURLPart>
+	<host>${database.host}</host>
+	<port>${database.port}</port>
+	<database>${database.name}</database>
+	<username>${database.username}</username>
+	<password>${database.password}</password>-->
+</connection>

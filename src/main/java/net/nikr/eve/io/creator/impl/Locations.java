@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -19,23 +19,28 @@
  *
  */
 
-package net.nikr.eve.io;
+package net.nikr.eve.io.creator.impl;
 
+import java.io.File;
+import net.nikr.eve.io.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.Program;
+import net.nikr.eve.io.creator.Creator;
 import net.nikr.log.Log;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
-public class Locations extends AbstractXmlWriter {
+public class Locations extends AbstractXmlWriter implements Creator {
+  @Override
+  public void create(File f, Connection con) {
+    saveLocations(con);
+  }
 
-	private Locations() {}
-
-	public static boolean saveLocations(Connection con){
+	public boolean saveLocations(Connection con){
 		Document xmldoc = null;
 		boolean success = false;
 		try {
@@ -49,7 +54,7 @@ public class Locations extends AbstractXmlWriter {
 		return success;
 	}
 	
-	private static boolean createLocations(Document xmldoc, Connection con) throws XmlException {
+	private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
 		Statement stmt = null;
 		String query = "";
 		ResultSet rs = null;
@@ -71,4 +76,10 @@ public class Locations extends AbstractXmlWriter {
 		}
 		return true;
 	}
+
+  @Override
+  public String getName() {
+    return "Locations";
+  }
+
 }

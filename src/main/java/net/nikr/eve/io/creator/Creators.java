@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -18,37 +18,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
+package net.nikr.eve.io.creator;
 
-package net.nikr.eve.io;
-
-import net.nikr.eve.io.creator.impl.Locations;
+// <editor-fold defaultstate="collapsed" desc="imports">
 import net.nikr.eve.io.creator.impl.Items;
-import java.sql.Connection;
-import java.util.List;
-import net.nikr.eve.gui.Frame;
-import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.creator.impl.Locations;
 
+// </editor-fold>
+/**
+ *
+ * @author Andrew Wheat
+ */
+public enum Creators {
+    LOCATIONS(new Locations())
+  , ITEMS(new Items())
+  ;
 
-public class DataWriter extends Thread{
+  Creator creator;
 
-	private Frame frame;
-  private List<Creator> creators;
-	private Connection con;
+  private Creators(Creator creator) {
+    this.creator = creator;
+  }
 
-	public DataWriter(Frame frame, List<Creator> creators, Connection con) {
-		this.frame = frame;
-		this.creators = creators;
-		this.con = con;
-	}
-
-	@Override
-	public void run() {
-		frame.startRun();
-
-    for (Creator creator : creators) {
-      creator.create(null, con);
-    }
-
-		frame.endRun();
-	}
+  public Creator getCreator() {
+    return creator;
+  }
 }

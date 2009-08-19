@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -21,41 +21,39 @@
 
 package net.nikr.eve.gui;
 
-import java.awt.Dimension;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.sql.Connection;
-import javax.swing.GroupLayout;
+import java.util.ArrayList;
+import java.util.List;
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.DataWriter;
+import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.creator.Creators;
 
 
 public class Frame extends JFrame implements WindowListener, ActionListener  {
+  private static final long serialVersionUID = 1l;
 
-	public static final int WINDOW_WIDTH = 300;
-	public static final int WINDOW_HEIGHT = 120;
 	public final static String ACTION_RUN = "ACTION_RUN";
 
 	//GUI
-	private JPanel jMainPanel;
-	private JCheckBox jLocations;
-	private JCheckBox jItems;
+	private Box jMainPanel;
 	private JButton jRun;
-	private JLabel jLocationLabel;
-	private JLabel jItemsLabel;
 	private JProgressBar jProgressBar;
-
-	
-
-
+  List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
 
 	//Data
 	private Connection con;
@@ -63,69 +61,36 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 	public Frame(Connection con){
 		this.con = con;
 
-
 		//Main Panel
-		jMainPanel = new JPanel();
-		GroupLayout layout = new GroupLayout(jMainPanel);
-		jMainPanel.setLayout(layout);
-		layout.setAutoCreateGaps(true);
-		layout.setAutoCreateContainerGaps(true);
-		
-		jLocations = new JCheckBox("locations.xml");
-		jMainPanel.add(jLocations);
+		jMainPanel = Box.createVerticalBox();
+    jMainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 
-		jItems = new JCheckBox("items.xml");
-		jMainPanel.add(jItems);
+    for (Creators creator : Creators.values()) {
+      CreatorSection cs = new CreatorSection(creator.getCreator());
+      creatorSections.add(cs);
+      jMainPanel.add(cs);
+    }
+
+    Box bottom = Box.createHorizontalBox();
+		jProgressBar = new JProgressBar();
+		jProgressBar.setEnabled(false);
+		bottom.add(jProgressBar);
+    
+    bottom.add(Box.createHorizontalStrut(5));
 
 		jRun = new JButton("Run");
 		jRun.setActionCommand(ACTION_RUN);
 		jRun.addActionListener(this);
-		jMainPanel.add(jRun);
-		
-		jLocationLabel = new JLabel();
-		jMainPanel.add(jLocationLabel);
+		bottom.add(jRun);
 
-		jItemsLabel = new JLabel();
-		jMainPanel.add(jItemsLabel);
-
-		jProgressBar = new JProgressBar();
-		jProgressBar.setEnabled(false);
-		jMainPanel.add(jProgressBar);
-
-		layout.setHorizontalGroup(
-			layout.createParallelGroup()
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(jLocations)
-					.addComponent(jLocationLabel, 50, 50, 50)
-					.addComponent(jItems)
-					.addComponent(jItemsLabel, 50, 50, 50)
-				)
-				.addGroup(layout.createSequentialGroup()
-					.addComponent(jProgressBar)
-					.addComponent(jRun)
-				)
-		);
-		layout.setVerticalGroup(
-			layout.createSequentialGroup()
-
-				.addGroup(layout.createParallelGroup()
-					.addComponent(jLocations, 22, 22, 22)
-					.addComponent(jLocationLabel, 22, 22, 22)
-					.addComponent(jItems, 22, 22, 22)
-					.addComponent(jItemsLabel, 22, 22, 22)
-				)
-				.addGroup(layout.createParallelGroup()
-					.addComponent(jProgressBar, 22, 22, 22)
-					.addComponent(jRun, 22, 22, 22)
-				)
-		);
+    jMainPanel.add(bottom);
 
 		//Frame
 		this.setTitle(Program.PROGRAM_NAME);
-		this.setSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT)); //800, 600
 		this.addWindowListener(this);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.getContentPane().add(jMainPanel);
+    this.pack();
 	}
 	
 	@Override
@@ -149,9 +114,16 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 	@Override
 	public void windowDeactivated(WindowEvent e) {}
 
+	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (ACTION_RUN.equals(e.getActionCommand())){
-			DataWriter dataWriter = new DataWriter(this, jLocations.isSelected(), jItems.isSelected(), con);
+      List<Creator> creatorList = new ArrayList<Creator>();
+      for (CreatorSection cs : creatorSections) {
+        if (cs.isSelected()) {
+          creatorList.add(cs.getCreator());
+        }
+      }
+			DataWriter dataWriter = new DataWriter(this, creatorList, con);
 			dataWriter.start();
 		}
 	}
@@ -159,21 +131,46 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 		setAllEnabled(false);
 		jProgressBar.setValue(0);
 		jProgressBar.setIndeterminate(true);
-		jLocationLabel.setText("");
-		jItemsLabel.setText("");
 	}
-	public void endRun(String locationsText, String itemsText){
+	public void endRun(){
 		setAllEnabled(true);
 		jProgressBar.setIndeterminate(false);
 		jProgressBar.setValue(0);
-		jLocationLabel.setText(locationsText);
-		jItemsLabel.setText(itemsText);
 	}
 	private void setAllEnabled(boolean b){
-		jLocations.setEnabled(b);
-		jItems.setEnabled(b);
 		jRun.setEnabled(b);
 		jProgressBar.setEnabled(!b);
 	}
+
+  static class CreatorSection extends JPanel {
+    private static final long serialVersionUID = 1l;
+    Creator creator;
+    JLabel label;
+    JCheckBox checkbox;
+
+    public Creator getCreator() {
+      return creator;
+    }
+
+    public boolean isSelected() {
+      return checkbox.isSelected();
+    }
+
+    public CreatorSection(Creator creator) {
+      this.creator = creator;
+      Box box = Box.createHorizontalBox();
+
+      label = new JLabel(creator.getName());
+      checkbox = new JCheckBox();
+
+      label.setAlignmentX(0f);
+      checkbox.setAlignmentX(1f);
+
+      box.add(label);
+      box.add(Box.createHorizontalGlue());
+      box.add(checkbox);
+      add(box);
+    }
+  }
 
 }

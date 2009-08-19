@@ -57,8 +57,8 @@ public class Main {
 	private static void createAndShowGUI() {
 		try {
 			//Force error here, if the log library is missing
-			Log log = new Log();
-		} catch (NoClassDefFoundError e){
+			Class.forName(Log.class.getName());
+		} catch (ClassNotFoundException e){
 			String s = "The NiKR Log library is missing (lib\\nikr_log.jar)\nPlease see jeveassets_faq.txt for more information.";
 			System.err.println(s);
 			e.printStackTrace();

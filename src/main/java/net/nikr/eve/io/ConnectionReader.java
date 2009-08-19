@@ -39,7 +39,9 @@ public class ConnectionReader extends AbstractXmlReader {
 	public static Connection loadConnection(){
 		ConnectionData connectionData = null;
 		try {
-			Element element = getDocumentElement(Program.getFilename("connection.xml"));
+      String fName = Program.getFilename("connection.xml");
+      System.out.println("fName = " + fName);
+			Element element = getDocumentElement(fName);
 			connectionData = parseConnection(element);
 		} catch (IOException ex) {
 			Log.error("Connection not loaded: "+ex.getMessage(), ex);
@@ -49,9 +51,9 @@ public class ConnectionReader extends AbstractXmlReader {
 		Log.info("Connection loaded");
 		Connection con = null;
 		try {
-			Class.forName("net.sourceforge.jtds.jdbc.Driver");
+			Class.forName(connectionData.getDriver());
 			String connectionUrl = connectionData.getConnectionUrl();
-			con = DriverManager.getConnection(connectionUrl);
+			con = DriverManager.getConnection(connectionUrl, connectionData.getUsername(), connectionData.getPassword());
 		} catch (ClassNotFoundException ex) {
 			Log.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
 		} catch (SQLException ex) {
@@ -114,6 +116,24 @@ public class ConnectionReader extends AbstractXmlReader {
 			connectionData.setPassword(passwordElement.getTextContent());
 		} else {
 			throw new XmlException("Wrong password element count.");
+		}
+
+		//Driver
+		NodeList driverNode = element.getElementsByTagName("driver");
+		if (driverNode.getLength() == 1){
+			Element driverElement = (Element) driverNode.item(0);
+			connectionData.setDriver(driverElement.getTextContent());
+		} else {
+			throw new XmlException("Wrong driver element count.");
+		}
+
+		//URL Part
+		NodeList driverURLPartNode = element.getElementsByTagName("driverURLPart");
+		if (driverURLPartNode.getLength() == 1){
+			Element driverURLPartElement = (Element) driverURLPartNode.item(0);
+			connectionData.setDriverURLPart(driverURLPartElement.getTextContent());
+		} else {
+			throw new XmlException("Wrong driver URL part element count.");
 		}
 		
 		return connectionData;

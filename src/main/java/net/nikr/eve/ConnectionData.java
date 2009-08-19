@@ -30,6 +30,8 @@ public class ConnectionData {
 	String database;
 	String username;
 	String password;
+  String driver;
+  String driverURLPart;
 
 	public ConnectionData() {
 	}
@@ -54,11 +56,28 @@ public class ConnectionData {
 		this.username = username;
 	}
 
+  public String getDriver() {
+    return driver;
+  }
+
+  public void setDriver(String driver) {
+    this.driver = driver;
+  }
+
+  public void setDriverURLPart(String driverURLPart) {
+    this.driverURLPart = driverURLPart;
+  }
+
+  public String getPassword() {
+    return password;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
 	public String getConnectionUrl(){
-		String connectionUrl = "jdbc:jtds:sqlserver://"+host+":"+port
-					+ "/"+database+";"
-					+ "user="+username+";"
-					+ "password="+password+";";
+		String connectionUrl = "jdbc:"+driverURLPart+"://"+host+":"+port+"/"+database;
 		Log.debug(connectionUrl);
 		return connectionUrl;
 	}

@@ -27,6 +27,9 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Locale;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.log.Log;
@@ -35,6 +38,9 @@ import org.w3c.dom.Element;
 
 
 public class Locations extends AbstractXmlWriter implements Creator {
+  
+  private DecimalFormat securityformater  = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
+
   @Override
   public void create(File f, Connection con) {
     saveLocations(con);
@@ -54,21 +60,30 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		return success;
 	}
 	
-	private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
+		private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
 		Statement stmt = null;
 		String query = "";
 		ResultSet rs = null;
 		Element parentNode = xmldoc.getDocumentElement();
 		try {
 			stmt = con.createStatement();
-			query = "SELECT itemID, regionID, itemName FROM dbo.mapDenormalize WHERE typeID = 5 OR typeID = 3 OR groupID = 15";
+			query = "SELECT itemID, typeID, security, regionID, itemName FROM dbo.mapDenormalize WHERE typeID = 5 OR typeID = 3 OR groupID = 15";
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {
 				Element node = xmldoc.createElementNS(null, "row");
-				node.setAttributeNS(null, "id", String.valueOf(rs.getInt("itemID")));
+				int id = rs.getInt("itemID");
+				int typeID = rs.getInt("typeID");
+				node.setAttributeNS(null, "id", String.valueOf(id));
 				node.setAttributeNS(null, "name", String.valueOf(rs.getString("itemName")));
 				node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
+				float security = 0;
+				if (typeID == 5){ //System
+					security = getSecurity(con, id);
+				} else { //Region or Station (Region don't have security AKA 0.0)
+					security = rs.getFloat("security");
+				}
+				node.setAttributeNS(null, "security", roundSecurity(security));
 				parentNode.appendChild(node);
 			}
 		} catch (SQLException ex) {
@@ -76,6 +91,32 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		}
 		return true;
 	}
+
+	private float getSecurity(Connection con, int id) throws XmlException{
+		Statement stmt = null;
+		String query = "";
+		ResultSet rs = null;
+		try {
+			stmt = con.createStatement();
+			query = "SELECT * FROM mapSolarSystems WHERE solarSystemID = "+id;
+			rs = stmt.executeQuery(query);
+			if (rs == null) return 0;
+			while (rs.next()) {
+				return rs.getFloat("security");
+			}
+		} catch (SQLException ex) {
+			throw new XmlException(ex);
+		}
+		return 0;
+	}
+	private String roundSecurity(float number){
+		if (number < 0) number = 0;
+		number = number * 10;
+		number = Math.round(number);
+		number = number / 10;
+		return securityformater.format(number);
+	}
+
 
   @Override
   public String getName() {

@@ -156,7 +156,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		try {
 			stmt = con.createStatement();
-			query = "SELECT * FROM typeActivityMaterials  WHERE typeID = "+typeID+" AND activityID = 6";
+			query = "SELECT * FROM typeActivityMaterials  WHERE typeID = "+typeID+" AND activityID = 6"; // AND typeID >= 34 AND typeID <= 40
 			rs = stmt.executeQuery(query);
 			if (rs == null) return;
 			while (rs.next()) {
@@ -164,13 +164,67 @@ public class Items extends AbstractXmlWriter implements Creator {
 				int quantity = rs.getInt("quantity");
 
 				Element node = xmldoc.createElementNS(null, "material");
-				node.setAttributeNS(null, "materialid", String.valueOf(requiredTypeID));
+				node.setAttributeNS(null, "id", String.valueOf(requiredTypeID));
 				node.setAttributeNS(null, "quantity", String.valueOf(quantity));
-				parentNode.appendChild(node);
+				if (isMarketItem(con, requiredTypeID)){
+					parentNode.appendChild(node);
+				}
 			}
 		} catch (SQLException ex) {
-			return;
+			Log.error("Materials not added (SQL): "+ex.getMessage(), ex);
 		}
+	}
+	private boolean isMarketItem(Connection con, int typeID){
+		Statement stmt = null;
+		String query = "";
+		ResultSet rs = null;
+		try {
+			stmt = con.createStatement();
+			query = "SELECT * FROM invTypes WHERE typeID = "+typeID+" AND marketGroupID IS NOT NULL AND groupID != 0 AND groupID != 268 AND groupID != 269 AND groupID != 270 AND groupID != 332";
+			rs = stmt.executeQuery(query);
+			if (rs == null) return false;
+			while (rs.next()) {
+				return true;
+
+				//int groupID = rs.getInt("groupID");
+				/*
+				if (
+						groupID != 0
+
+						//BAD
+						&& groupID != 268
+						&& groupID != 269
+						&& groupID != 270
+						&& groupID != 332
+
+						//Unknown
+						/*
+						&& (groupID == 428
+						|| groupID == 530)
+						 */
+
+						/*
+						//Good
+						&& groupID != 18
+						&& groupID == 873
+						&& groupID == 429
+						&& groupID == 280
+						&& groupID == 334
+						&& groupID == 333
+						&& groupID == 754
+						&& groupID == 886
+						&& groupID == 913
+						&& groupID == 964
+						&& groupID == 423
+						*//*
+					) return true;
+					*/
+			}
+
+		} catch (SQLException ex) {
+			Log.error("Name not added (SQL): "+ex.getMessage(), ex);
+		}
+		return false;
 	}
 
   @Override

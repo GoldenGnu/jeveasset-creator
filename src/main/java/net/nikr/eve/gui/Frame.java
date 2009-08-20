@@ -21,7 +21,10 @@
 
 package net.nikr.eve.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -30,8 +33,10 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Box;
+import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -50,9 +55,9 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 	public final static String ACTION_RUN = "ACTION_RUN";
 
 	//GUI
-	private Box jMainPanel;
+	private JPanel jMainPanel;
 	private JButton jRun;
-	private JProgressBar jProgressBar;
+	private ProgressBar jProgressBar;
   List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
 
 	//Data
@@ -60,19 +65,22 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 	
 	public Frame(Connection con){
 		this.con = con;
+    
+    setLayout(new BorderLayout(4, 4));
 
 		//Main Panel
-		jMainPanel = Box.createVerticalBox();
-    jMainPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+    jMainPanel = new JPanel();
+    jMainPanel.setLayout(new GridLayout(Creators.values().length, 2, 5, 5));
 
     for (Creators creator : Creators.values()) {
       CreatorSection cs = new CreatorSection(creator.getCreator());
       creatorSections.add(cs);
-      jMainPanel.add(cs);
+      jMainPanel.add(cs.getLeft());
+      jMainPanel.add(cs.getRight());
     }
 
     Box bottom = Box.createHorizontalBox();
-		jProgressBar = new JProgressBar();
+		jProgressBar = new ProgressBar();
 		jProgressBar.setEnabled(false);
 		bottom.add(jProgressBar);
     
@@ -83,13 +91,15 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 		jRun.addActionListener(this);
 		bottom.add(jRun);
 
-    jMainPanel.add(bottom);
+    jMainPanel.setAlignmentX(CENTER_ALIGNMENT);
+    jMainPanel.setAlignmentY(CENTER_ALIGNMENT);
+    add(jMainPanel, BorderLayout.CENTER);
+    add(bottom, BorderLayout.SOUTH);
 
 		//Frame
 		this.setTitle(Program.PROGRAM_NAME);
 		this.addWindowListener(this);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		this.getContentPane().add(jMainPanel);
     this.pack();
 	}
 	
@@ -124,25 +134,25 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
         }
       }
 			DataWriter dataWriter = new DataWriter(this, creatorList, con);
+      dataWriter.addProgressMonitor(jProgressBar);
 			dataWriter.start();
 		}
 	}
 	public void startRun(){
 		setAllEnabled(false);
-		jProgressBar.setValue(0);
-		jProgressBar.setIndeterminate(true);
 	}
 	public void endRun(){
 		setAllEnabled(true);
-		jProgressBar.setIndeterminate(false);
-		jProgressBar.setValue(0);
 	}
 	private void setAllEnabled(boolean b){
+    for (CreatorSection cs : creatorSections) {
+      cs.getRight().setEnabled(b);
+    }
 		jRun.setEnabled(b);
 		jProgressBar.setEnabled(!b);
 	}
 
-  static class CreatorSection extends JPanel {
+  static class CreatorSection {
     private static final long serialVersionUID = 1l;
     Creator creator;
     JLabel label;
@@ -156,20 +166,21 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
       return checkbox.isSelected();
     }
 
+    public JComponent getLeft() {
+      return label;
+    }
+
+    public JComponent getRight() {
+      return checkbox;
+    }
+
     public CreatorSection(Creator creator) {
       this.creator = creator;
-      Box box = Box.createHorizontalBox();
 
       label = new JLabel(creator.getName());
+      label.setHorizontalAlignment(JLabel.TRAILING);
       checkbox = new JCheckBox();
-
-      label.setAlignmentX(0f);
-      checkbox.setAlignmentX(1f);
-
-      box.add(label);
-      box.add(Box.createHorizontalGlue());
-      box.add(checkbox);
-      add(box);
+      checkbox.setAlignmentX(CENTER_ALIGNMENT);
     }
   }
 

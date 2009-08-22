@@ -67,7 +67,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		Element parentNode = xmldoc.getDocumentElement();
 		try {
 			stmt = con.createStatement();
-			query = "SELECT itemID, typeID, security, regionID, itemName FROM dbo.mapDenormalize WHERE typeID = 5 OR typeID = 3 OR groupID = 15";
+			query = "SELECT itemID, typeID, security, regionID, itemName FROM mapDenormalize WHERE typeID = 5 OR typeID = 3 OR groupID = 15";
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {

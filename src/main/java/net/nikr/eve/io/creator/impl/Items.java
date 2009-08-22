@@ -72,20 +72,20 @@ public class Items extends AbstractXmlWriter implements Creator {
 
 			stmt = con.createStatement();
 			query = "SELECT"
-				+ " dbo.invTypes.typeID"
-				+ " ,dbo.invTypes.volume"
-				+ " ,dbo.invTypes.typeName"
-				+ " ,dbo.invTypes.basePrice"
-				+ " ,dbo.invTypes.marketGroupID"
-				+ " ,dbo.invGroups.groupName"
-				+ " ,dbo.invCategories.categoryName"
-				+ " ,dbo.invMetaGroups.metaGroupName"
+				+ " invTypes.typeID"
+				+ " ,invTypes.volume"
+				+ " ,invTypes.typeName"
+				+ " ,invTypes.basePrice"
+				+ " ,invTypes.marketGroupID"
+				+ " ,invGroups.groupName"
+				+ " ,invCategories.categoryName"
+				+ " ,invMetaGroups.metaGroupName"
 				+ " FROM "
-				+ " dbo.invTypes LEFT JOIN dbo.invGroups ON invTypes.groupID = invGroups.groupID"
-				+ " LEFT JOIN dbo.invCategories ON dbo.invGroups.categoryID = dbo.invCategories.categoryID"
-				+ " LEFT JOIN dbo.invMetaTypes ON dbo.invTypes.typeID = dbo.invMetaTypes.typeID"
-				+ " LEFT JOIN dbo.invMetaGroups ON dbo.invMetaTypes.metaGroupID = dbo.invMetaGroups.metaGroupID"
-				+ " ORDER BY dbo.invTypes.typeID" ;
+				+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
+				+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
+				+ " LEFT JOIN invMetaTypes ON invTypes.typeID = invMetaTypes.typeID"
+				+ " LEFT JOIN invMetaGroups ON invMetaTypes.metaGroupID = invMetaGroups.metaGroupID"
+				+ " ORDER BY invTypes.typeID" ;
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			int count = 0;
@@ -123,7 +123,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		try {
 			Statement stmt = con.createStatement();
-			String query = "SELECT * FROM dbo.dgmTypeAttributes"
+			String query = "SELECT * FROM dgmTypeAttributes"
 				+ " WHERE attributeID = 633 AND typeID = " + id;
 			rs = stmt.executeQuery(query);
 			if (rs == null) return "";

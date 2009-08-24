@@ -77,6 +77,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				+ " ,invTypes.typeName"
 				+ " ,invTypes.basePrice"
 				+ " ,invTypes.marketGroupID"
+				+ " ,invTypes.portionSize"
 				+ " ,invGroups.groupName"
 				+ " ,invCategories.categoryName"
 				+ " ,invMetaGroups.metaGroupName"
@@ -105,7 +106,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup));
 				parentNode.appendChild(node);
 
-				addMaterials(con, xmldoc, node, id);
+				addMaterials(con, xmldoc, node, id, rs.getInt("portionSize"));
 
 				count++;
 			}
@@ -150,7 +151,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 
 	}
 
-	private void addMaterials(Connection con, Document xmldoc, Element parentNode, int typeID){
+	private void addMaterials(Connection con, Document xmldoc, Element parentNode, int typeID, int portionSize){
 		Statement stmt = null;
 		String query = "";
 		ResultSet rs = null;
@@ -162,11 +163,11 @@ public class Items extends AbstractXmlWriter implements Creator {
 			while (rs.next()) {
 				int requiredTypeID = rs.getInt("requiredTypeID");
 				int quantity = rs.getInt("quantity");
-
 				Element node = xmldoc.createElementNS(null, "material");
 				node.setAttributeNS(null, "id", String.valueOf(requiredTypeID));
 				node.setAttributeNS(null, "quantity", String.valueOf(quantity));
-				if (isMarketItem(con, requiredTypeID)){
+				node.setAttributeNS(null, "portionsize", String.valueOf(portionSize));
+				if (isMarketItem(con, typeID)){
 					parentNode.appendChild(node);
 				}
 			}
@@ -179,46 +180,38 @@ public class Items extends AbstractXmlWriter implements Creator {
 		String query = "";
 		ResultSet rs = null;
 		try {
+			/*
+			groupID != 0
+
+			//BAD
+			&& groupID != 268
+			&& groupID != 269
+			&& groupID != 270
+			&& groupID != 332
+
+			//Unknown
+			&& (groupID == 428
+			|| groupID == 530)
+
+			//Good
+			&& groupID != 18
+			&& groupID == 873
+			&& groupID == 429
+			&& groupID == 280
+			&& groupID == 334
+			&& groupID == 333
+			&& groupID == 754
+			&& groupID == 886
+			&& groupID == 913
+			&& groupID == 964
+			&& groupID == 423
+			*/
 			stmt = con.createStatement();
 			query = "SELECT * FROM invTypes WHERE typeID = "+typeID+" AND marketGroupID IS NOT NULL AND groupID != 0 AND groupID != 268 AND groupID != 269 AND groupID != 270 AND groupID != 332";
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {
 				return true;
-
-				//int groupID = rs.getInt("groupID");
-				/*
-				if (
-						groupID != 0
-
-						//BAD
-						&& groupID != 268
-						&& groupID != 269
-						&& groupID != 270
-						&& groupID != 332
-
-						//Unknown
-						/*
-						&& (groupID == 428
-						|| groupID == 530)
-						 */
-
-						/*
-						//Good
-						&& groupID != 18
-						&& groupID == 873
-						&& groupID == 429
-						&& groupID == 280
-						&& groupID == 334
-						&& groupID == 333
-						&& groupID == 754
-						&& groupID == 886
-						&& groupID == 913
-						&& groupID == 964
-						&& groupID == 423
-						*//*
-					) return true;
-					*/
 			}
 
 		} catch (SQLException ex) {

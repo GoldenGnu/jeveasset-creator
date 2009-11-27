@@ -157,11 +157,11 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		try {
 			stmt = con.createStatement();
-			query = "SELECT * FROM typeActivityMaterials  WHERE typeID = "+typeID+" AND activityID = 6"; // AND typeID >= 34 AND typeID <= 40
+			query = "SELECT * FROM invTypeMaterials  WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
 			rs = stmt.executeQuery(query);
 			if (rs == null) return;
 			while (rs.next()) {
-				int requiredTypeID = rs.getInt("requiredTypeID");
+				int requiredTypeID = rs.getInt("materialTypeID");
 				int quantity = rs.getInt("quantity");
 				Element node = xmldoc.createElementNS(null, "material");
 				node.setAttributeNS(null, "id", String.valueOf(requiredTypeID));

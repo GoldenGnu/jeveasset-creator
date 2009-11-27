@@ -54,7 +54,7 @@ public abstract class AbstractXmlWriter {
 		}
 	}
 	protected static void writeXmlFile(Document doc, String filename) throws XmlException  {
-		writeXmlFile(doc, filename, "UTF-16");
+		writeXmlFile(doc, filename, "UTF-8");
 	}
 
 	protected static void writeXmlFile(Document doc, String filename, String encoding) throws XmlException  {

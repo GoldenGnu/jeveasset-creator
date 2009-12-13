@@ -22,6 +22,7 @@ package net.nikr.eve.io.creator;
 
 // <editor-fold defaultstate="collapsed" desc="imports">
 import net.nikr.eve.io.creator.impl.Items;
+import net.nikr.eve.io.creator.impl.Jumps;
 import net.nikr.eve.io.creator.impl.Locations;
 
 // </editor-fold>
@@ -32,6 +33,7 @@ import net.nikr.eve.io.creator.impl.Locations;
 public enum Creators {
     LOCATIONS(new Locations())
   , ITEMS(new Items())
+  , JUMPS(new Jumps())
   ;
 
   Creator creator;

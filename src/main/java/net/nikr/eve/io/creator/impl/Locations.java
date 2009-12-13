@@ -71,9 +71,9 @@ public class Locations extends AbstractXmlWriter implements Creator {
                 + ", IF (mapSS.security IS NULL, mapd.security, mapSS.security) AS security"
                 + ", mapd.regionID"
                 + ", mapd.itemName "
-                + "FROM mapDenormalize as mapd"
-                + "LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
-                + "WHERE typeID = 5 OR typeID = 3 OR groupID = 15";
+                + " FROM mapDenormalize as mapd"
+                + " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
+                + " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15";
             rs = stmt.executeQuery(query);
             if (rs == null) return false;
             while (rs.next()) {

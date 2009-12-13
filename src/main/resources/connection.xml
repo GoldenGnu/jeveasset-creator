@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <connection>
-	<driver>com.mysql.jdbc.Driver</driver>
-	<driverURLPart>mysql</driverURLPart>
-	<host>davinci</host>
-	<port>3306</port>
-	<database>eve_dom100</database>
-	<username>dbo</username>
-	<password>dbo</password>
+	<!--<driver></driver>
+	<driverURLPart></driverURLPart>
+	<host></host>
+	<port></port>
+	<database></database>
+	<username></username>
+	<password></password>-->
 </connection>

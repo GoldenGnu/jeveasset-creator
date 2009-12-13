@@ -83,9 +83,9 @@ public class Locations extends AbstractXmlWriter implements Creator {
                 node.setAttributeNS(null, "id", String.valueOf(id));
                 node.setAttributeNS(null, "name", String.valueOf(rs.getString("itemName")));
                 node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
-                float security = 0;
+                double security = 0;
                 if (typeID == 5) { //System
-                    security = getSecurity(con, id);
+                    security = rs.getDouble("security");
                 } else { //Region or Station (Region don't have security AKA 0.0)
                     security = rs.getFloat("security");
                 }
@@ -98,25 +98,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
         return true;
     }
 
-    private float getSecurity(Connection con, int id) throws XmlException {
-        Statement stmt = null;
-        String query = "";
-        ResultSet rs = null;
-        try {
-            stmt = con.createStatement();
-            query = "SELECT * FROM mapSolarSystems WHERE solarSystemID = " + id;
-            rs = stmt.executeQuery(query);
-            if (rs == null) return 0;
-            while (rs.next()) {
-                return rs.getFloat("security");
-            }
-        } catch (SQLException ex) {
-            throw new XmlException(ex);
-        }
-        return 0;
-    }
-
-    private String roundSecurity(float number) {
+    private String roundSecurity(double number) {
         if (number < 0) number = 0;
         number = number * 10;
         number = Math.round(number);

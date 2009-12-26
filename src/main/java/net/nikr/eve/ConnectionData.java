@@ -30,8 +30,8 @@ public class ConnectionData {
 	String database;
 	String username;
 	String password;
-  String driver;
-  String driverURLPart;
+	String driver;
+	String driverURLPart;
 
 	public ConnectionData() {
 	}
@@ -56,25 +56,25 @@ public class ConnectionData {
 		this.username = username;
 	}
 
-  public String getDriver() {
-    return driver;
-  }
+	public String getDriver() {
+		return driver;
+	}
 
-  public void setDriver(String driver) {
-    this.driver = driver;
-  }
+	public void setDriver(String driver) {
+		this.driver = driver;
+	}
 
-  public void setDriverURLPart(String driverURLPart) {
-    this.driverURLPart = driverURLPart;
-  }
+	public void setDriverURLPart(String driverURLPart) {
+		this.driverURLPart = driverURLPart;
+	}
 
-  public String getPassword() {
-    return password;
-  }
+	public String getPassword() {
+		return password;
+	}
 
-  public String getUsername() {
-    return username;
-  }
+	public String getUsername() {
+		return username;
+	}
 
 	public String getConnectionUrl(){
 		String connectionUrl = "jdbc:"+driverURLPart+"://"+host+":"+port+"/"+database;

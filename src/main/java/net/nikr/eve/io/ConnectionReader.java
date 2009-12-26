@@ -39,8 +39,8 @@ public class ConnectionReader extends AbstractXmlReader {
 	public static Connection loadConnection(){
 		ConnectionData connectionData = null;
 		try {
-      String fName = Program.getFilename("connection.xml");
-      System.out.println("fName = " + fName);
+			String fName = Program.getFilename("connection.xml");
+			System.out.println("fName = " + fName);
 			Element element = getDocumentElement(fName);
 			connectionData = parseConnection(element);
 		} catch (IOException ex) {

@@ -21,8 +21,6 @@
 
 package net.nikr.eve.io;
 
-import net.nikr.eve.io.creator.impl.Locations;
-import net.nikr.eve.io.creator.impl.Items;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,9 +31,9 @@ import net.nikr.eve.io.creator.Creator;
 public class DataWriter extends Thread{
 
 	private Frame frame;
-  private List<Creator> creators;
+	private List<Creator> creators;
 	private Connection con;
-  List<ProgressMonitor> progressMonitors = new ArrayList<ProgressMonitor>();
+	List<ProgressMonitor> progressMonitors = new ArrayList<ProgressMonitor>();
 
 	public DataWriter(Frame frame, List<Creator> creators, Connection con) {
 		this.frame = frame;
@@ -43,33 +41,33 @@ public class DataWriter extends Thread{
 		this.con = con;
 	}
 
-  public boolean addProgressMonitor(ProgressMonitor e) {
-    e.setIndeterminate(true);
-    return progressMonitors.add(e);
-  }
+	public boolean addProgressMonitor(ProgressMonitor e) {
+		e.setIndeterminate(true);
+		return progressMonitors.add(e);
+	}
 
 	@Override
 	public void run() {
 		frame.startRun();
 
-    for (ProgressMonitor pm : progressMonitors) {
-      pm.setIndeterminate(false);
-      pm.setMaximum(creators.size());
-      pm.setMinimum(0);
-      pm.setValue(0);
-    }
+		for (ProgressMonitor pm : progressMonitors) {
+			pm.setIndeterminate(false);
+			pm.setMaximum(creators.size());
+			pm.setMinimum(0);
+			pm.setValue(0);
+		}
 
-    int count = 0;
-    for (Creator creator : creators) {
-      for (ProgressMonitor pm : progressMonitors) {
-        pm.setValue(count);
-      }
-      creator.create(null, con);
-      ++count;
-    }
-    for (ProgressMonitor pm : progressMonitors) {
-      pm.setValue(count);
-    }
+		int count = 0;
+		for (Creator creator : creators) {
+			for (ProgressMonitor pm : progressMonitors) {
+				pm.setValue(count);
+			}
+			creator.create(null, con);
+			++count;
+		}
+		for (ProgressMonitor pm : progressMonitors) {
+			pm.setValue(count);
+		}
 
 		frame.endRun();
 	}

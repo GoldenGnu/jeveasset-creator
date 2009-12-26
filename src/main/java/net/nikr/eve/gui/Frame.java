@@ -22,8 +22,6 @@
 package net.nikr.eve.gui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -33,24 +31,20 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Box;
-import javax.swing.GroupLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JProgressBar;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.DataWriter;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.creator.Creators;
 
 
-public class Frame extends JFrame implements WindowListener, ActionListener  {
-  private static final long serialVersionUID = 1l;
+public class Frame extends JFrame implements WindowListener, ActionListener	{
+	private static final long serialVersionUID = 1l;
 
 	public final static String ACTION_RUN = "ACTION_RUN";
 
@@ -58,49 +52,48 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 	private JPanel jMainPanel;
 	private JButton jRun;
 	private ProgressBar jProgressBar;
-  List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
+	List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
 
 	//Data
 	private Connection con;
 	
 	public Frame(Connection con){
 		this.con = con;
-    
-    setLayout(new BorderLayout(4, 4));
+		setLayout(new BorderLayout(4, 4));
 
 		//Main Panel
-    jMainPanel = new JPanel();
-    jMainPanel.setLayout(new GridLayout(Creators.values().length, 2, 5, 5));
+		jMainPanel = new JPanel();
+		jMainPanel.setLayout(new GridLayout(Creators.values().length, 2, 5, 5));
 
-    for (Creators creator : Creators.values()) {
-      CreatorSection cs = new CreatorSection(creator.getCreator());
-      creatorSections.add(cs);
-      jMainPanel.add(cs.getLeft());
-      jMainPanel.add(cs.getRight());
-    }
+		for (Creators creator : Creators.values()) {
+			CreatorSection cs = new CreatorSection(creator.getCreator());
+			creatorSections.add(cs);
+			jMainPanel.add(cs.getLeft());
+			jMainPanel.add(cs.getRight());
+		}
 
-    Box bottom = Box.createHorizontalBox();
+		Box bottom = Box.createHorizontalBox();
 		jProgressBar = new ProgressBar();
 		jProgressBar.setEnabled(false);
 		bottom.add(jProgressBar);
-    
-    bottom.add(Box.createHorizontalStrut(5));
+
+		bottom.add(Box.createHorizontalStrut(5));
 
 		jRun = new JButton("Run");
 		jRun.setActionCommand(ACTION_RUN);
 		jRun.addActionListener(this);
 		bottom.add(jRun);
 
-    jMainPanel.setAlignmentX(CENTER_ALIGNMENT);
-    jMainPanel.setAlignmentY(CENTER_ALIGNMENT);
-    add(jMainPanel, BorderLayout.CENTER);
-    add(bottom, BorderLayout.SOUTH);
+		jMainPanel.setAlignmentX(CENTER_ALIGNMENT);
+		jMainPanel.setAlignmentY(CENTER_ALIGNMENT);
+		add(jMainPanel, BorderLayout.CENTER);
+		add(bottom, BorderLayout.SOUTH);
 
 		//Frame
 		this.setTitle(Program.PROGRAM_NAME);
 		this.addWindowListener(this);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    this.pack();
+		this.pack();
 	}
 	
 	@Override
@@ -127,14 +120,14 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (ACTION_RUN.equals(e.getActionCommand())){
-      List<Creator> creatorList = new ArrayList<Creator>();
-      for (CreatorSection cs : creatorSections) {
-        if (cs.isSelected()) {
-          creatorList.add(cs.getCreator());
-        }
-      }
+			List<Creator> creatorList = new ArrayList<Creator>();
+			for (CreatorSection cs : creatorSections) {
+				if (cs.isSelected()) {
+					creatorList.add(cs.getCreator());
+				}
+			}
 			DataWriter dataWriter = new DataWriter(this, creatorList, con);
-      dataWriter.addProgressMonitor(jProgressBar);
+			dataWriter.addProgressMonitor(jProgressBar);
 			dataWriter.start();
 		}
 	}
@@ -145,43 +138,43 @@ public class Frame extends JFrame implements WindowListener, ActionListener  {
 		setAllEnabled(true);
 	}
 	private void setAllEnabled(boolean b){
-    for (CreatorSection cs : creatorSections) {
-      cs.getRight().setEnabled(b);
-    }
+		for (CreatorSection cs : creatorSections) {
+			cs.getRight().setEnabled(b);
+		}
 		jRun.setEnabled(b);
 		jProgressBar.setEnabled(!b);
 	}
 
-  static class CreatorSection {
-    private static final long serialVersionUID = 1l;
-    Creator creator;
-    JLabel label;
-    JCheckBox checkbox;
+	static class CreatorSection {
+		private static final long serialVersionUID = 1l;
+		Creator creator;
+		JLabel label;
+		JCheckBox checkbox;
 
-    public Creator getCreator() {
-      return creator;
-    }
+		public Creator getCreator() {
+			return creator;
+		}
 
-    public boolean isSelected() {
-      return checkbox.isSelected();
-    }
+		public boolean isSelected() {
+			return checkbox.isSelected();
+		}
 
-    public JComponent getLeft() {
-      return label;
-    }
+		public JComponent getLeft() {
+			return label;
+		}
 
-    public JComponent getRight() {
-      return checkbox;
-    }
+		public JComponent getRight() {
+			return checkbox;
+		}
 
-    public CreatorSection(Creator creator) {
-      this.creator = creator;
+		public CreatorSection(Creator creator) {
+			this.creator = creator;
 
-      label = new JLabel(creator.getName());
-      label.setHorizontalAlignment(JLabel.TRAILING);
-      checkbox = new JCheckBox();
-      checkbox.setAlignmentX(CENTER_ALIGNMENT);
-    }
-  }
+			label = new JLabel(creator.getName());
+			label.setHorizontalAlignment(JLabel.TRAILING);
+			checkbox = new JCheckBox();
+			checkbox.setAlignmentX(CENTER_ALIGNMENT);
+		}
+	}
 
 }

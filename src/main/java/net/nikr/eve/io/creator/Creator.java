@@ -18,6 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
+
 package net.nikr.eve.io.creator;
 
 // <editor-fold defaultstate="collapsed" desc="imports">
@@ -31,6 +32,6 @@ import java.sql.Connection;
  * @author Andrew Wheat
  */
 public interface Creator {
-  public void create(File f, Connection con);
-  public String getName();
+	public void create(File f, Connection con);
+	public String getName();
 }

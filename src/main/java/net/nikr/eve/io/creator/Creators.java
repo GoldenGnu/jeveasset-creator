@@ -18,6 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
+
 package net.nikr.eve.io.creator;
 
 // <editor-fold defaultstate="collapsed" desc="imports">
@@ -31,18 +32,18 @@ import net.nikr.eve.io.creator.impl.Locations;
  * @author Andrew Wheat
  */
 public enum Creators {
-    LOCATIONS(new Locations())
-  , ITEMS(new Items())
-  , JUMPS(new Jumps())
-  ;
+	LOCATIONS(new Locations())
+	, ITEMS(new Items())
+	, JUMPS(new Jumps())
+	;
 
-  Creator creator;
+	Creator creator;
 
-  private Creators(Creator creator) {
-    this.creator = creator;
-  }
+	private Creators(Creator creator) {
+		this.creator = creator;
+	}
 
-  public Creator getCreator() {
-    return creator;
-  }
+	public Creator getCreator() {
+		return creator;
+	}
 }

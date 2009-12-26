@@ -35,22 +35,25 @@ import org.w3c.dom.Element;
 
 
 public class Items extends AbstractXmlWriter implements Creator {
-  @Override
-  public void create(File f, Connection con) {
-    saveItems(con);
-  }
+	@Override
+	public void create(File f, Connection con) {
+		saveItems(con);
+	}
 
 	public boolean saveItems(Connection con){
+		Log.info("Items:");
 		Document xmldoc = null;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
+			Log.info("	Creating...");
 			success = createItems(xmldoc, con);
+			Log.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("items.xml"));
 		} catch (XmlException ex) {
 			Log.error("Items not saved (XML): "+ex.getMessage(), ex);
 		}
-		Log.info("Items saved");
+		Log.info("	Items done");
 		return success;
 	}
 
@@ -136,7 +139,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				}
 				int valueInt = rs.getInt("valueInt");
 				if (valueInt != 0){
-					metaLevel =  String.valueOf(valueInt);
+					metaLevel = String.valueOf(valueInt);
 				}
 				if (metaGroupName != null) {
 					return metaLevel+" ("+metaGroupName+")";
@@ -157,7 +160,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		try {
 			stmt = con.createStatement();
-			query = "SELECT * FROM invTypeMaterials  WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
+			query = "SELECT * FROM invTypeMaterials WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
 			rs = stmt.executeQuery(query);
 			if (rs == null) return;
 			while (rs.next()) {
@@ -220,8 +223,8 @@ public class Items extends AbstractXmlWriter implements Creator {
 		return false;
 	}
 
-  @Override
-  public String getName() {
-    return "Items";
-  }
+	@Override
+	public String getName() {
+		return "Items";
+	}
 }

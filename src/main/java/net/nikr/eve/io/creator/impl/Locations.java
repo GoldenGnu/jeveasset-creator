@@ -62,46 +62,47 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		return success;
 	}
 
-	private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
-		Statement stmt = null;
-		String query = "";
-		ResultSet rs = null;
-		Element parentNode = xmldoc.getDocumentElement();
-		try {
-			stmt = con.createStatement();
-			query = "SELECT"
-			+ "  mapd.itemID"
-			+ ", mapd.typeID"
-			//+ ", IF (mapSS.security IS NULL, mapd.security, mapSS.security) AS security"
-			+ ", CASE WHEN mapSS.security IS NULL THEN mapd.security ELSE mapSS.security END AS security "
-			+ ", mapd.regionID"
-			+ ", mapd.itemName "
-			+ " FROM mapDenormalize as mapd"
-			+ " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
-			+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15";
-			rs = stmt.executeQuery(query);
-			if (rs == null) return false;
-			while (rs.next()) {
-				Element node = xmldoc.createElementNS(null, "row");
-				int id = rs.getInt("itemID");
-				int typeID = rs.getInt("typeID");
-				node.setAttributeNS(null, "id", String.valueOf(id));
-				node.setAttributeNS(null, "name", String.valueOf(rs.getString("itemName")));
-				node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
-				double security = 0;
-				if (typeID == 5) { //System
-					security = rs.getDouble("security");
-				} else { //Region or Station (Region don't have security AKA 0.0)
-					security = rs.getFloat("security");
-				}
-				node.setAttributeNS(null, "security", roundSecurity(security));
-				parentNode.appendChild(node);
-			}
-		} catch (SQLException ex) {
-			throw new XmlException(ex);
-		}
-		return true;
-	}
+    private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
+        Statement stmt = null;
+        String query = "";
+        ResultSet rs = null;
+        Element parentNode = xmldoc.getDocumentElement();
+        try {
+            stmt = con.createStatement();
+            query = "SELECT"
+                + "  mapd.itemID"
+                + ", mapd.typeID"
+                + ", IF (mapSS.security IS NULL, mapd.security, mapSS.security) AS security"
+                + ", mapd.regionID"
+                + ", mapd.solarSystemID"
+                + ", mapd.itemName"
+                + " FROM mapDenormalize as mapd"
+                + " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
+                + " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15";
+            rs = stmt.executeQuery(query);
+            if (rs == null) return false;
+            while (rs.next()) {
+                Element node = xmldoc.createElementNS(null, "row");
+                int id = rs.getInt("itemID");
+                int typeID = rs.getInt("typeID");
+                node.setAttributeNS(null, "id", String.valueOf(id));
+                node.setAttributeNS(null, "name", String.valueOf(rs.getString("itemName")));
+                node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
+                double security = 0;
+                if (typeID == 5) { //System
+                    security = rs.getDouble("security");
+                } else { //Region or Station (Region don't have security AKA 0.0)
+                    security = rs.getFloat("security");
+                }
+                node.setAttributeNS(null, "security", roundSecurity(security));
+                parentNode.appendChild(node);
+                node.setAttributeNS(null, "solarsystem", String.valueOf(rs.getInt("solarSystemID")));
+            }
+        } catch (SQLException ex) {
+            throw new XmlException(ex);
+        }
+        return true;
+    }
 
 	private String roundSecurity(double number) {
 		if (number < 0) number = 0;

@@ -72,6 +72,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			query = "SELECT"
 			+ "  mapd.itemID"
 			+ ", mapd.typeID"
+			+ ", if (mapd.solarSystemID IS NULL, 0, mapd.solarSystemID) AS solarSystemID"
 			//+ ", IF (mapSS.security IS NULL, mapd.security, mapSS.security) AS security"
 			+ ", CASE WHEN mapSS.security IS NULL THEN mapd.security ELSE mapSS.security END AS security "
 			+ ", mapd.regionID"
@@ -79,15 +80,18 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			+ " FROM mapDenormalize as mapd"
 			+ " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
 			+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15";
+      System.out.println(query);
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {
 				Element node = xmldoc.createElementNS(null, "row");
 				int id = rs.getInt("itemID");
 				int typeID = rs.getInt("typeID");
+				int ssid = rs.getInt("solarSystemID");
 				node.setAttributeNS(null, "id", String.valueOf(id));
 				node.setAttributeNS(null, "name", String.valueOf(rs.getString("itemName")));
 				node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
+				node.setAttributeNS(null, "solarsystem", String.valueOf(ssid));
 				double security = 0;
 				if (typeID == 5) { //System
 					security = rs.getDouble("security");

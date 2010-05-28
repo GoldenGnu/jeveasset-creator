@@ -72,22 +72,28 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			query = "SELECT"
 			+ "  mapd.itemID"
 			+ ", mapd.typeID"
-			+ ", if (mapd.solarSystemID IS NULL, 0, mapd.solarSystemID) AS solarSystemID"
+			//+ ", if (mapd.solarSystemID IS NULL, 0, mapd.solarSystemID) AS solarSystemID"
+			+ ", CASE WHEN mapd.solarSystemID IS NULL THEN 0 ELSE mapd.solarSystemID END AS solarSystemID"
 			//+ ", IF (mapSS.security IS NULL, mapd.security, mapSS.security) AS security"
 			+ ", CASE WHEN mapSS.security IS NULL THEN mapd.security ELSE mapSS.security END AS security "
 			+ ", mapd.regionID"
 			+ ", mapd.itemName "
 			+ " FROM mapDenormalize as mapd"
 			+ " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
-			+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15";
-      System.out.println(query);
+			+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15"; //3 = Region 5 = Solar System
+			System.out.println(query);
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {
 				Element node = xmldoc.createElementNS(null, "row");
 				int id = rs.getInt("itemID");
 				int typeID = rs.getInt("typeID");
-				int ssid = rs.getInt("solarSystemID");
+				int ssid = 0;
+				if (typeID == 5){ //If Solar System, use the itemID
+					ssid = rs.getInt("itemID");
+				} else {
+					ssid = rs.getInt("solarSystemID");
+				}
 				node.setAttributeNS(null, "id", String.valueOf(id));
 				node.setAttributeNS(null, "name", String.valueOf(rs.getString("itemName")));
 				node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));

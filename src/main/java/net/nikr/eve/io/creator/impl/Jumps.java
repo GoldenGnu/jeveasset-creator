@@ -64,7 +64,7 @@ public class Jumps extends AbstractXmlWriter implements Creator {
 		Element parentNode = xmldoc.getDocumentElement();
 		try {
 			stmt = con.createStatement();
-			query = "select fromSolarSystemID, toSolarSystemID from mapSolarSystemJumps";
+			query = "select fromSolarSystemID, toSolarSystemID from mapSolarSystemJumps ORDER BY fromSolarSystemID";
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {

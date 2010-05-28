@@ -97,7 +97,10 @@ public class Items extends AbstractXmlWriter implements Creator {
 				Element node = xmldoc.createElementNS(null, "row");
 				int id = rs.getInt("typeID");
 				node.setAttributeNS(null, "id", String.valueOf(id));
-				node.setAttributeNS(null, "name", rs.getString("typeName"));
+				String name = rs.getString("typeName");
+				name = name.replace("  ", " ");
+				name = name.replace("\t", " ");
+				node.setAttributeNS(null, "name", name);
 				node.setAttributeNS(null, "group", rs.getString("groupName"));
 				node.setAttributeNS(null, "category", rs.getString("categoryName"));
 				node.setAttributeNS(null, "price", String.valueOf(rs.getLong("basePrice")));

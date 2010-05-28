@@ -80,7 +80,8 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			+ ", mapd.itemName "
 			+ " FROM mapDenormalize as mapd"
 			+ " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
-			+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15"; //3 = Region 5 = Solar System
+			+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15" //3 = Region 5 = Solar System
+			+ " ORDER BY mapd.itemID";
 			System.out.println(query);
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;

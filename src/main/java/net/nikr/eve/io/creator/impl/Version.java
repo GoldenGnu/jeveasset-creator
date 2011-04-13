@@ -49,7 +49,7 @@ public class Version extends AbstractXmlWriter implements Creator {
 			success = createVersion(xmldoc, con);
 			if (success){
 				Log.info("	Saving...");
-				writeXmlFile(xmldoc, Program.getFilename("data.xml"));
+				writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"data.xml"));
 			}
 		} catch (XmlException ex) {
 			Log.error("Version not saved (XML): "+ex.getMessage(), ex);

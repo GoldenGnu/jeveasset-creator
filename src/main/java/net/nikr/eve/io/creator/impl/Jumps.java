@@ -49,7 +49,7 @@ public class Jumps extends AbstractXmlWriter implements Creator {
 			Log.info("	Creating...");
 			success = createLocations(xmldoc, con);
 			Log.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename("jumps.xml"));
+			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"jumps.xml"));
 		} catch (XmlException ex) {
 			Log.error("Jumps not saved (XML): " + ex.getMessage(), ex);
 		}

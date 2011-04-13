@@ -49,7 +49,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 			Log.info("	Creating...");
 			success = createItems(xmldoc, con);
 			Log.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename("items.xml"));
+			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"items.xml"));
 		} catch (XmlException ex) {
 			Log.error("Items not saved (XML): "+ex.getMessage(), ex);
 		}

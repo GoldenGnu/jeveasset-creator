@@ -54,7 +54,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			Log.info("	Creating...");
 			success = createLocations(xmldoc, con);
 			Log.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename("locations.xml"));
+			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"locations.xml"));
 		} catch (XmlException ex) {
 			Log.error("Locations not saved (XML): " + ex.getMessage(), ex);
 		}

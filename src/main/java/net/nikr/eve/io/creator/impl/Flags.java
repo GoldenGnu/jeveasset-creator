@@ -50,7 +50,7 @@ public class Flags extends AbstractXmlWriter implements Creator {
 			Log.info("	Creating...");
 			success = createFlags(xmldoc, con);
 			Log.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename("flags.xml"));
+			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"flags.xml"));
 		} catch (XmlException ex) {
 			Log.error("Flags not saved (XML): "+ex.getMessage(), ex);
 		}

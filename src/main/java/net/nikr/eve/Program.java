@@ -46,7 +46,9 @@ public class Program {
 	public static String getFilename(String filename) throws XmlException{
 		try {
 			File file = new File(Main.class.getProtectionDomain().getCodeSource().getLocation().toURI()).getParentFile();
-			return file.getAbsolutePath()+File.separator+filename;
+			File ret = new File(file.getAbsolutePath()+File.separator+filename);
+			if (!ret.getParentFile().exists()) ret.getParentFile().mkdirs();
+			return ret.getAbsolutePath();
 		} catch (URISyntaxException ex) {
 			throw new XmlException(ex);
 		}

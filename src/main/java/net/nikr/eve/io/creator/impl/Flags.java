@@ -29,32 +29,35 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
 public class Flags extends AbstractXmlWriter implements Creator {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(Flags.class);
 
 	@Override
-	public void create(File f, Connection con) {
-		saveFlags(con);
+	public boolean create(File f, Connection con) {
+		return saveFlags(con);
 	}
 
 	public boolean saveFlags(Connection con){
-		Log.info("Flags:");
+		LOG.info("Flags:");
 		Document xmldoc = null;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
-			Log.info("	Creating...");
+			LOG.info("	Creating...");
 			success = createFlags(xmldoc, con);
-			Log.info("	Saving...");
+			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"flags.xml"));
 		} catch (XmlException ex) {
-			Log.error("Flags not saved (XML): "+ex.getMessage(), ex);
+			LOG.error("Flags not saved (XML): "+ex.getMessage(), ex);
 		}
-		Log.info("	Flags done");
+		LOG.info("	Flags done");
 		return success;
 	}
 

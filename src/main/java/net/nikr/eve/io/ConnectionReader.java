@@ -24,16 +24,20 @@ package net.nikr.eve.io;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
-import java.sql.SQLException;
+import javax.swing.JOptionPane;
+import javax.swing.JPasswordField;
 import net.nikr.eve.ConnectionData;
 import net.nikr.eve.Program;
-import net.nikr.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 
 public class ConnectionReader extends AbstractXmlReader {
 
+	private final static Logger LOG = LoggerFactory.getLogger(ConnectionReader.class);
+	
 	private ConnectionReader() {}
 
 	public static Connection loadConnection(){
@@ -44,22 +48,27 @@ public class ConnectionReader extends AbstractXmlReader {
 			Element element = getDocumentElement(fName);
 			connectionData = parseConnection(element);
 		} catch (IOException ex) {
-			Log.error("Connection not loaded: "+ex.getMessage(), ex);
+			LOG.error("Connection not loaded: "+ex.getMessage(), ex);
 		} catch (XmlException ex) {
-			Log.error("Connection not loaded: "+ex.getMessage(), ex);
+			LOG.error("Connection not loaded: "+ex.getMessage(), ex);
 		}
-		Log.info("Connection loaded");
+		if (connectionData.getPassword().isEmpty()){
+			String password = JOptionPane.showInputDialog(null, "Enter MySQL Password:", "Password", JOptionPane.PLAIN_MESSAGE);
+			if (password != null){
+				connectionData.setPassword(password);
+			}
+		}
+		LOG.info("Connection loaded");
 		Connection con = null;
 		try {
 			Class.forName(connectionData.getDriver());
 			String connectionUrl = connectionData.getConnectionUrl();
 			con = DriverManager.getConnection(connectionUrl, connectionData.getUsername(), connectionData.getPassword());
-		} catch (ClassNotFoundException ex) {
-			Log.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
-		} catch (SQLException ex) {
-			Log.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
+		} catch (Exception ex) {
+			LOG.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
+			throw new RuntimeException("Connecting to SQL server failed (SQL)", ex);
 		}
-		Log.info("Connection opened");
+		LOG.info("Connection opened");
 		return con;
 	}
 

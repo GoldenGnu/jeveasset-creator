@@ -21,8 +21,6 @@
 
 package net.nikr.eve;
 
-import net.nikr.log.Log;
-
 
 public class ConnectionData {
 	String host;
@@ -78,7 +76,6 @@ public class ConnectionData {
 
 	public String getConnectionUrl(){
 		String connectionUrl = "jdbc:"+driverURLPart+"://"+host+":"+port+"/"+database;
-		Log.debug(connectionUrl);
 		return connectionUrl;
 	}
 }

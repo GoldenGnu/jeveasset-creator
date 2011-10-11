@@ -32,33 +32,36 @@ import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class Locations extends AbstractXmlWriter implements Creator {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
 
 	private DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
 
 	@Override
-	public void create(File f, Connection con) {
-		saveLocations(con);
+	public boolean create(File f, Connection con) {
+		return saveLocations(con);
 	}
 
 	public boolean saveLocations(Connection con) {
-		Log.info("Locations:");
+		LOG.info("Locations:");
 		Document xmldoc = null;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
-			Log.info("	Creating...");
+			LOG.info("	Creating...");
 			success = createLocations(xmldoc, con);
-			Log.info("	Saving...");
+			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"locations.xml"));
 		} catch (XmlException ex) {
-			Log.error("Locations not saved (XML): " + ex.getMessage(), ex);
+			LOG.error("Locations not saved (XML): " + ex.getMessage(), ex);
 		}
-		Log.info("	Locations done");
+		LOG.info("	Locations done");
 		return success;
 	}
 

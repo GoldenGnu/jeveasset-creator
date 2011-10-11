@@ -32,6 +32,6 @@ import java.sql.Connection;
  * @author Andrew Wheat
  */
 public interface Creator {
-	public void create(File f, Connection con);
+	public boolean create(File f, Connection con);
 	public String getName();
 }

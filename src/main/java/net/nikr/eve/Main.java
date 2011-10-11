@@ -23,19 +23,16 @@ package net.nikr.eve;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JOptionPane;
 import javax.swing.UIManager;
-import net.nikr.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class Main {
-	static String[] inputString;
-	Program program;
-	//DataLoader dataLoader;
-	/** Creates a new instance of Main */
-	public Main(String[] argumentsString) {
-		//Force error here, if any libraries are missing
-		program = new Program();
+	private final static Logger LOG = LoggerFactory.getLogger(Main.class);
+	
+	public Main() {
+		Program program = new Program();
 		
 	}
 	
@@ -43,37 +40,23 @@ public class Main {
 	 * @param args the command line arguments
 	 */
 	public static void main(String[] args) {
-			inputString = args;
-			javax.swing.SwingUtilities.invokeLater(
-				new Runnable() {
-					@Override
-					public void run() {
-						createAndShowGUI();
-							}
-					}
-			);
+		ExceptionHandler.install("FAIL!", true);
+		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				createAndShowGUI();
+			}
+		});
 	}
 	
 	private static void createAndShowGUI() {
-		try {
-			//Force error here, if the log library is missing
-			Class.forName(Log.class.getName());
-		} catch (ClassNotFoundException e){
-			String s = "The NiKR Log library is missing (lib\\nikr_log.jar)\nPlease see jeveassets_faq.txt for more information.";
-			System.err.println(s);
-			e.printStackTrace();
-			JOptionPane.showMessageDialog(null, s, "Error", JOptionPane.ERROR_MESSAGE);
-			System.exit(1);
-		}
-		Log.init(Main.class, "Please email the latest error.txt in the logs directory to niklaskr@gmail.com");
-
 		initLookAndFeel();
 
 		//Make sure we have nice window decorations.
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		JDialog.setDefaultLookAndFeelDecorated(true);
 
-		Main main = new Main(inputString);
+		Main main = new Main();
 	}
 	
 	private static void initLookAndFeel() {
@@ -87,8 +70,7 @@ public class Main {
 		try {
 			UIManager.setLookAndFeel(lookAndFeel);
 		} catch (Exception e) {
-			Log.error("failed to set LookAndFeel: "+lookAndFeel, e);
-			e.printStackTrace();
+			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
 		}
 	}
 

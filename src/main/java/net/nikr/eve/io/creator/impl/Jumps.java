@@ -29,31 +29,34 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class Jumps extends AbstractXmlWriter implements Creator {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(Jumps.class);
 
 	@Override
-	public void create(File f, Connection con) {
-		saveJumps(con);
+	public boolean create(File f, Connection con) {
+		return saveJumps(con);
 	}
 
 	public boolean saveJumps(Connection con) {
-		Log.info("Jumps:");
+		LOG.info("Jumps:");
 		Document xmldoc = null;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
-			Log.info("	Creating...");
+			LOG.info("	Creating...");
 			success = createLocations(xmldoc, con);
-			Log.info("	Saving...");
+			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"jumps.xml"));
 		} catch (XmlException ex) {
-			Log.error("Jumps not saved (XML): " + ex.getMessage(), ex);
+			LOG.error("Jumps not saved (XML): " + ex.getMessage(), ex);
 		}
-		Log.info("	Jumps done");
+		LOG.info("	Jumps done");
 		return success;
 	}
 

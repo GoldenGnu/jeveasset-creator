@@ -47,10 +47,13 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 	private static final long serialVersionUID = 1l;
 
 	public final static String ACTION_RUN = "ACTION_RUN";
+	public final static String CHECK_ALL = "CHECK_ALL";
+	public final static String CHECK = "CHECK";
 
 	//GUI
 	private JPanel jMainPanel;
 	private JButton jRun;
+	private JCheckBox jAll;
 	private ProgressBar jProgressBar;
 	List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
 
@@ -60,14 +63,25 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 	public Frame(Connection con){
 		this.con = con;
 		setLayout(new BorderLayout(4, 4));
-
+		
 		//Main Panel
 		jMainPanel = new JPanel();
-		jMainPanel.setLayout(new GridLayout(Creators.values().length, 2, 5, 5));
+		jMainPanel.setLayout(new GridLayout(Creators.values().length+1, 2, 5, 5));
+		
+		JLabel jLabel = new JLabel("All");
+		jLabel.setHorizontalAlignment(JLabel.TRAILING);
+		jAll = new JCheckBox();
+		jAll.setAlignmentX(CENTER_ALIGNMENT);
+		jAll.setActionCommand(CHECK_ALL);
+		jAll.addActionListener(this);
+		jMainPanel.add(jLabel);
+		jMainPanel.add(jAll);
 
 		for (Creators creator : Creators.values()) {
 			CreatorSection cs = new CreatorSection(creator.getCreator());
 			creatorSections.add(cs);
+			cs.getRight().setActionCommand(CHECK);
+			cs.getRight().addActionListener(this);
 			jMainPanel.add(cs.getLeft());
 			jMainPanel.add(cs.getRight());
 		}
@@ -121,14 +135,31 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 	public void actionPerformed(ActionEvent e) {
 		if (ACTION_RUN.equals(e.getActionCommand())){
 			List<Creator> creatorList = new ArrayList<Creator>();
+			List<CreatorSection> sections = new ArrayList<CreatorSection>();
 			for (CreatorSection cs : creatorSections) {
 				if (cs.isSelected()) {
 					creatorList.add(cs.getCreator());
+					sections.add(cs);
 				}
 			}
-			DataWriter dataWriter = new DataWriter(this, creatorList, con);
+			DataWriter dataWriter = new DataWriter(this, creatorList, sections, con);
 			dataWriter.addProgressMonitor(jProgressBar);
 			dataWriter.start();
+		}
+		if (CHECK.equals(e.getActionCommand())){
+			boolean selected = true;
+			for (CreatorSection cs : creatorSections) {
+				if (!cs.getRight().isSelected()){
+					selected = false;
+					break;
+				}
+			}
+			jAll.setSelected(selected);
+		}
+		if (CHECK_ALL.equals(e.getActionCommand())){
+			for (CreatorSection cs : creatorSections) {
+				cs.getRight().setSelected(jAll.isSelected());
+			}
 		}
 	}
 	public void startRun(){
@@ -145,7 +176,7 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 		jProgressBar.setEnabled(!b);
 	}
 
-	static class CreatorSection {
+	public static class CreatorSection {
 		private static final long serialVersionUID = 1l;
 		Creator creator;
 		JLabel label;
@@ -163,7 +194,7 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 			return label;
 		}
 
-		public JComponent getRight() {
+		public JCheckBox getRight() {
 			return checkbox;
 		}
 

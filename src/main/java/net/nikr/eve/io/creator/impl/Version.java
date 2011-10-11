@@ -27,34 +27,37 @@ import net.nikr.eve.Program;
 import net.nikr.eve.io.AbstractXmlWriter;
 import net.nikr.eve.io.XmlException;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
 public class Version extends AbstractXmlWriter implements Creator {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(Version.class);
 
 	@Override
-	public void create(File f, Connection con) {
-		saveVersion(con);
+	public boolean create(File f, Connection con) {
+		return saveVersion(con);
 	}
 
 	public boolean saveVersion(Connection con){
-		Log.info("Version:");
+		LOG.info("Version:");
 		Document xmldoc = null;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
-			Log.info("	Creating...");
+			LOG.info("	Creating...");
 			success = createVersion(xmldoc, con);
 			if (success){
-				Log.info("	Saving...");
+				LOG.info("	Saving...");
 				writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"data.xml"));
 			}
 		} catch (XmlException ex) {
-			Log.error("Version not saved (XML): "+ex.getMessage(), ex);
+			LOG.error("Version not saved (XML): "+ex.getMessage(), ex);
 		}
-		Log.info("	Version done");
+		LOG.info("	Version done");
 		return success;
 	}
 
@@ -69,7 +72,7 @@ public class Version extends AbstractXmlWriter implements Creator {
 		} else {
 			int i = JOptionPane.showConfirmDialog(null, "Cancel creation of version.xml?\r\nNo to retry...", "Continue?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
 			if (i == JOptionPane.YES_OPTION){
-				Log.info("	Creation cancelled...");
+				LOG.info("	Creation cancelled...");
 				return false;
 			} else {
 				return createVersion(xmldoc, con);

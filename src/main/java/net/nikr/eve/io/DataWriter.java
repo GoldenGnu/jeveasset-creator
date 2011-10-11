@@ -21,10 +21,13 @@
 
 package net.nikr.eve.io;
 
+import java.awt.Color;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.SwingUtilities;
 import net.nikr.eve.gui.Frame;
+import net.nikr.eve.gui.Frame.CreatorSection;
 import net.nikr.eve.io.creator.Creator;
 
 
@@ -34,10 +37,12 @@ public class DataWriter extends Thread{
 	private List<Creator> creators;
 	private Connection con;
 	List<ProgressMonitor> progressMonitors = new ArrayList<ProgressMonitor>();
+	private List<CreatorSection> creatorSections;
 
-	public DataWriter(Frame frame, List<Creator> creators, Connection con) {
+	public DataWriter(Frame frame, List<Creator> creators, List<CreatorSection> creatorSections, Connection con) {
 		this.frame = frame;
 		this.creators = creators;
+		this.creatorSections = creatorSections;
 		this.con = con;
 	}
 
@@ -58,11 +63,25 @@ public class DataWriter extends Thread{
 		}
 
 		int count = 0;
-		for (Creator creator : creators) {
+		for (int i = 0; i < creators.size(); i++){
+			Creator creator = creators.get(i);
+			final CreatorSection section = creatorSections.get(i);
 			for (ProgressMonitor pm : progressMonitors) {
 				pm.setValue(count);
 			}
-			creator.create(null, con);
+			final boolean ok = creator.create(null, con);
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					if (ok){
+						section.getLeft().setForeground(Color.GREEN.darker().darker());
+					} else {
+						section.getLeft().setForeground(Color.RED.darker().darker());
+					}
+				}
+			});
+			
+			
 			++count;
 		}
 		for (ProgressMonitor pm : progressMonitors) {

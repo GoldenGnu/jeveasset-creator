@@ -29,31 +29,35 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.log.Log;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
 public class Items extends AbstractXmlWriter implements Creator {
+	
+	private final static Logger LOG = LoggerFactory.getLogger(Items.class);
+	
 	@Override
-	public void create(File f, Connection con) {
-		saveItems(con);
+	public boolean create(File f, Connection con) {
+		return saveItems(con);
 	}
 
 	public boolean saveItems(Connection con){
-		Log.info("Items:");
+		LOG.info("Items:");
 		Document xmldoc = null;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
-			Log.info("	Creating...");
+			LOG.info("	Creating...");
 			success = createItems(xmldoc, con);
-			Log.info("	Saving...");
+			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"items.xml"));
 		} catch (XmlException ex) {
-			Log.error("Items not saved (XML): "+ex.getMessage(), ex);
+			LOG.error("Items not saved (XML): "+ex.getMessage(), ex);
 		}
-		Log.info("	Items done");
+		LOG.info("	Items done");
 		return success;
 	}
 
@@ -64,6 +68,15 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		Element parentNode = xmldoc.getDocumentElement();
 		try {
+			stmt = con.createStatement();
+			query = "SELECT marketGroupID FROM invmarketgroups WHERE marketGroupName = 'Planetary Materials'";
+			rs = stmt.executeQuery(query);
+			if (rs == null) return false;
+			int planetaryMaterialsID = 0;
+			while (rs.next()) {
+				planetaryMaterialsID = rs.getInt("marketGroupID");
+			}
+			
 			stmt = con.createStatement();
 			query = "SELECT COUNT(*) as count FROM invTypes";
 			rs = stmt.executeQuery(query);
@@ -84,11 +97,13 @@ public class Items extends AbstractXmlWriter implements Creator {
 				+ " ,invGroups.groupName"
 				+ " ,invCategories.categoryName"
 				+ " ,invMetaGroups.metaGroupName"
+				+ " ,invMarketGroups.parentGroupID"
 				+ " FROM "
 				+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
 				+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
 				+ " LEFT JOIN invMetaTypes ON invTypes.typeID = invMetaTypes.typeID"
 				+ " LEFT JOIN invMetaGroups ON invMetaTypes.metaGroupID = invMetaGroups.metaGroupID"
+				+ " LEFT JOIN invMarketGroups ON invTypes.marketGroupID = invMarketGroups.marketGroupID"
 				+ " ORDER BY invTypes.typeID" ;
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
@@ -106,6 +121,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "price", String.valueOf(rs.getLong("basePrice")));
 				node.setAttributeNS(null, "volume", String.valueOf(rs.getDouble("volume")));
 				node.setAttributeNS(null, "meta", getMetaLevel(con, id, rs.getString("metaGroupName")));
+				node.setAttributeNS(null, "pi", rs.getInt("invMarketGroups.parentGroupID") == planetaryMaterialsID ? "true" : "false");
 
 				int nMarketGroup = rs.getInt("marketGroupID");
 				boolean bMarketGroup = (nMarketGroup != 0);
@@ -151,7 +167,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				}
 			}
 		} catch (SQLException ex) {
-			Log.error("Items not saved (SQL): "+ex.getMessage(), ex);
+			LOG.error("Items not saved (SQL): "+ex.getMessage(), ex);
 		}
 		return "";
 
@@ -178,7 +194,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				}
 			}
 		} catch (SQLException ex) {
-			Log.error("Materials not added (SQL): "+ex.getMessage(), ex);
+			LOG.error("Materials not added (SQL): "+ex.getMessage(), ex);
 		}
 	}
 	private boolean isMarketItem(Connection con, int typeID){
@@ -221,7 +237,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 			}
 
 		} catch (SQLException ex) {
-			Log.error("Name not added (SQL): "+ex.getMessage(), ex);
+			LOG.error("Name not added (SQL): "+ex.getMessage(), ex);
 		}
 		return false;
 	}

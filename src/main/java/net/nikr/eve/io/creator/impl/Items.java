@@ -78,7 +78,14 @@ public class Items extends AbstractXmlWriter implements Creator {
 			}
 			
 			stmt = con.createStatement();
-			query = "SELECT COUNT(*) as count FROM invTypes";
+			query = "SELECT COUNT(invTypes.typeID) as count"
+					+ " FROM"
+					+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
+					+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
+					+ " WHERE"
+					+ " (invCategories.published = 1 OR invTypes.typeID = 27)"
+					+ " AND (invCategories.categoryName != 'Celestial' OR invTypes.published = 1 OR invGroups.published = 1)"
+					;
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			int realCount = 0;
@@ -88,23 +95,28 @@ public class Items extends AbstractXmlWriter implements Creator {
 
 			stmt = con.createStatement();
 			query = "SELECT"
-				+ " invTypes.typeID"
-				+ " ,invTypes.volume"
-				+ " ,invTypes.typeName"
-				+ " ,invTypes.basePrice"
-				+ " ,invTypes.marketGroupID"
-				+ " ,invTypes.portionSize"
-				+ " ,invGroups.groupName"
-				+ " ,invCategories.categoryName"
-				+ " ,invMetaGroups.metaGroupName"
-				+ " ,invMarketGroups.parentGroupID"
-				+ " FROM "
-				+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
-				+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
-				+ " LEFT JOIN invMetaTypes ON invTypes.typeID = invMetaTypes.typeID"
-				+ " LEFT JOIN invMetaGroups ON invMetaTypes.metaGroupID = invMetaGroups.metaGroupID"
-				+ " LEFT JOIN invMarketGroups ON invTypes.marketGroupID = invMarketGroups.marketGroupID"
-				+ " ORDER BY invTypes.typeID" ;
+					+ " invTypes.typeID"
+					+ " ,invTypes.volume"
+					+ " ,invTypes.typeName"
+					+ " ,invTypes.basePrice"
+					+ " ,invTypes.marketGroupID"
+					+ " ,invTypes.portionSize"
+					+ " ,invGroups.groupName"
+					+ " ,invCategories.categoryName"
+					+ " ,invCategories.published"
+					+ " ,invMetaGroups.metaGroupName"
+					+ " ,invMarketGroups.parentGroupID"
+					+ " FROM "
+					+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
+					+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
+					+ " LEFT JOIN invMetaTypes ON invTypes.typeID = invMetaTypes.typeID"
+					+ " LEFT JOIN invMetaGroups ON invMetaTypes.metaGroupID = invMetaGroups.metaGroupID"
+					+ " LEFT JOIN invMarketGroups ON invTypes.marketGroupID = invMarketGroups.marketGroupID"
+					+ " WHERE"
+					+ " (invCategories.published = 1 OR invTypes.typeID = 27)"
+					+ " AND (invCategories.categoryName != 'Celestial' OR invTypes.published = 1 OR invGroups.published = 1)"
+					+ " ORDER BY invTypes.typeID"
+					;
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			int count = 0;
@@ -122,6 +134,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "volume", String.valueOf(rs.getDouble("volume")));
 				node.setAttributeNS(null, "meta", getMetaLevel(con, id, rs.getString("metaGroupName")));
 				node.setAttributeNS(null, "pi", rs.getInt("invMarketGroups.parentGroupID") == planetaryMaterialsID ? "true" : "false");
+				node.setAttributeNS(null, "portion", String.valueOf(rs.getInt("portionSize")));
 
 				int nMarketGroup = rs.getInt("marketGroupID");
 				boolean bMarketGroup = (nMarketGroup != 0);

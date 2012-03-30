@@ -132,7 +132,9 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "category", rs.getString("categoryName"));
 				node.setAttributeNS(null, "price", String.valueOf(rs.getLong("basePrice")));
 				node.setAttributeNS(null, "volume", String.valueOf(rs.getDouble("volume")));
-				node.setAttributeNS(null, "meta", getMetaLevel(con, id, rs.getString("metaGroupName")));
+				Meta meta = getMetaLevel(con, id, rs.getString("metaGroupName"));
+				node.setAttributeNS(null, "meta", String.valueOf(meta.getLevel()));
+				node.setAttributeNS(null, "tech", meta.getTech());
 				node.setAttributeNS(null, "pi", rs.getInt("invMarketGroups.parentGroupID") == planetaryMaterialsID ? "true" : "false");
 				node.setAttributeNS(null, "portion", String.valueOf(rs.getInt("portionSize")));
 
@@ -155,34 +157,33 @@ public class Items extends AbstractXmlWriter implements Creator {
 		return true;
 	}
 
-	private String getMetaLevel(Connection con, int id, String metaGroupName){
-		ResultSet rs = null;
+	private Meta getMetaLevel(Connection con, int id, String metaGroupName){
 		try {
 			Statement stmt = con.createStatement();
 			String query = "SELECT * FROM dgmTypeAttributes"
 				+ " WHERE attributeID = 633 AND typeID = " + id;
-			rs = stmt.executeQuery(query);
-			if (rs == null) return "";
+			ResultSet rs = stmt.executeQuery(query);
+			if (rs == null) return new Meta();
 			while (rs.next()) {
-				String metaLevel = "";
+				int metaLevel = 0;
 				float valueFloat = rs.getFloat("valueFloat");
 				if (valueFloat != 0){
-					metaLevel = String.valueOf( Math.round(valueFloat) );
+					metaLevel = Math.round(valueFloat);
 				}
 				int valueInt = rs.getInt("valueInt");
 				if (valueInt != 0){
-					metaLevel = String.valueOf(valueInt);
+					metaLevel = valueInt;
 				}
 				if (metaGroupName != null) {
-					return metaLevel+" ("+metaGroupName+")";
+					return new Meta(metaGroupName, metaLevel);
 				} else {
-					return metaLevel;
+					return new Meta("Tech I", metaLevel);
 				}
 			}
 		} catch (SQLException ex) {
 			LOG.error("Items not saved (SQL): "+ex.getMessage(), ex);
 		}
-		return "";
+		return new Meta();
 
 	}
 
@@ -258,5 +259,28 @@ public class Items extends AbstractXmlWriter implements Creator {
 	@Override
 	public String getName() {
 		return "Items";
+	}
+	
+	private static class Meta{
+		private final String tech;
+		private final int level;
+
+		public Meta() {
+			tech = "Tech I";
+			level = 0;
+		}	
+
+		public Meta(String tech, int level) {
+			this.tech = tech;
+			this.level = level;
+		}
+
+		public int getLevel() {
+			return level;
+		}
+
+		public String getTech() {
+			return tech;
+		}
 	}
 }

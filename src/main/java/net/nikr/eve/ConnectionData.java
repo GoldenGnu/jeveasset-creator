@@ -65,6 +65,10 @@ public class ConnectionData {
 	public void setDriverURLPart(String driverURLPart) {
 		this.driverURLPart = driverURLPart;
 	}
+	
+	public String getDatabase() {
+		return database;
+	}
 
 	public String getPassword() {
 		return password;

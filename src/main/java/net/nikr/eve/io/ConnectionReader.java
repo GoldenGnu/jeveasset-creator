@@ -69,6 +69,7 @@ public class ConnectionReader extends AbstractXmlReader {
 			throw new RuntimeException("Connecting to SQL server failed (SQL)", ex);
 		}
 		LOG.info("Connection opened");
+		JOptionPane.showMessageDialog(null, connectionData.getDatabase(), "Database", JOptionPane.PLAIN_MESSAGE);
 		return con;
 	}
 

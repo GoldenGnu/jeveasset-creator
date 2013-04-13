@@ -43,6 +43,17 @@ public class Locations extends AbstractXmlWriter implements Creator {
 
 	private DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
 
+	private final String query = "SELECT"
+			+ "  mapd.itemID"
+			+ ", mapd.typeID"
+			+ ", mapd.groupID as groupID"
+			+ ", CASE WHEN mapd.solarSystemID IS NULL THEN 0 ELSE mapd.solarSystemID END AS systemID"
+			+ ", CASE WHEN mapSS.security IS NULL THEN mapd.security ELSE mapSS.security END AS security "
+			+ ", mapd.regionID"
+			+ ", mapd.itemName "
+			+ " FROM mapDenormalize as mapd"
+			+ " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID";
+	
 	@Override
 	public boolean create(File f, Connection con) {
 		return saveLocations(con);
@@ -50,7 +61,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 
 	public boolean saveLocations(Connection con) {
 		LOG.info("Locations:");
-		Document xmldoc = null;
+		Document xmldoc;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
@@ -66,53 +77,89 @@ public class Locations extends AbstractXmlWriter implements Creator {
 	}
 
 	private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
-		Statement stmt = null;
-		String query = "";
-		ResultSet rs = null;
 		Element parentNode = xmldoc.getDocumentElement();
 		try {
-			stmt = con.createStatement();
-			query = "SELECT"
-			+ "  mapd.itemID"
-			+ ", mapd.typeID"
-			+ ", CASE WHEN mapd.solarSystemID IS NULL THEN 0 ELSE mapd.solarSystemID END AS solarSystemID"
-			+ ", CASE WHEN mapSS.security IS NULL THEN mapd.security ELSE mapSS.security END AS security "
-			+ ", mapd.regionID"
-			+ ", mapd.itemName "
-			+ " FROM mapDenormalize as mapd"
-			+ " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID"
-			+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15" //3 = Region 5 = Solar System
-			+ " ORDER BY mapd.itemID";
-			rs = stmt.executeQuery(query);
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(query
+					+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15" //3 = Region 5 = Solar System
+					+ " ORDER BY mapd.itemID");
 			if (rs == null) return false;
 			while (rs.next()) {
-				Element node = xmldoc.createElementNS(null, "row");
 				int itemID = rs.getInt("itemID");
 				int typeID = rs.getInt("typeID");
-				//Systems
-				int systemID = 0;
-				if (typeID == 5){ //If Solar System, use the itemID
-					systemID = rs.getInt("itemID");
+				String itemName = rs.getString("itemName");
+				Element node = xmldoc.createElementNS(null, "row");
+				//Location (Station/System/Region)
+				
+				//Station
+				int stationID;
+				String station;
+				if (rs.getInt("groupID") == 15) { //Self is Station
+					stationID = itemID;
+					station = itemName;
 				} else {
-					systemID = rs.getInt("solarSystemID");
+					stationID = 0;
+					station = "";
 				}
-				node.setAttributeNS(null, "id", String.valueOf(itemID));
-				node.setAttributeNS(null, "name", String.valueOf(rs.getString("itemName")));
-				node.setAttributeNS(null, "region", String.valueOf(rs.getInt("regionID")));
-				node.setAttributeNS(null, "solarsystem", String.valueOf(systemID));
-				double security = 0;
+				node.setAttributeNS(null, "si", String.valueOf(stationID));
+				node.setAttributeNS(null, "s", station);
+				//Systems
+				int systemID;
+				String systemName;
+				if (typeID == 5){ //Self is System, use the itemID
+					systemID = itemID;
+					systemName = itemName;
+				} else {
+					systemID = rs.getInt("systemID");
+					systemName = getName(con, systemID);
+				}
+				node.setAttributeNS(null, "syi", String.valueOf(systemID));
+				node.setAttributeNS(null, "sy", systemName);
+				
+				//Region
+				int regionID;
+				String regionName;
+				if (typeID == 3) { //Self is Region, use the itemID
+					regionID = itemID;
+					regionName = itemName;
+				} else {
+					regionID = rs.getInt("regionID");
+					regionName = getName(con, regionID);
+				}
+				node.setAttributeNS(null, "ri", String.valueOf(regionID));
+				node.setAttributeNS(null, "r", regionName);
+				//Security
+				double security;
 				if (typeID == 5) { //System
 					security = rs.getDouble("security");
 				} else { //Region or Station (Region don't have security AKA 0.0)
 					security = rs.getFloat("security");
 				}
-				node.setAttributeNS(null, "security", roundSecurity(security));
+				node.setAttributeNS(null, "se", roundSecurity(security));
 				parentNode.appendChild(node);
 			}
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
 		}
 		return true;
+	}
+	private String getName(Connection con, int itemID) throws XmlException {
+		try {
+			Statement stmt = con.createStatement();
+			ResultSet rs = stmt.executeQuery(query
+					+ " WHERE (mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15)" //3 = Region 5 = Solar System
+					+ " AND mapd.itemID = "+itemID+" "
+					+ " ORDER BY mapd.itemID");
+			if (rs == null) {
+				return "";
+			}
+			while (rs.next()) {
+				return rs.getString("itemName");
+			}
+		} catch (SQLException ex) {
+			throw new XmlException(ex);
+		}
+		return "";
 	}
 
 	private String roundSecurity(double number) {

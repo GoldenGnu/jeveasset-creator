@@ -22,12 +22,12 @@
 package net.nikr.eve.gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.Box;
@@ -36,14 +36,16 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import net.nikr.eve.ConnectionData;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.DataWriter;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.creator.Creators;
 
 
-public class Frame extends JFrame implements WindowListener, ActionListener	{
+public class MainFrame extends JFrame implements WindowListener, ActionListener	{
 	private static final long serialVersionUID = 1l;
 
 	public final static String ACTION_RUN = "ACTION_RUN";
@@ -58,10 +60,10 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 	List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
 
 	//Data
-	private Connection con;
+	private ConnectionData connectionData;
 	
-	public Frame(Connection con){
-		this.con = con;
+	public MainFrame(ConnectionData connectionData){
+		this.connectionData = connectionData;
 		setLayout(new BorderLayout(4, 4));
 		
 		//Main Panel
@@ -142,7 +144,7 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 					sections.add(cs);
 				}
 			}
-			DataWriter dataWriter = new DataWriter(this, creatorList, sections, con);
+			DataWriter dataWriter = new DataWriter(this, creatorList, sections, connectionData);
 			dataWriter.addProgressMonitor(jProgressBar);
 			dataWriter.start();
 		}
@@ -167,20 +169,39 @@ public class Frame extends JFrame implements WindowListener, ActionListener	{
 	}
 	public void endRun(){
 		setAllEnabled(true);
+		StringBuilder builder = new StringBuilder();
+		builder.append("<html>");
+		for (CreatorSection cs : creatorSections) {
+			if (cs.isSelected()) {
+				String rgb = Integer.toHexString(cs.getLeft().getForeground().getRGB());
+				rgb = rgb.substring(2, rgb.length());
+				builder.append("<font color=\"");
+				builder.append(rgb);
+				builder.append("\">");
+				builder.append(cs.getCreator().getName());
+				builder.append("</font>");
+				builder.append("<br>");
+			}
+		}
+		JOptionPane.showMessageDialog(this, builder.toString(), "Done", JOptionPane.INFORMATION_MESSAGE);
+		for (CreatorSection cs : creatorSections) {
+			cs.getLeft().setForeground(Color.BLACK);
+		}
 	}
 	private void setAllEnabled(boolean b){
 		for (CreatorSection cs : creatorSections) {
 			cs.getRight().setEnabled(b);
 		}
+		jAll.setEnabled(b);
 		jRun.setEnabled(b);
 		jProgressBar.setEnabled(!b);
 	}
 
 	public static class CreatorSection {
 		private static final long serialVersionUID = 1l;
-		Creator creator;
-		JLabel label;
-		JCheckBox checkbox;
+		private Creator creator;
+		private JLabel label;
+		private JCheckBox checkbox;
 
 		public Creator getCreator() {
 			return creator;

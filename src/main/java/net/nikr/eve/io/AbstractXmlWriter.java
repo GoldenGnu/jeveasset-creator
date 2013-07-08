@@ -43,7 +43,7 @@ import org.w3c.dom.Document;
 
 public abstract class AbstractXmlWriter {
 
-	protected static Document getXmlDocument(String rootname) throws XmlException {
+	protected Document getXmlDocument(String rootname) throws XmlException {
 		try {
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 			DocumentBuilder builder = factory.newDocumentBuilder();
@@ -53,11 +53,11 @@ public abstract class AbstractXmlWriter {
 			throw new XmlException(ex.getMessage(), ex);
 		}
 	}
-	protected static void writeXmlFile(Document doc, String filename) throws XmlException {
+	protected void writeXmlFile(Document doc, String filename) throws XmlException {
 		writeXmlFile(doc, filename, "UTF-8");
 	}
 
-	protected static void writeXmlFile(Document doc, String filename, String encoding) throws XmlException {
+	protected void writeXmlFile(Document doc, String filename, String encoding) throws XmlException {
 		DOMSource source = new DOMSource(doc);
 		try {
 			File outputFile = new File(filename);

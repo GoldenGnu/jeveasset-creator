@@ -40,18 +40,13 @@ public class Items extends AbstractXmlWriter implements Creator {
 	private final static Logger LOG = LoggerFactory.getLogger(Items.class);
 	
 	@Override
-	public boolean create(File f, Connection con) {
-		return saveItems(con);
-	}
-
-	public boolean saveItems(Connection con){
+	public boolean create() {
 		LOG.info("Items:");
-		Document xmldoc = null;
 		boolean success = false;
 		try {
-			xmldoc = getXmlDocument("rows");
+			Document xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
-			success = createItems(xmldoc, con);
+			success = createItems(xmldoc);
 			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"items.xml"));
 		} catch (XmlException ex) {
@@ -61,14 +56,15 @@ public class Items extends AbstractXmlWriter implements Creator {
 		return success;
 	}
 
-	private boolean createItems(Document xmldoc, Connection con) throws XmlException {
+	private boolean createItems(Document xmldoc) throws XmlException {
 
-		Statement stmt = null;
-		String query = "";
-		ResultSet rs = null;
+		Statement stmt;
+		String query;
+		ResultSet rs;
+		Connection connection = Program.openConnection();
 		Element parentNode = xmldoc.getDocumentElement();
 		try {
-			stmt = con.createStatement();
+			stmt = connection.createStatement();
 			query = "SELECT marketGroupID FROM invmarketgroups WHERE marketGroupName = 'Planetary Materials'";
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
@@ -76,8 +72,10 @@ public class Items extends AbstractXmlWriter implements Creator {
 			while (rs.next()) {
 				planetaryMaterialsID = rs.getInt("marketGroupID");
 			}
-			
-			stmt = con.createStatement();
+			Program.close(rs);
+			Program.close(stmt);
+
+			stmt = connection.createStatement();
 			query = "SELECT COUNT(invTypes.typeID) as count"
 					+ " FROM"
 					+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
@@ -92,8 +90,10 @@ public class Items extends AbstractXmlWriter implements Creator {
 			while (rs.next()) {
 				realCount = rs.getInt("count");
 			}
+			Program.close(rs);
+			Program.close(stmt);
 
-			stmt = con.createStatement();
+			stmt = connection.createStatement();
 			query = "SELECT"
 					+ " invTypes.typeID"
 					+ " ,invTypes.volume"
@@ -132,7 +132,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "category", rs.getString("categoryName"));
 				node.setAttributeNS(null, "price", String.valueOf(rs.getLong("basePrice")));
 				node.setAttributeNS(null, "volume", String.valueOf(rs.getDouble("volume")));
-				Meta meta = getMetaLevel(con, id, rs.getString("metaGroupName"));
+				Meta meta = getMetaLevel(connection, id, rs.getString("metaGroupName"));
 				node.setAttributeNS(null, "meta", String.valueOf(meta.getLevel()));
 				node.setAttributeNS(null, "tech", meta.getTech());
 				node.setAttributeNS(null, "pi", rs.getInt("invMarketGroups.parentGroupID") == planetaryMaterialsID ? "true" : "false");
@@ -143,26 +143,32 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup));
 				parentNode.appendChild(node);
 
-				addMaterials(con, xmldoc, node, id, rs.getInt("portionSize"));
+				addMaterials(connection, xmldoc, node, id, rs.getInt("portionSize"));
 
 				count++;
 			}
+			Program.close(rs);
+			Program.close(stmt);
 			if (realCount != count){
 				return false;
 			}
 
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
+		} finally {
+			Program.close(connection);
 		}
 		return true;
 	}
 
-	private Meta getMetaLevel(Connection con, int id, String metaGroupName){
+	private Meta getMetaLevel(Connection connection, int id, String metaGroupName){
+		Statement stmt = null;
+		ResultSet rs = null;
 		try {
-			Statement stmt = con.createStatement();
+			stmt = connection.createStatement();
 			String query = "SELECT * FROM dgmTypeAttributes"
 				+ " WHERE attributeID = 633 AND typeID = " + id;
-			ResultSet rs = stmt.executeQuery(query);
+			rs = stmt.executeQuery(query);
 			if (rs == null) return new Meta();
 			while (rs.next()) {
 				int metaLevel = 0;
@@ -182,18 +188,20 @@ public class Items extends AbstractXmlWriter implements Creator {
 			}
 		} catch (SQLException ex) {
 			LOG.error("Items not saved (SQL): "+ex.getMessage(), ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
 		}
 		return new Meta();
 
 	}
 
-	private void addMaterials(Connection con, Document xmldoc, Element parentNode, int typeID, int portionSize){
+	private void addMaterials(Connection connection, Document xmldoc, Element parentNode, int typeID, int portionSize){
 		Statement stmt = null;
-		String query = "";
 		ResultSet rs = null;
 		try {
-			stmt = con.createStatement();
-			query = "SELECT * FROM invTypeMaterials WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
+			stmt = connection.createStatement();
+			String query = "SELECT * FROM invTypeMaterials WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
 			rs = stmt.executeQuery(query);
 			if (rs == null) return;
 			while (rs.next()) {
@@ -203,17 +211,19 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "id", String.valueOf(requiredTypeID));
 				node.setAttributeNS(null, "quantity", String.valueOf(quantity));
 				node.setAttributeNS(null, "portionsize", String.valueOf(portionSize));
-				if (isMarketItem(con, typeID)){
+				if (isMarketItem(connection, typeID)){
 					parentNode.appendChild(node);
 				}
 			}
 		} catch (SQLException ex) {
 			LOG.error("Materials not added (SQL): "+ex.getMessage(), ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
 		}
 	}
-	private boolean isMarketItem(Connection con, int typeID){
+	private boolean isMarketItem(Connection connection, int typeID){
 		Statement stmt = null;
-		String query = "";
 		ResultSet rs = null;
 		try {
 			/*
@@ -242,16 +252,18 @@ public class Items extends AbstractXmlWriter implements Creator {
 			&& groupID == 964
 			&& groupID == 423
 			*/
-			stmt = con.createStatement();
-			query = "SELECT * FROM invTypes WHERE typeID = "+typeID+" AND marketGroupID IS NOT NULL AND groupID != 0 AND groupID != 268 AND groupID != 269 AND groupID != 270 AND groupID != 332";
+			stmt = connection.createStatement();
+			String query = "SELECT * FROM invTypes WHERE typeID = "+typeID+" AND marketGroupID IS NOT NULL AND groupID != 0 AND groupID != 268 AND groupID != 269 AND groupID != 270 AND groupID != 332";
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {
 				return true;
 			}
-
 		} catch (SQLException ex) {
 			LOG.error("Name not added (SQL): "+ex.getMessage(), ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
 		}
 		return false;
 	}

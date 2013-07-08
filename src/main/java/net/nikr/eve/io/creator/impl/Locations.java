@@ -22,7 +22,6 @@
 package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
-import net.nikr.eve.io.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,11 +30,15 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import net.nikr.eve.Program;
+import net.nikr.eve.io.AbstractXmlWriter;
+import net.nikr.eve.io.XmlException;
 import net.nikr.eve.io.creator.Creator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+
 
 public class Locations extends AbstractXmlWriter implements Creator {
 	
@@ -55,18 +58,14 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			+ " LEFT JOIN mapSolarSystems AS mapSS ON mapd.itemID = mapSS.solarSystemID";
 	
 	@Override
-	public boolean create(File f, Connection con) {
-		return saveLocations(con);
-	}
-
-	public boolean saveLocations(Connection con) {
+	public boolean create() {
 		LOG.info("Locations:");
 		Document xmldoc;
 		boolean success = false;
 		try {
 			xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
-			success = createLocations(xmldoc, con);
+			success = createLocations(xmldoc);
 			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"locations.xml"));
 		} catch (XmlException ex) {
@@ -76,11 +75,14 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		return success;
 	}
 
-	private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
+	private boolean createLocations(Document xmldoc) throws XmlException {
 		Element parentNode = xmldoc.getDocumentElement();
+		Statement stmt = null;
+		ResultSet rs = null;
+		Connection connection = Program.openConnection();
 		try {
-			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery(query
+			stmt = connection.createStatement();
+			rs = stmt.executeQuery(query
 					+ " WHERE mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15" //3 = Region 5 = Solar System
 					+ " ORDER BY mapd.itemID");
 			if (rs == null) return false;
@@ -111,7 +113,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 					systemName = itemName;
 				} else {
 					systemID = rs.getInt("systemID");
-					systemName = getName(con, systemID);
+					systemName = getName(connection, systemID);
 				}
 				node.setAttributeNS(null, "syi", String.valueOf(systemID));
 				node.setAttributeNS(null, "sy", systemName);
@@ -124,7 +126,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 					regionName = itemName;
 				} else {
 					regionID = rs.getInt("regionID");
-					regionName = getName(con, regionID);
+					regionName = getName(connection, regionID);
 				}
 				node.setAttributeNS(null, "ri", String.valueOf(regionID));
 				node.setAttributeNS(null, "r", regionName);
@@ -140,13 +142,19 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			}
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
+			Program.close(connection);
 		}
 		return true;
 	}
-	private String getName(Connection con, int itemID) throws XmlException {
+	private String getName(Connection connection, int itemID) throws XmlException {
+		Statement stmt = null;
+		ResultSet rs = null;
 		try {
-			Statement stmt = con.createStatement();
-			ResultSet rs = stmt.executeQuery(query
+			stmt = connection.createStatement();
+			rs = stmt.executeQuery(query
 					+ " WHERE (mapd.typeID = 5 OR mapd.typeID = 3 OR mapd.groupID = 15)" //3 = Region 5 = Solar System
 					+ " AND mapd.itemID = "+itemID+" "
 					+ " ORDER BY mapd.itemID");
@@ -158,6 +166,9 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			}
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
 		}
 		return "";
 	}

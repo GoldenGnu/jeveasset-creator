@@ -39,18 +39,13 @@ public class Jumps extends AbstractXmlWriter implements Creator {
 	private final static Logger LOG = LoggerFactory.getLogger(Jumps.class);
 
 	@Override
-	public boolean create(File f, Connection con) {
-		return saveJumps(con);
-	}
-
-	public boolean saveJumps(Connection con) {
+	public boolean create() {
 		LOG.info("Jumps:");
-		Document xmldoc = null;
 		boolean success = false;
 		try {
-			xmldoc = getXmlDocument("rows");
+			Document xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
-			success = createLocations(xmldoc, con);
+			success = createJumps(xmldoc);
 			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"jumps.xml"));
 		} catch (XmlException ex) {
@@ -60,14 +55,14 @@ public class Jumps extends AbstractXmlWriter implements Creator {
 		return success;
 	}
 
-	private boolean createLocations(Document xmldoc, Connection con) throws XmlException {
-		Statement stmt = null;
-		String query = "";
-		ResultSet rs = null;
+	private boolean createJumps(Document xmldoc) throws XmlException {
 		Element parentNode = xmldoc.getDocumentElement();
+		ResultSet rs = null;
+		Statement stmt = null;
+		Connection connection = Program.openConnection();
 		try {
-			stmt = con.createStatement();
-			query = "select fromSolarSystemID, toSolarSystemID from mapSolarSystemJumps ORDER BY fromSolarSystemID";
+			stmt = connection.createStatement();
+			String query = "select fromSolarSystemID, toSolarSystemID from mapSolarSystemJumps ORDER BY fromSolarSystemID";
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {
@@ -80,6 +75,10 @@ public class Jumps extends AbstractXmlWriter implements Creator {
 			}
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
+			Program.close(connection);
 		}
 		return true;
 	}

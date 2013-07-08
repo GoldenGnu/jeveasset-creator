@@ -22,10 +22,7 @@
 package net.nikr.eve.io;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import javax.swing.JOptionPane;
-import javax.swing.JPasswordField;
 import net.nikr.eve.ConnectionData;
 import net.nikr.eve.Program;
 import org.slf4j.Logger;
@@ -38,42 +35,42 @@ public class ConnectionReader extends AbstractXmlReader {
 
 	private final static Logger LOG = LoggerFactory.getLogger(ConnectionReader.class);
 	
+	public static ConnectionData load(){
+		ConnectionReader reader = new ConnectionReader();
+		return reader.parseConnection();
+	}
+	
 	private ConnectionReader() {}
 
-	public static Connection loadConnection(){
+	private ConnectionData parseConnection(){
 		ConnectionData connectionData = null;
 		try {
 			String fName = Program.getFilename("connection.xml");
 			System.out.println("fName = " + fName);
 			Element element = getDocumentElement(fName);
 			connectionData = parseConnection(element);
+			if (connectionData.getPassword().isEmpty()){
+				String password = JOptionPane.showInputDialog(null, "Enter MySQL password:", "Password", JOptionPane.PLAIN_MESSAGE);
+				if (password != null){
+					connectionData.setPassword(password);
+				}
+			}
+			if (connectionData.getDatabase().isEmpty()){
+				String database = JOptionPane.showInputDialog(null, "Enter MySQL database name:", "Database", JOptionPane.PLAIN_MESSAGE);
+				if (database != null){
+					connectionData.setDatabase(database);
+				}
+			}
 		} catch (IOException ex) {
 			LOG.error("Connection not loaded: "+ex.getMessage(), ex);
 		} catch (XmlException ex) {
 			LOG.error("Connection not loaded: "+ex.getMessage(), ex);
 		}
-		if (connectionData.getPassword().isEmpty()){
-			String password = JOptionPane.showInputDialog(null, "Enter MySQL Password:", "Password", JOptionPane.PLAIN_MESSAGE);
-			if (password != null){
-				connectionData.setPassword(password);
-			}
-		}
 		LOG.info("Connection loaded");
-		Connection con = null;
-		try {
-			Class.forName(connectionData.getDriver());
-			String connectionUrl = connectionData.getConnectionUrl();
-			con = DriverManager.getConnection(connectionUrl, connectionData.getUsername(), connectionData.getPassword());
-		} catch (Exception ex) {
-			LOG.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
-			throw new RuntimeException("Connecting to SQL server failed (SQL)", ex);
-		}
-		LOG.info("Connection opened");
-		JOptionPane.showMessageDialog(null, connectionData.getDatabase(), "Database", JOptionPane.PLAIN_MESSAGE);
-		return con;
+		return connectionData;
 	}
 
-	private static ConnectionData parseConnection(Element element) throws XmlException {
+	private ConnectionData parseConnection(Element element) throws XmlException {
 		ConnectionData connectionData = new ConnectionData();
 		if (!element.getNodeName().equals("connection")) {
 			throw new XmlException("Wrong root element name.");

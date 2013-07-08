@@ -22,6 +22,7 @@ package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.AbstractXmlWriter;
@@ -38,18 +39,13 @@ public class Version extends AbstractXmlWriter implements Creator {
 	private final static Logger LOG = LoggerFactory.getLogger(Version.class);
 
 	@Override
-	public boolean create(File f, Connection con) {
-		return saveVersion(con);
-	}
-
-	public boolean saveVersion(Connection con){
+	public boolean create() {
 		LOG.info("Version:");
-		Document xmldoc = null;
 		boolean success = false;
 		try {
-			xmldoc = getXmlDocument("rows");
+			Document xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
-			success = createVersion(xmldoc, con);
+			success = createVersion(xmldoc);
 			if (success){
 				LOG.info("	Saving...");
 				writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"data.xml"));
@@ -61,28 +57,40 @@ public class Version extends AbstractXmlWriter implements Creator {
 		return success;
 	}
 
-	private boolean createVersion(Document xmldoc, Connection con) throws XmlException {
+	private boolean createVersion(Document xmldoc) throws XmlException {
 		Element parentNode = xmldoc.getDocumentElement();
-		String value = JOptionPane.showInputDialog(null, "Enter version: [NAME] X.X.X.XXXXX", "Version", JOptionPane.QUESTION_MESSAGE);
+		String value = (String) JOptionPane.showInputDialog(null, "Enter version: [NAME] X.X.X.XXXXX", "Version", JOptionPane.QUESTION_MESSAGE, null, null, getDatabase());
 		if (value != null){
 			Element node = xmldoc.createElementNS(null, "row");
 			node.setAttributeNS(null, "version", value);
 			parentNode.appendChild(node);
 			return true;
 		} else {
-			int i = JOptionPane.showConfirmDialog(null, "Cancel creation of version.xml?\r\nNo to retry...", "Continue?", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
-			if (i == JOptionPane.YES_OPTION){
-				LOG.info("	Creation cancelled...");
-				return false;
-			} else {
-				return createVersion(xmldoc, con);
-			}
+			return false;
 		}
 	}
 
 	@Override
 	public String getName() {
 		return "Version";
+	}
+
+	private String getDatabase() {
+		Connection connection = Program.openConnection();
+		try {
+			String value = connection.getMetaData().getURL();
+			int start = value.lastIndexOf("/") + 1;
+			if (start >= 0 && start <= value.length()) {
+				return value.substring(start);
+			} else {
+				return value;
+			}
+		} catch (SQLException ex) {
+			LOG.warn("Failed to get database name");
+			return "";
+		} finally {
+			Program.close(connection);
+		}
 	}
 
 }

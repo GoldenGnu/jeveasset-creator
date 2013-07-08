@@ -22,12 +22,13 @@
 package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
-import net.nikr.eve.io.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.Program;
+import net.nikr.eve.io.AbstractXmlWriter;
+import net.nikr.eve.io.XmlException;
 import net.nikr.eve.io.creator.Creator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,18 +41,13 @@ public class Flags extends AbstractXmlWriter implements Creator {
 	private final static Logger LOG = LoggerFactory.getLogger(Flags.class);
 
 	@Override
-	public boolean create(File f, Connection con) {
-		return saveFlags(con);
-	}
-
-	public boolean saveFlags(Connection con){
+	public boolean create() {
 		LOG.info("Flags:");
-		Document xmldoc = null;
 		boolean success = false;
 		try {
-			xmldoc = getXmlDocument("rows");
+			Document xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
-			success = createFlags(xmldoc, con);
+			success = createFlags(xmldoc);
 			LOG.info("	Saving...");
 			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"flags.xml"));
 		} catch (XmlException ex) {
@@ -61,14 +57,14 @@ public class Flags extends AbstractXmlWriter implements Creator {
 		return success;
 	}
 
-	private boolean createFlags(Document xmldoc, Connection con) throws XmlException {
-		Statement stmt = null;
-		String query = "";
-		ResultSet rs = null;
+	private boolean createFlags(Document xmldoc) throws XmlException {
 		Element parentNode = xmldoc.getDocumentElement();
+		ResultSet rs = null;
+		Statement stmt = null;
+		Connection connection = Program.openConnection();
 		try {
-			stmt = con.createStatement();
-			query = "SELECT flagID, flagName, flagText FROM invFlags ORDER BY flagID" ;
+			stmt = connection.createStatement();
+			String query = "SELECT flagID, flagName, flagText FROM invFlags ORDER BY flagID" ;
 			rs = stmt.executeQuery(query);
 			if (rs == null) return false;
 			while (rs.next()) {
@@ -83,6 +79,10 @@ public class Flags extends AbstractXmlWriter implements Creator {
 			}
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
+			Program.close(connection);
 		}
 		return true;
 	}

@@ -22,28 +22,28 @@
 package net.nikr.eve.io;
 
 import java.awt.Color;
-import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.SwingUtilities;
-import net.nikr.eve.gui.Frame;
-import net.nikr.eve.gui.Frame.CreatorSection;
+import net.nikr.eve.ConnectionData;
+import net.nikr.eve.gui.MainFrame;
+import net.nikr.eve.gui.MainFrame.CreatorSection;
 import net.nikr.eve.io.creator.Creator;
 
 
 public class DataWriter extends Thread{
 
-	private Frame frame;
+	private MainFrame frame;
 	private List<Creator> creators;
-	private Connection con;
+	private ConnectionData connectionData;
 	List<ProgressMonitor> progressMonitors = new ArrayList<ProgressMonitor>();
 	private List<CreatorSection> creatorSections;
 
-	public DataWriter(Frame frame, List<Creator> creators, List<CreatorSection> creatorSections, Connection con) {
+	public DataWriter(MainFrame frame, List<Creator> creators, List<CreatorSection> creatorSections, ConnectionData connectionData) {
 		this.frame = frame;
 		this.creators = creators;
 		this.creatorSections = creatorSections;
-		this.con = con;
+		this.connectionData = connectionData;
 	}
 
 	public boolean addProgressMonitor(ProgressMonitor e) {
@@ -69,7 +69,13 @@ public class DataWriter extends Thread{
 			for (ProgressMonitor pm : progressMonitors) {
 				pm.setValue(count);
 			}
-			final boolean ok = creator.create(null, con);
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					section.getLeft().setForeground(Color.BLUE);
+				}
+			});
+			final boolean ok = creator.create();
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {

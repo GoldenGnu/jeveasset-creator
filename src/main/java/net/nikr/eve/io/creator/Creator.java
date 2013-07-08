@@ -25,6 +25,7 @@ package net.nikr.eve.io.creator;
 
 import java.io.File;
 import java.sql.Connection;
+import net.nikr.eve.ConnectionData;
 
 // </editor-fold>
 /**
@@ -32,6 +33,6 @@ import java.sql.Connection;
  * @author Andrew Wheat
  */
 public interface Creator {
-	public boolean create(File f, Connection con);
+	public boolean create();
 	public String getName();
 }

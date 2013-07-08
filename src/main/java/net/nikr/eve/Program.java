@@ -24,20 +24,33 @@ package net.nikr.eve;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.sql.Connection;
-import net.nikr.eve.gui.Frame;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import net.nikr.eve.gui.MainFrame;
 import net.nikr.eve.io.ConnectionReader;
 import net.nikr.eve.io.XmlException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class Program {
 
+	private final static Logger LOG = LoggerFactory.getLogger(Program.class);
+
 	public static final String PROGRAM_VERSION = "1.0.0";
 	public static final String PROGRAM_NAME = "XML Creator for jEveAssets";
 
+	private static ConnectionData connectionData = null;
 
 	public Program() {
-		Connection con = ConnectionReader.loadConnection();
-		Frame frame = new Frame(con);
+		//Test connection
+		Connection connection = openConnection();
+		close(connection);
+		//Create GUI
+		MainFrame frame = new MainFrame(connectionData);
+		//Show GUI
 		frame.setVisible(true);
 	}
 
@@ -49,6 +62,52 @@ public class Program {
 			return ret.getAbsolutePath();
 		} catch (URISyntaxException ex) {
 			throw new XmlException(ex);
+		}
+	}
+
+	public static Connection openConnection() {
+		if (connectionData == null) { //Load connection data
+			connectionData = ConnectionReader.load();
+		}
+		try {
+			Class.forName(connectionData.getDriver());
+			String connectionUrl = connectionData.getConnectionUrl();
+			Connection connection = DriverManager.getConnection(connectionUrl, connectionData.getUsername(), connectionData.getPassword());
+			return connection;
+		} catch (Exception ex) {
+			LOG.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
+			throw new RuntimeException("Connecting to SQL server failed (SQL)", ex);
+		}
+	}
+
+	public static void close(ResultSet resultSet) {
+		try {
+			if (resultSet != null) {
+				resultSet.close();
+			}
+		} catch (SQLException ex) {
+			LOG.error("Closing SQL result failed (SQL): "+ex.getMessage(), ex);
+			throw new RuntimeException("Closing SQL result failed (SQL)", ex);
+		}
+	}
+	public static void close(Statement statement) {
+		try {
+			if (statement != null) {
+				statement.close();
+			}
+		} catch (SQLException ex) {
+			LOG.error("Closing SQL statement failed (SQL): "+ex.getMessage(), ex);
+			throw new RuntimeException("Closing SQL statement failed (SQL)", ex);
+		}
+	}
+	public static void close(Connection connection) {
+		try {
+			if (connection != null) {
+				connection.close();
+			}
+		} catch (SQLException ex) {
+			LOG.error("Closing SQL connection failed (SQL): "+ex.getMessage(), ex);
+			throw new RuntimeException("Closing SQL connection failed (SQL)", ex);
 		}
 	}
 }

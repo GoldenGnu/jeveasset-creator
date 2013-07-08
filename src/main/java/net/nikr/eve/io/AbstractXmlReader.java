@@ -34,16 +34,12 @@ import org.xml.sax.SAXException;
 
 public abstract class AbstractXmlReader {
 	
-	protected static Element getDocumentElement(String filename) throws XmlException, IOException {
-		DocumentBuilderFactory factory = null;
-		DocumentBuilder builder = null;
-		Document doc = null;
-		FileInputStream is = null;
+	protected Element getDocumentElement(String filename) throws XmlException, IOException {
 		try {
-			is = new FileInputStream(new File(filename));
-			factory = DocumentBuilderFactory.newInstance();
-			builder = factory.newDocumentBuilder();
-			doc = builder.parse(is);
+			FileInputStream is = new FileInputStream(new File(filename));
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			Document doc = builder.parse(is);
 			is.close();
 			return doc.getDocumentElement();
 		} catch (SAXException ex) {

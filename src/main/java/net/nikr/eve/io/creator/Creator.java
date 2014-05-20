@@ -21,13 +21,6 @@
 
 package net.nikr.eve.io.creator;
 
-// <editor-fold defaultstate="collapsed" desc="imports">
-
-import java.io.File;
-import java.sql.Connection;
-import net.nikr.eve.ConnectionData;
-
-// </editor-fold>
 /**
  *
  * @author Andrew Wheat
@@ -35,4 +28,6 @@ import net.nikr.eve.ConnectionData;
 public interface Creator {
 	public boolean create();
 	public String getName();
+	public String getFilename();
+	
 }

@@ -19,20 +19,19 @@
  *
  */
 
-package net.nikr.eve;
+package net.nikr.eve.io.sql;
 
 
 public class ConnectionData {
-	String host;
-	String port;
-	String database;
-	String username;
-	String password;
-	String driver;
-	String driverURLPart;
+	private String host;
+	private String port;
+	private String database;
+	private String username;
+	private String password;
+	private String driver;
+	private String driverURLPart;
 
-	public ConnectionData() {
-	}
+	public ConnectionData() { }
 
 	public void setDatabase(String database) {
 		this.database = database;

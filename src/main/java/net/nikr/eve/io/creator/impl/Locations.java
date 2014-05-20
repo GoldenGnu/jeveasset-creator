@@ -30,11 +30,12 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import net.nikr.eve.Program;
-import net.nikr.eve.io.AbstractXmlWriter;
-import net.nikr.eve.io.XmlException;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.xml.AbstractXmlWriter;
+import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -44,7 +45,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
 
-	private DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
+	private final DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
 
 	private final String query = "SELECT"
 			+ "  mapd.itemID"
@@ -65,14 +66,21 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		try {
 			xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
+			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
+			xmldoc.getDocumentElement().appendChild(comment);
 			success = createLocations(xmldoc);
 			LOG.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"locations.xml"));
+			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
 		} catch (XmlException ex) {
 			LOG.error("Locations not saved (XML): " + ex.getMessage(), ex);
 		}
 		LOG.info("	Locations done");
 		return success;
+	}
+
+	@Override
+	public String getFilename() {
+		return "data"+File.separator+"locations.xml";
 	}
 
 	private boolean createLocations(Document xmldoc) throws XmlException {

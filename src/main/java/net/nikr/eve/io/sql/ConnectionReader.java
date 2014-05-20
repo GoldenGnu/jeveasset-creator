@@ -19,12 +19,13 @@
  *
  */
 
-package net.nikr.eve.io;
+package net.nikr.eve.io.sql;
 
 import java.io.IOException;
 import javax.swing.JOptionPane;
-import net.nikr.eve.ConnectionData;
 import net.nikr.eve.Program;
+import net.nikr.eve.io.xml.AbstractXmlReader;
+import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Element;
@@ -34,10 +35,15 @@ import org.w3c.dom.NodeList;
 public class ConnectionReader extends AbstractXmlReader {
 
 	private final static Logger LOG = LoggerFactory.getLogger(ConnectionReader.class);
+
+	private static ConnectionData data = null;
 	
-	public static ConnectionData load(){
-		ConnectionReader reader = new ConnectionReader();
-		return reader.parseConnection();
+	public static ConnectionData getConnectionData(){
+		if (data == null) {
+			ConnectionReader reader = new ConnectionReader();
+			data = reader.parseConnection();
+		}
+		return data;
 	}
 	
 	private ConnectionReader() {}
@@ -61,12 +67,12 @@ public class ConnectionReader extends AbstractXmlReader {
 					connectionData.setDatabase(database);
 				}
 			}
+			LOG.info("Connection loaded");
 		} catch (IOException ex) {
 			LOG.error("Connection not loaded: "+ex.getMessage(), ex);
 		} catch (XmlException ex) {
 			LOG.error("Connection not loaded: "+ex.getMessage(), ex);
 		}
-		LOG.info("Connection loaded");
 		return connectionData;
 	}
 

@@ -21,8 +21,7 @@
 
 package net.nikr.eve.io;
 
-// <editor-fold defaultstate="collapsed" desc="imports">
-// </editor-fold>
+
 /**
  *
  * @author Andrew Wheat

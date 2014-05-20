@@ -20,54 +20,91 @@
  */
 package net.nikr.eve.io.creator.impl;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import net.nikr.eve.Program;
-import net.nikr.eve.io.AbstractXmlWriter;
-import net.nikr.eve.io.XmlException;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.xml.AbstractXmlWriter;
+import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 
 public class Version extends AbstractXmlWriter implements Creator {
-	
+
 	private final static Logger LOG = LoggerFactory.getLogger(Version.class);
 
 	@Override
 	public boolean create() {
 		LOG.info("Version:");
-		boolean success = false;
+		BufferedWriter writer = null;
+		InputStream input = null;
+		int n;
 		try {
-			Document xmldoc = getXmlDocument("rows");
-			LOG.info("	Creating...");
-			success = createVersion(xmldoc);
-			if (success){
-				LOG.info("	Saving...");
-				writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"data.xml"));
+			//create a temporary file
+			String filename = Program.getFilename(getFilename());
+			File file = new File(filename);
+			//MessageDigest md = MessageDigest.getInstance("MD5");
+			writer = new BufferedWriter(new FileWriter(file));
+			String createVersion = createVersion();
+			if (createVersion != null) {
+				writer.write(createVersion);
+				writer.close();
+
+				//Hash file
+				MessageDigest md = MessageDigest.getInstance("MD5");
+
+				byte[] buffer = new byte[4096];
+				input = new DigestInputStream(new FileInputStream(file), md);
+				while ((n = input.read(buffer)) != -1) {
+					//Digest
+				}
+				createHashFile(md, filename);
+				return true;
 			}
+			
+		} catch (IOException ex) {
+			LOG.error(ex.getMessage(), ex);
 		} catch (XmlException ex) {
-			LOG.error("Version not saved (XML): "+ex.getMessage(), ex);
+			LOG.error(ex.getMessage(), ex);
+		} catch (NoSuchAlgorithmException ex) {
+			LOG.error(ex.getMessage(), ex);
+		} finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (IOException ex) {
+					LOG.error(ex.getMessage(), ex);
+				}
+			}
+			if (input != null) {
+				try {
+					input.close();
+				} catch (IOException ex) {
+					ex.printStackTrace();
+				}
+			}
 		}
-		LOG.info("	Version done");
-		return success;
+		return false;
 	}
 
-	private boolean createVersion(Document xmldoc) throws XmlException {
-		Element parentNode = xmldoc.getDocumentElement();
-		String value = (String) JOptionPane.showInputDialog(null, "Enter version: [NAME] X.X.X.XXXXX", "Version", JOptionPane.QUESTION_MESSAGE, null, null, getDatabase());
-		if (value != null){
-			Element node = xmldoc.createElementNS(null, "row");
-			node.setAttributeNS(null, "version", value);
-			parentNode.appendChild(node);
-			return true;
-		} else {
-			return false;
-		}
+	@Override
+	public String getFilename() {
+		return "data" + File.separator + "data.dat";
+	}
+
+	private String createVersion() {
+		return (String) JOptionPane.showInputDialog(null, "Enter version: [NAME] X.X.X", "Version", JOptionPane.QUESTION_MESSAGE, null, null, getDatabase());
 	}
 
 	@Override
@@ -81,10 +118,14 @@ public class Version extends AbstractXmlWriter implements Creator {
 			String value = connection.getMetaData().getURL();
 			int start = value.lastIndexOf("/") + 1;
 			if (start >= 0 && start <= value.length()) {
-				return value.substring(start);
-			} else {
-				return value;
+				value = value.substring(start);
 			}
+			value = value.replaceFirst("_", " ").replace("_", ".");
+			int end = value.lastIndexOf(".");
+			if (end >= 0 && end <= value.length()) {
+				value = value.substring(0, end);
+			}
+			return Character.toUpperCase(value.charAt(0)) + value.substring(1);
 		} catch (SQLException ex) {
 			LOG.warn("Failed to get database name");
 			return "";

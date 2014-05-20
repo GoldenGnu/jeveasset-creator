@@ -30,19 +30,22 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.ArrayList;
 import java.util.List;
-import javax.swing.Box;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.ParallelGroup;
+import javax.swing.GroupLayout.SequentialGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import net.nikr.eve.ConnectionData;
+import javax.swing.JSeparator;
+import net.nikr.eve.io.sql.ConnectionData;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.DataWriter;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.creator.Creators;
+import net.nikr.eve.io.ftp.FtpData;
+import net.nikr.eve.io.ftp.FtpWriter;
 
 
 public class MainFrame extends JFrame implements WindowListener, ActionListener	{
@@ -53,61 +56,81 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 	public final static String CHECK = "CHECK";
 
 	//GUI
-	private JPanel jMainPanel;
-	private JButton jRun;
-	private JCheckBox jAll;
-	private ProgressBar jProgressBar;
+	private final JPanel jPanel;
+	private final JButton jRun;
+	private final JCheckBox jAll;
+	private final ProgressBar jProgressBar;
 	List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
 
 	//Data
-	private ConnectionData connectionData;
+	private final ConnectionData connectionData;
+	private final FtpData ftpData;
 	
-	public MainFrame(ConnectionData connectionData){
+	public MainFrame(ConnectionData connectionData, FtpData ftpData){
 		this.connectionData = connectionData;
-		setLayout(new BorderLayout(4, 4));
+		this.ftpData = ftpData;
+		setLayout(new BorderLayout(1, 4));
 		
 		//Main Panel
-		jMainPanel = new JPanel();
-		jMainPanel.setLayout(new GridLayout(Creators.values().length+1, 2, 5, 5));
-		
-		JLabel jLabel = new JLabel("All");
-		jLabel.setHorizontalAlignment(JLabel.TRAILING);
-		jAll = new JCheckBox();
-		jAll.setAlignmentX(CENTER_ALIGNMENT);
+		jPanel = new JPanel();
+		jPanel.setLayout(new GridLayout(Creators.values().length+1, 2, 5, 5));
+
+		GroupLayout layout = new GroupLayout(jPanel);
+		jPanel.setLayout(layout);
+		layout.setAutoCreateGaps(true);
+		layout.setAutoCreateContainerGaps(true);
+		ParallelGroup horizontalGroup = layout.createParallelGroup();
+		SequentialGroup verticalGroup = layout.createSequentialGroup();
+
+		jAll = new JCheckBox("All");
 		jAll.setActionCommand(CHECK_ALL);
 		jAll.addActionListener(this);
-		jMainPanel.add(jLabel);
-		jMainPanel.add(jAll);
+
+		horizontalGroup.addComponent(jAll);
+		verticalGroup.addComponent(jAll, 30, 30, 30);
+
+		JSeparator jSeparator1 = new JSeparator(JSeparator.HORIZONTAL);
+		horizontalGroup.addComponent(jSeparator1);
+		verticalGroup.addComponent(jSeparator1, 5, 5, 5);
 
 		for (Creators creator : Creators.values()) {
 			CreatorSection cs = new CreatorSection(creator.getCreator());
 			creatorSections.add(cs);
-			cs.getRight().setActionCommand(CHECK);
-			cs.getRight().addActionListener(this);
-			jMainPanel.add(cs.getLeft());
-			jMainPanel.add(cs.getRight());
+			cs.getCheckBox().setActionCommand(CHECK);
+			cs.getCheckBox().addActionListener(this);
+			horizontalGroup.addComponent(cs.getCheckBox());
+			verticalGroup.addComponent(cs.getCheckBox(), 30, 30, 30);
 		}
 
-		Box bottom = Box.createHorizontalBox();
+		JSeparator jSeparator2 = new JSeparator(JSeparator.HORIZONTAL);
+		horizontalGroup.addComponent(jSeparator2);
+		verticalGroup.addComponent(jSeparator2, 5, 5, 5);
+
 		jProgressBar = new ProgressBar();
 		jProgressBar.setEnabled(false);
-		bottom.add(jProgressBar);
 
-		bottom.add(Box.createHorizontalStrut(5));
 
 		jRun = new JButton("Run");
 		jRun.setActionCommand(ACTION_RUN);
 		jRun.addActionListener(this);
-		bottom.add(jRun);
 
-		jMainPanel.setAlignmentX(CENTER_ALIGNMENT);
-		jMainPanel.setAlignmentY(CENTER_ALIGNMENT);
-		add(jMainPanel, BorderLayout.CENTER);
-		add(bottom, BorderLayout.SOUTH);
+		horizontalGroup.addGroup(layout.createSequentialGroup()
+				.addComponent(jProgressBar, 250, 250, 250)
+				.addComponent(jRun)
+		);
+		verticalGroup.addGroup(layout.createParallelGroup()
+				.addComponent(jProgressBar, 25, 25, 25)
+				.addComponent(jRun, 25, 25, 25)
+		);
+
+		layout.setHorizontalGroup(horizontalGroup);
+		layout.setVerticalGroup(verticalGroup);
 
 		//Frame
+		this.getContentPane().add(jPanel);
 		this.setTitle(Program.PROGRAM_NAME);
 		this.addWindowListener(this);
+		this.setResizable(false);
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.pack();
 	}
@@ -151,7 +174,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		if (CHECK.equals(e.getActionCommand())){
 			boolean selected = true;
 			for (CreatorSection cs : creatorSections) {
-				if (!cs.getRight().isSelected()){
+				if (!cs.getCheckBox().isSelected()){
 					selected = false;
 					break;
 				}
@@ -160,7 +183,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		}
 		if (CHECK_ALL.equals(e.getActionCommand())){
 			for (CreatorSection cs : creatorSections) {
-				cs.getRight().setSelected(jAll.isSelected());
+				cs.getCheckBox().setSelected(jAll.isSelected());
 			}
 		}
 	}
@@ -173,7 +196,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		builder.append("<html>");
 		for (CreatorSection cs : creatorSections) {
 			if (cs.isSelected()) {
-				String rgb = Integer.toHexString(cs.getLeft().getForeground().getRGB());
+				String rgb = Integer.toHexString(cs.getCheckBox().getForeground().getRGB());
 				rgb = rgb.substring(2, rgb.length());
 				builder.append("<font color=\"");
 				builder.append(rgb);
@@ -185,12 +208,18 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		}
 		JOptionPane.showMessageDialog(this, builder.toString(), "Done", JOptionPane.INFORMATION_MESSAGE);
 		for (CreatorSection cs : creatorSections) {
-			cs.getLeft().setForeground(Color.BLACK);
+			cs.getCheckBox().setForeground(Color.BLACK);
+		}
+		int value = JOptionPane.showConfirmDialog(this, "Upload via FTP?", "Update", JOptionPane.OK_CANCEL_OPTION);
+		if (value == JOptionPane.OK_OPTION) {
+			setAllEnabled(false);
+			FtpWriter.upload(ftpData, jProgressBar);
+			setAllEnabled(true);
 		}
 	}
 	private void setAllEnabled(boolean b){
 		for (CreatorSection cs : creatorSections) {
-			cs.getRight().setEnabled(b);
+			cs.getCheckBox().setEnabled(b);
 		}
 		jAll.setEnabled(b);
 		jRun.setEnabled(b);
@@ -199,33 +228,24 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 
 	public static class CreatorSection {
 		private static final long serialVersionUID = 1l;
-		private Creator creator;
-		private JLabel label;
-		private JCheckBox checkbox;
+		private final Creator creator;
+		private final JCheckBox jCheckbox;
 
 		public Creator getCreator() {
 			return creator;
 		}
 
 		public boolean isSelected() {
-			return checkbox.isSelected();
+			return jCheckbox.isSelected();
 		}
 
-		public JComponent getLeft() {
-			return label;
-		}
-
-		public JCheckBox getRight() {
-			return checkbox;
+		public JCheckBox getCheckBox() {
+			return jCheckbox;
 		}
 
 		public CreatorSection(Creator creator) {
 			this.creator = creator;
-
-			label = new JLabel(creator.getName());
-			label.setHorizontalAlignment(JLabel.TRAILING);
-			checkbox = new JCheckBox();
-			checkbox.setAlignmentX(CENTER_ALIGNMENT);
+			jCheckbox = new JCheckBox(creator.getName());
 		}
 	}
 

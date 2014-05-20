@@ -25,19 +25,19 @@ import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.SwingUtilities;
-import net.nikr.eve.ConnectionData;
 import net.nikr.eve.gui.MainFrame;
 import net.nikr.eve.gui.MainFrame.CreatorSection;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.sql.ConnectionData;
 
 
 public class DataWriter extends Thread{
 
-	private MainFrame frame;
-	private List<Creator> creators;
-	private ConnectionData connectionData;
-	List<ProgressMonitor> progressMonitors = new ArrayList<ProgressMonitor>();
-	private List<CreatorSection> creatorSections;
+	private final MainFrame frame;
+	private final List<Creator> creators;
+	private final ConnectionData connectionData;
+	private final List<ProgressMonitor> progressMonitors = new ArrayList<ProgressMonitor>();
+	private final List<CreatorSection> creatorSections;
 
 	public DataWriter(MainFrame frame, List<Creator> creators, List<CreatorSection> creatorSections, ConnectionData connectionData) {
 		this.frame = frame;
@@ -72,7 +72,7 @@ public class DataWriter extends Thread{
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
-					section.getLeft().setForeground(Color.BLUE);
+					section.getCheckBox().setForeground(Color.BLUE);
 				}
 			});
 			final boolean ok = creator.create();
@@ -80,9 +80,9 @@ public class DataWriter extends Thread{
 				@Override
 				public void run() {
 					if (ok){
-						section.getLeft().setForeground(Color.GREEN.darker().darker());
+						section.getCheckBox().setForeground(Color.GREEN.darker().darker());
 					} else {
-						section.getLeft().setForeground(Color.RED.darker().darker());
+						section.getCheckBox().setForeground(Color.RED.darker().darker());
 					}
 				}
 			});

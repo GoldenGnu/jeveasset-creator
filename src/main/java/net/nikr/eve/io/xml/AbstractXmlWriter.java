@@ -19,13 +19,19 @@
  *
  */
 
-package net.nikr.eve.io;
+package net.nikr.eve.io.xml;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,11 +43,14 @@ import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 
 
 public abstract class AbstractXmlWriter {
+
+	private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(AbstractXmlWriter.class);
 
 	protected Document getXmlDocument(String rootname) throws XmlException {
 		try {
@@ -62,8 +71,9 @@ public abstract class AbstractXmlWriter {
 		try {
 			File outputFile = new File(filename);
 			FileOutputStream outputStream = new FileOutputStream(outputFile);
-			OutputStreamWriter outputStreamWriter;
-			outputStreamWriter = new OutputStreamWriter(outputStream, encoding);
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			DigestOutputStream digestOutputStream = new DigestOutputStream(outputStream, md);
+			OutputStreamWriter outputStreamWriter = new OutputStreamWriter(digestOutputStream, encoding);
 			// result
 			Result result = new StreamResult(outputStreamWriter);
 
@@ -77,6 +87,7 @@ public abstract class AbstractXmlWriter {
 			transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
 			transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
 			transformer.transform(source, result);
+			createHashFile(md, filename);
 		} catch (FileNotFoundException ex) {
 			throw new XmlException(ex.getMessage(), ex);
 		} catch (TransformerConfigurationException ex) {
@@ -85,6 +96,36 @@ public abstract class AbstractXmlWriter {
 			throw new XmlException(ex.getMessage(), ex);
 		} catch (UnsupportedEncodingException ex) {
 			throw new XmlException(ex.getMessage(), ex);
+		} catch (NoSuchAlgorithmException ex) {
+			throw new XmlException(ex.getMessage(), ex);
 		}
+	}
+
+	protected boolean createHashFile(MessageDigest md, String filename) throws XmlException {
+		BufferedWriter writer = null;
+		try {
+			File file = new File(filename + ".md5");
+			writer = new BufferedWriter(new FileWriter(file));
+			writer.write(getToHex(md.digest()));
+		} catch (IOException ex) {
+			throw new XmlException(ex.getMessage(), ex);
+		} finally {
+			if (writer != null) {
+				try {
+					writer.close();
+				} catch (IOException ex) {
+					throw new XmlException(ex.getMessage(), ex);
+				}
+			}
+		}
+		return false;
+	}
+
+	private String getToHex(byte[] b) {
+		String result = "";
+		for (int i = 0; i < b.length; i++) {
+			result += Integer.toString((b[i] & 0xff) + 0x100, 16).substring(1);
+		}
+		return result;
 	}
 }

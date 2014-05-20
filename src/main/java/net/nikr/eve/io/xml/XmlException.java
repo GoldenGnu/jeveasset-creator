@@ -19,7 +19,7 @@
  *
  */
 
-package net.nikr.eve.io;
+package net.nikr.eve.io.xml;
 
 
 public class XmlException extends Exception {

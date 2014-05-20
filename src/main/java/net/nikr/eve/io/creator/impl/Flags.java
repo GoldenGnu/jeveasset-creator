@@ -27,11 +27,12 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.Program;
-import net.nikr.eve.io.AbstractXmlWriter;
-import net.nikr.eve.io.XmlException;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.xml.AbstractXmlWriter;
+import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -47,15 +48,24 @@ public class Flags extends AbstractXmlWriter implements Creator {
 		try {
 			Document xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
+			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
+			xmldoc.getDocumentElement().appendChild(comment);
 			success = createFlags(xmldoc);
 			LOG.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"flags.xml"));
+			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
 		} catch (XmlException ex) {
 			LOG.error("Flags not saved (XML): "+ex.getMessage(), ex);
 		}
 		LOG.info("	Flags done");
 		return success;
 	}
+
+	@Override
+	public String getFilename() {
+		return "data"+File.separator+"flags.xml";
+	}
+
+	
 
 	private boolean createFlags(Document xmldoc) throws XmlException {
 		Element parentNode = xmldoc.getDocumentElement();

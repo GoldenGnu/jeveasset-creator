@@ -24,6 +24,7 @@ package net.nikr.eve;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,13 @@ public class Main {
 		//lookAndFeel = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
 		try {
 			UIManager.setLookAndFeel(lookAndFeel);
-		} catch (Exception e) {
+		} catch (ClassNotFoundException e) {
+			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+		} catch (IllegalAccessException e) {
+			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+		} catch (InstantiationException e) {
+			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+		} catch (UnsupportedLookAndFeelException e) {
 			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
 		}
 	}

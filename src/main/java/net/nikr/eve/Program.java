@@ -29,8 +29,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.gui.MainFrame;
-import net.nikr.eve.io.ConnectionReader;
-import net.nikr.eve.io.XmlException;
+import net.nikr.eve.io.ftp.FtpReader;
+import net.nikr.eve.io.sql.ConnectionData;
+import net.nikr.eve.io.sql.ConnectionReader;
+import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +44,14 @@ public class Program {
 	public static final String PROGRAM_VERSION = "1.0.0";
 	public static final String PROGRAM_NAME = "XML Creator for jEveAssets";
 
-	private static ConnectionData connectionData = null;
+	
 
 	public Program() {
 		//Test connection
 		Connection connection = openConnection();
 		close(connection);
 		//Create GUI
-		MainFrame frame = new MainFrame(connectionData);
+		MainFrame frame = new MainFrame(ConnectionReader.getConnectionData(), FtpReader.getFtpData());
 		//Show GUI
 		frame.setVisible(true);
 	}
@@ -66,10 +68,8 @@ public class Program {
 	}
 
 	public static Connection openConnection() {
-		if (connectionData == null) { //Load connection data
-			connectionData = ConnectionReader.load();
-		}
 		try {
+			ConnectionData connectionData = ConnectionReader.getConnectionData();
 			Class.forName(connectionData.getDriver());
 			String connectionUrl = connectionData.getConnectionUrl();
 			Connection connection = DriverManager.getConnection(connectionUrl, connectionData.getUsername(), connectionData.getPassword());

@@ -23,8 +23,8 @@ package net.nikr.eve.gui;
 
 // <editor-fold defaultstate="collapsed" desc="imports">
 
-import net.nikr.eve.io.ProgressMonitor;
 import javax.swing.JProgressBar;
+import net.nikr.eve.io.ProgressMonitor;
 
 // </editor-fold>
 /**

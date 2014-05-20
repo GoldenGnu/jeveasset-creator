@@ -22,15 +22,17 @@
 package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
-import net.nikr.eve.io.*;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.xml.AbstractXmlWriter;
+import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -46,14 +48,21 @@ public class Items extends AbstractXmlWriter implements Creator {
 		try {
 			Document xmldoc = getXmlDocument("rows");
 			LOG.info("	Creating...");
+			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
+			xmldoc.getDocumentElement().appendChild(comment);
 			success = createItems(xmldoc);
 			LOG.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename("data"+File.separator+"items.xml"));
+			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
 		} catch (XmlException ex) {
 			LOG.error("Items not saved (XML): "+ex.getMessage(), ex);
 		}
 		LOG.info("	Items done");
 		return success;
+	}
+
+	@Override
+	public String getFilename() {
+		return "data"+File.separator+"items.xml";
 	}
 
 	private boolean createItems(Document xmldoc) throws XmlException {
@@ -78,7 +87,8 @@ public class Items extends AbstractXmlWriter implements Creator {
 			stmt = connection.createStatement();
 			query = "SELECT COUNT(invTypes.typeID) as count"
 					+ " FROM"
-					+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
+					+ " invTypes"
+					+ " LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
 					+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
 					+ " WHERE"
 					+ " (invCategories.published = 1 OR invTypes.typeID = 27)"
@@ -107,7 +117,8 @@ public class Items extends AbstractXmlWriter implements Creator {
 					+ " ,invMetaGroups.metaGroupName"
 					+ " ,invMarketGroups.parentGroupID"
 					+ " FROM "
-					+ " invTypes LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
+					+ " invTypes"
+					+ " LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
 					+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
 					+ " LEFT JOIN invMetaTypes ON invTypes.typeID = invMetaTypes.typeID"
 					+ " LEFT JOIN invMetaGroups ON invMetaTypes.metaGroupID = invMetaGroups.metaGroupID"

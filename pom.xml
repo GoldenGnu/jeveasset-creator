@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>net.nikr</groupId>
 	<artifactId>jeveassets-creator</artifactId>
@@ -53,6 +53,8 @@
 							<tasks>
 								<copy todir="${project.build.directory}">
 									<fileset dir="" includes="connection.xml"/>
+									<fileset dir="" includes="ftp.xml"/>
+									<fileset dir="tools" includes="list.php"/>
 								</copy>
 							</tasks>
 						</configuration>
@@ -114,6 +116,16 @@
 			<version>1.2.16</version>
 			<!--<scope>runtime</scope>-->
 		</dependency>
+		<dependency>  
+			<groupId>commons-net</groupId>  
+			<artifactId>commons-net</artifactId>  
+			<version>2.0</version>  
+		</dependency>  
+		<dependency>  
+			<groupId>commons-io</groupId>  
+			<artifactId>commons-io</artifactId>  
+			<version>2.4</version>  
+		</dependency>  
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

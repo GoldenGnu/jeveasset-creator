@@ -148,6 +148,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "tech", meta.getTech());
 				node.setAttributeNS(null, "pi", rs.getInt("invMarketGroups.parentGroupID") == planetaryMaterialsID ? "true" : "false");
 				node.setAttributeNS(null, "portion", String.valueOf(rs.getInt("portionSize")));
+				node.setAttributeNS(null, "product", String.valueOf(getProductTypeID(connection, id)));
 
 				int nMarketGroup = rs.getInt("marketGroupID");
 				boolean bMarketGroup = (nMarketGroup != 0);
@@ -204,7 +205,26 @@ public class Items extends AbstractXmlWriter implements Creator {
 			Program.close(stmt);
 		}
 		return new Meta();
+	}
 
+	private int getProductTypeID(Connection connection, int typeID){
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			stmt = connection.createStatement();
+			String query = "SELECT productTypeID FROM industryactivityproducts WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
+			rs = stmt.executeQuery(query);
+			if (rs == null) return 0;
+			while (rs.next()) {
+				return rs.getInt("productTypeID");
+			}
+		} catch (SQLException ex) {
+			LOG.error("Materials not added (SQL): "+ex.getMessage(), ex);
+		} finally {
+			Program.close(rs);
+			Program.close(stmt);
+		}
+		return 0;
 	}
 
 	private void addMaterials(Connection connection, Document xmldoc, Element parentNode, int typeID, int portionSize){

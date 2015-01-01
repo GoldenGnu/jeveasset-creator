@@ -53,11 +53,13 @@ public class FtpWriter {
 					ftpData.getPassword());
 
 			if (login) {
-				int total = (Creators.values().length * 2) + 3;
+				int total = (Creators.values().length * 2) + 4;
 				progressMonitor.setValue(0);
 				progressMonitor.setMinimum(0);
 				progressMonitor.setMaximum(total);
 				int count = 0;
+
+				//Data files
 				for (Creators creators : Creators.values()) {
 					uploadFile(ftpData, ftpClient, creators.getCreator().getFilename());
 					count++;
@@ -66,19 +68,26 @@ public class FtpWriter {
 					count++;
 					progressMonitor.setValue(count);
 				}
-				
+				//Version == data.dat (renamed on upload)
 				uploadFile(ftpClient,
 						Creators.VERSION.getCreator().getFilename(),
 						ftpData.getUrl() + "update_version.dat");
 				count++;
 				progressMonitor.setValue(count);
-
+				
+				//Old update version file list (backward compatibility)
 				createUpdateFile();
 				uploadFile(ftpData, ftpClient, "update_files.dat");
 				count++;
 				progressMonitor.setValue(count);
 
+				//New update version file list
 				uploadFile(ftpData, ftpClient, "list.php");
+				count++;
+				progressMonitor.setValue(count);
+
+				//Data zip
+				uploadFile(ftpClient, "data.zip", "eve.nikr.net/jeveassets/data.zip");
 				count++;
 				progressMonitor.setValue(count);
 				// logout the user, returned true if logout successfully  

@@ -30,8 +30,16 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
-					<source>1.6</source>
-					<target>1.6</target>
+					<compilerArguments>
+						<Xmaxerrs>1000</Xmaxerrs>
+						<Xmaxwarns>1000</Xmaxwarns>
+						<Xlint:all/>
+						<Xlint:-serial/>
+					</compilerArguments>
+					<showWarnings>true</showWarnings>
+					<showDeprecation>true</showDeprecation>
+					<source>${project.build.sourceVersion}</source>
+					<target>${project.build.sourceVersion}</target>
 					<encoding>${project.build.sourceEncoding}</encoding>
 				</configuration>
 			</plugin>
@@ -50,13 +58,13 @@
 					<execution>
 						<phase>process-resources</phase>
 						<configuration>
-							<tasks>
+							<target>
 								<copy todir="${project.build.directory}">
 									<fileset dir="" includes="connection.xml"/>
 									<fileset dir="" includes="ftp.xml"/>
 									<fileset dir="tools" includes="list.php"/>
 								</copy>
-							</tasks>
+							</target>
 						</configuration>
 						<goals>
 							<goal>run</goal>
@@ -129,6 +137,8 @@
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.build.sourceVersion>1.6</project.build.sourceVersion>
+		<targetJdk>1.6</targetJdk>
 	</properties>
 </project>
 

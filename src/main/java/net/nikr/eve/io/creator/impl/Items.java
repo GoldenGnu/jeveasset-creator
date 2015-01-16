@@ -55,6 +55,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
 		} catch (XmlException ex) {
 			LOG.error("Items not saved (XML): "+ex.getMessage(), ex);
+			return false;
 		}
 		LOG.info("	Items done");
 		return success;
@@ -76,7 +77,9 @@ public class Items extends AbstractXmlWriter implements Creator {
 			stmt = connection.createStatement();
 			query = "SELECT marketGroupID FROM invmarketgroups WHERE marketGroupName = 'Planetary Materials'";
 			rs = stmt.executeQuery(query);
-			if (rs == null) return false;
+			if (rs == null) {
+				return false;
+			}
 			int planetaryMaterialsID = 0;
 			while (rs.next()) {
 				planetaryMaterialsID = rs.getInt("marketGroupID");
@@ -95,7 +98,9 @@ public class Items extends AbstractXmlWriter implements Creator {
 					+ " AND (invCategories.categoryName != 'Celestial' OR invTypes.published = 1 OR invGroups.published = 1)"
 					;
 			rs = stmt.executeQuery(query);
-			if (rs == null) return false;
+			if (rs == null) {
+				return false;
+			}
 			int realCount = 0;
 			while (rs.next()) {
 				realCount = rs.getInt("count");
@@ -129,7 +134,9 @@ public class Items extends AbstractXmlWriter implements Creator {
 					+ " ORDER BY invTypes.typeID"
 					;
 			rs = stmt.executeQuery(query);
-			if (rs == null) return false;
+			if (rs == null) {
+				return false;
+			}
 			int count = 0;
 			while (rs.next()) {
 				Element node = xmldoc.createElementNS(null, "row");
@@ -181,7 +188,9 @@ public class Items extends AbstractXmlWriter implements Creator {
 			String query = "SELECT * FROM dgmTypeAttributes"
 				+ " WHERE attributeID = 633 AND typeID = " + id;
 			rs = stmt.executeQuery(query);
-			if (rs == null) return new Meta();
+			if (rs == null) {
+				return new Meta();
+			}
 			while (rs.next()) {
 				int metaLevel = 0;
 				float valueFloat = rs.getFloat("valueFloat");
@@ -212,9 +221,11 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		try {
 			stmt = connection.createStatement();
-			String query = "SELECT productTypeID FROM industryactivityproducts WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
+			String query = "SELECT productTypeID FROM industryactivityproducts WHERE typeID = "+typeID + " AND activityID = 1";
 			rs = stmt.executeQuery(query);
-			if (rs == null) return 0;
+			if (rs == null) {
+				return 0;
+			}
 			while (rs.next()) {
 				return rs.getInt("productTypeID");
 			}
@@ -234,7 +245,9 @@ public class Items extends AbstractXmlWriter implements Creator {
 			stmt = connection.createStatement();
 			String query = "SELECT * FROM invTypeMaterials WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
 			rs = stmt.executeQuery(query);
-			if (rs == null) return;
+			if (rs == null) {
+				return;
+			}
 			while (rs.next()) {
 				int requiredTypeID = rs.getInt("materialTypeID");
 				int quantity = rs.getInt("quantity");
@@ -286,7 +299,9 @@ public class Items extends AbstractXmlWriter implements Creator {
 			stmt = connection.createStatement();
 			String query = "SELECT * FROM invTypes WHERE typeID = "+typeID+" AND marketGroupID IS NOT NULL AND groupID != 0 AND groupID != 268 AND groupID != 269 AND groupID != 270 AND groupID != 332";
 			rs = stmt.executeQuery(query);
-			if (rs == null) return false;
+			if (rs == null) {
+				return false;
+			}
 			while (rs.next()) {
 				return true;
 			}

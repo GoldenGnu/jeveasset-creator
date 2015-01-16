@@ -121,10 +121,6 @@ public class Version extends AbstractXmlWriter implements Creator {
 				value = value.substring(start);
 			}
 			value = value.replaceFirst("_", " ").replace("_", ".");
-			int end = value.lastIndexOf(".");
-			if (end >= 0 && end <= value.length()) {
-				value = value.substring(0, end);
-			}
 			return Character.toUpperCase(value.charAt(0)) + value.substring(1);
 		} catch (SQLException ex) {
 			LOG.warn("Failed to get database name");

@@ -61,6 +61,7 @@
 				<artifactId>maven-antrun-plugin</artifactId>
 				<version>1.7</version>
 				<executions>
+					<!-- copy files to build directory -->
 					<execution>
 						<id>process-resources</id>
 						<phase>process-resources</phase>
@@ -77,6 +78,7 @@
 							<goal>run</goal>
 						</goals>
 					</execution>
+					<!-- copy files to installer -->
 					<execution>
 						<id>copy-to-install</id>
 						<phase>package</phase>
@@ -99,7 +101,49 @@
 							<goal>run</goal>
 						</goals>
 					</execution>
+					<!-- Delete old release -->
+					<execution>
+						<id>clear-old-release</id>
+						<phase>deploy</phase>
+						<configuration>
+							<target>
+								<ftp action="delete"
+									 server="ftp.nikr.net"
+									 userid="${ftp.user}"
+									 password="${ftp.pass}"
+									 remotedir="eve.nikr.net/jeveassets/update" >
+									<fileset>
+										<include name="data/**"/>
+									</fileset>
+								</ftp>
+								<ftp action="rmdir"
+									 server="ftp.nikr.net"
+									 userid="${ftp.user}"
+									 password="${ftp.pass}"
+									 remotedir="eve.nikr.net/jeveassets/update" >
+									<fileset>
+										<include name="data/**"/>
+									</fileset>
+								</ftp>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
 				</executions>
+				<dependencies>
+					<dependency>
+						<groupId>commons-net</groupId>
+						<artifactId>commons-net</artifactId>
+						<version>1.4.1</version>
+					</dependency>
+					<dependency>
+						<groupId>ant</groupId>
+						<artifactId>ant-commons-net</artifactId>
+						<version>1.6.5</version>
+					</dependency>
+				</dependencies>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

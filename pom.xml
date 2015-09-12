@@ -49,6 +49,12 @@
 				<version>2.5</version>
 				<configuration>
 					<encoding>${project.build.sourceEncoding}</encoding>
+					<resources>
+						<resource>
+							<directory>src/main/izpack</directory>
+							<filtering>true</filtering>
+						</resource>
+					</resources>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -56,6 +62,7 @@
 				<version>1.7</version>
 				<executions>
 					<execution>
+						<id>process-resources</id>
 						<phase>process-resources</phase>
 						<configuration>
 							<target>
@@ -63,6 +70,28 @@
 									<fileset dir="" includes="connection.xml"/>
 									<fileset dir="" includes="ftp.xml"/>
 									<fileset dir="tools" includes="list.php"/>
+								</copy>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>copy-to-install</id>
+						<phase>package</phase>
+						<configuration>
+							<target>
+								<copy file="${project.build.directory}/data/data.dat" tofile="${project.build.directory}/update_version.dat" />
+								<copy todir="${project.build.directory}/install/data">
+									<fileset dir="${project.build.directory}/data" includes="*.xml"/>
+									<fileset dir="${project.build.directory}/data" includes="*.dat"/>
+								</copy>
+								<copy todir="${project.build.directory}/install/izpack">
+									<fileset dir="tools" includes="izpack-util.jar"/>
+								</copy>
+								<copy todir="${project.build.directory}/install/izpack">
+									<fileset dir="src/main/izpack" includes="ProcessPanel.Spec.xml"/>
 								</copy>
 							</target>
 						</configuration>
@@ -79,7 +108,7 @@
 				<executions>
 					<execution>
 						<id>copy-dependencies</id>
-						<phase>package</phase>
+						<phase>prepare-package</phase>
 						<goals>
 							<goal>copy-dependencies</goal>
 						</goals>
@@ -93,7 +122,125 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<artifactId>maven-assembly-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<finalName>data</finalName>
+					<appendAssemblyId>false</appendAssemblyId>
+					<descriptors>
+						<descriptor>src/main/assembly/assembly.xml</descriptor>
+					</descriptors>
+				</configuration>
+				<executions>
+					<execution>
+						<id>make-assembly</id> <!-- this is used for inheritance merges -->
+						<phase>package</phase> <!-- append to the packaging phase. -->
+						<goals>
+							<goal>single</goal> <!-- goals == mojos -->
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>net.ju-n.maven.plugins</groupId>
+				<artifactId>checksum-maven-plugin</artifactId>
+				<version>1.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>files</goal>
+						</goals>
+						<phase>verify</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<fileSets>
+						<fileSet>
+							<directory>${project.build.directory}</directory>
+							<includes>
+								<include>installer.jar</include>
+							</includes>
+						</fileSet>
+					</fileSets>
+					<algorithms>
+						<algorithm>MD5</algorithm>
+					</algorithms>
+					<csvSummary>false</csvSummary>
+					<individualFiles>true</individualFiles>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>wagon-maven-plugin</artifactId>
+				<version>1.0-beta-5</version>
+				<executions>
+					<execution>
+						<id>upload-update</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>upload</goal>
+						</goals>
+						<configuration>
+							<fromDir>${project.build.directory}</fromDir>
+							<includes>installer.jar,*.dat,*.md5,data/*,*.php</includes>
+							<serverId>eve-nikr-net</serverId>
+							<url>ftp://ftp.nikr.net</url>
+							<toDir>eve.nikr.net/jeveassets/update/data</toDir>
+						</configuration>
+					</execution>
+					<execution>
+						<id>upload-zip</id>
+						<phase>deploy</phase>
+						<goals>
+							<goal>upload</goal>
+						</goals>
+						<configuration>
+							<fromDir>${project.build.directory}</fromDir>
+							<includes>*.zip</includes>
+							<serverId>eve-nikr-net</serverId>
+							<url>ftp://ftp.nikr.net</url>
+							<toDir>eve.nikr.net/jeveassets</toDir>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.1</version>
+				<configuration>
+					<skip>true</skip>
+				</configuration>
+			</plugin>
+			<!-- Used to configure IzPack installer -->
+			<plugin>
+				<groupId>org.codehaus.izpack</groupId>
+				<artifactId>izpack-maven-plugin</artifactId>
+				<version>5.0.3</version>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>izpack</goal>
+						</goals>
+						<configuration>
+							<autoIncludeDevelopers>true</autoIncludeDevelopers>
+							<finalName>installer</finalName>
+							<baseDir>${project.build.directory}/install</baseDir>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
+		<extensions>
+			<!-- Enabling the use of FTP -->
+			<extension>
+				<groupId>org.apache.maven.wagon</groupId>
+				<artifactId>wagon-ftp</artifactId>
+				<version>2.6</version>
+			</extension>
+		</extensions>
 	</build>
 	<dependencies>
 		<dependency>
@@ -134,6 +281,17 @@
 			<artifactId>commons-io</artifactId>  
 			<version>2.4</version>  
 		</dependency>  
+		<dependency>
+			<groupId>com.esotericsoftware.yamlbeans</groupId>
+			<artifactId>yamlbeans</artifactId>
+			<version>1.09</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

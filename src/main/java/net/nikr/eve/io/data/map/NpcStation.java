@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -19,28 +19,20 @@
  *
  */
 
-package net.nikr.eve;
+package net.nikr.eve.io.data.map;
 
-import net.nikr.eve.io.creator.Creators;
-import net.nikr.eve.io.sql.ConnectionReader;
-import org.junit.Test;
-import static org.junit.Assert.*;
+import java.util.List;
 
-/**
- *
- * @author Niklas
- */
-public class ProgramTest {
-	
-	public ProgramTest() {
-	}
 
-	@Test
-	public void createFiles() throws Exception {
-		ConnectionReader.getConnectionData();
-		for (Creators creators : Creators.values()) {
-			final boolean ok = creators.getCreator().create();
-			assertTrue(ok);
-		}
-	}
+public class NpcStation {
+	private int graphicID;
+	private boolean isConquerable;
+	private int operationID;
+	private int ownerID;
+	private List<Double> position;
+	private float reprocessingEfficiency;
+	private int reprocessingHangarFlag;
+	private float reprocessingStationsTake;
+	private int typeID;
+	private boolean useOperationName;
 }

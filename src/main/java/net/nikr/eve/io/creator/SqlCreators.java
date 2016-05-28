@@ -21,13 +21,28 @@
 
 package net.nikr.eve.io.creator;
 
+import net.nikr.eve.io.creator.impl.sql.FlagsSql;
+import net.nikr.eve.io.creator.impl.sql.ItemsSql;
+import net.nikr.eve.io.creator.impl.sql.JumpsSql;
+import net.nikr.eve.io.creator.impl.sql.LocationsSql;
 /**
  *
  * @author Andrew Wheat
  */
-public interface Creator {
-	public boolean create();
-	public String getName();
-	public String getFilename();
-	
+public enum SqlCreators {
+	LOCATIONS(new LocationsSql())
+	, ITEMS(new ItemsSql())
+	, JUMPS(new JumpsSql())
+	, FLAGS(new FlagsSql())
+	;
+
+	Creator creator;
+
+	private SqlCreators(Creator creator) {
+		this.creator = creator;
+	}
+
+	public Creator getCreator() {
+		return creator;
+	}
 }

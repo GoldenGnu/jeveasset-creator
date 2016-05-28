@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -26,12 +26,13 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.sql.Connection;
-import java.sql.SQLException;
 import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
+import net.nikr.eve.Main;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
@@ -46,6 +47,15 @@ public class Version extends AbstractXmlWriter implements Creator {
 
 	@Override
 	public boolean create() {
+		
+		String version = inputVersion();
+		if (version == null) {
+			return false;
+		}
+		return createVersion(version);
+	}
+
+	public boolean createVersion(String version) {
 		LOG.info("Version:");
 		BufferedWriter writer = null;
 		InputStream input = null;
@@ -56,9 +66,8 @@ public class Version extends AbstractXmlWriter implements Creator {
 			File file = new File(filename);
 			//MessageDigest md = MessageDigest.getInstance("MD5");
 			writer = new BufferedWriter(new FileWriter(file));
-			String createVersion = createVersion();
-			if (createVersion != null) {
-				writer.write(createVersion);
+			if (version != null) {
+				writer.write(version);
 				writer.close();
 
 				//Hash file
@@ -91,7 +100,7 @@ public class Version extends AbstractXmlWriter implements Creator {
 				try {
 					input.close();
 				} catch (IOException ex) {
-					ex.printStackTrace();
+					LOG.error(ex.getMessage(), ex);
 				}
 			}
 		}
@@ -103,31 +112,35 @@ public class Version extends AbstractXmlWriter implements Creator {
 		return "data" + File.separator + "data.dat";
 	}
 
-	private String createVersion() {
-		return (String) JOptionPane.showInputDialog(null, "Enter version: [NAME] X.X.X", "Version", JOptionPane.QUESTION_MESSAGE, null, null, getDatabase());
-	}
-
 	@Override
 	public String getName() {
-		return "Version";
+		return "Version (DAT)";
 	}
 
-	private String getDatabase() {
-		Connection connection = Program.openConnection();
+	private String inputVersion() {
+		VersionGetter versionGetter = new VersionGetter();
 		try {
-			String value = connection.getMetaData().getURL();
-			int start = value.lastIndexOf("/") + 1;
-			if (start >= 0 && start <= value.length()) {
-				value = value.substring(start);
-			}
-			value = value.replaceFirst("_", " ").replace("_", ".");
-			return Character.toUpperCase(value.charAt(0)) + value.substring(1);
-		} catch (SQLException ex) {
-			LOG.warn("Failed to get database name");
-			return "";
-		} finally {
-			Program.close(connection);
+			SwingUtilities.invokeAndWait(versionGetter);
+		} catch (InterruptedException ex) {
+
+		} catch (InvocationTargetException ex) {
+
+		}
+		return versionGetter.getVersion();
+	}
+
+	private static class VersionGetter implements Runnable {
+
+		private String version = null;
+
+		@Override
+		public void run() {
+			Main.initLookAndFeel();
+			version = (String) JOptionPane.showInputDialog(null, "Enter version: [NAME] X.X.X", "Version", JOptionPane.QUESTION_MESSAGE, null, null, "");
+		}
+
+		public String getVersion() {
+			return version;
 		}
 	}
-
 }

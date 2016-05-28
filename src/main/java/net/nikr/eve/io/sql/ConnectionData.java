@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -78,7 +78,15 @@ public class ConnectionData {
 	}
 
 	public String getConnectionUrl(){
-		String connectionUrl = "jdbc:"+driverURLPart+"://"+host+":"+port+"/"+database;
-		return connectionUrl;
+		StringBuilder builder = new StringBuilder();
+		builder.append("jdbc:");
+		builder.append(driverURLPart);
+		builder.append("://");
+		builder.append(host);
+		if (!port.isEmpty()) {
+			builder.append(":");
+			builder.append(port);
+		}
+		return builder.toString();
 	}
 }

@@ -21,13 +21,29 @@
 
 package net.nikr.eve.io.creator;
 
+import net.nikr.eve.io.creator.impl.yaml.FlagsYaml;
+import net.nikr.eve.io.creator.impl.yaml.ItemsYaml;
+import net.nikr.eve.io.creator.impl.yaml.JumpsYaml;
+import net.nikr.eve.io.creator.impl.yaml.LocationsYaml;
+
 /**
  *
  * @author Andrew Wheat
  */
-public interface Creator {
-	public boolean create();
-	public String getName();
-	public String getFilename();
-	
+public enum YamlCreators {
+	LOCATIONS_YAML(new LocationsYaml())
+	, ITEMS_YAML(new ItemsYaml())
+	, JUMPS_YAML(new JumpsYaml())
+	, FLAGS_YAML(new FlagsYaml())
+	;
+
+	Creator creator;
+
+	private YamlCreators(Creator creator) {
+		this.creator = creator;
+	}
+
+	public Creator getCreator() {
+		return creator;
+	}
 }

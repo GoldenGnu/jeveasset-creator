@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -21,20 +21,12 @@
 package net.nikr.eve.io;
 
 import java.awt.Color;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 import javax.swing.SwingUtilities;
-import net.nikr.eve.Program;
 import net.nikr.eve.gui.MainFrame;
 import net.nikr.eve.gui.MainFrame.CreatorSection;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.eve.io.sql.ConnectionData;
-import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.LoggerFactory;
 
 public class DataWriter extends Thread {
@@ -43,15 +35,13 @@ public class DataWriter extends Thread {
 
 	private final MainFrame frame;
 	private final List<Creator> creators;
-	private final ConnectionData connectionData;
 	private final List<ProgressMonitor> progressMonitors = new ArrayList<ProgressMonitor>();
 	private final List<CreatorSection> creatorSections;
 
-	public DataWriter(MainFrame frame, List<Creator> creators, List<CreatorSection> creatorSections, ConnectionData connectionData) {
+	public DataWriter(MainFrame frame, List<Creator> creators, List<CreatorSection> creatorSections) {
 		this.frame = frame;
 		this.creators = creators;
 		this.creatorSections = creatorSections;
-		this.connectionData = connectionData;
 	}
 
 	public boolean addProgressMonitor(ProgressMonitor e) {
@@ -61,33 +51,44 @@ public class DataWriter extends Thread {
 
 	@Override
 	public void run() {
-		frame.startRun();
-		final List<String> filenames = new ArrayList<String>();
-
-		for (ProgressMonitor pm : progressMonitors) {
-			pm.setIndeterminate(false);
-			pm.setMaximum(creators.size());
-			pm.setMinimum(0);
-			pm.setValue(0);
-		}
-
+		updateStart();
 		int count = 0;
 		for (int i = 0; i < creators.size(); i++) {
 			Creator creator = creators.get(i);
 			final CreatorSection section = creatorSections.get(i);
-			for (ProgressMonitor pm : progressMonitors) {
-				pm.setValue(count);
-			}
-			SwingUtilities.invokeLater(new Runnable() {
-				@Override
-				public void run() {
-					section.getCheckBox().setForeground(Color.BLUE);
-				}
-			});
+			updateBefore(section);
 			final boolean ok = creator.create();
-			if (ok) {
-				filenames.add(creator.getFilename());
+			++count;
+			updateAfter(section, count, ok);
+		}
+		updateEnd();
+	}
+
+	public void updateStart() {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				frame.startRun();
+				for (ProgressMonitor pm : progressMonitors) {
+					pm.setIndeterminate(false);
+					pm.setMaximum(creators.size());
+					pm.setMinimum(0);
+					pm.setValue(0);
+				}
+
 			}
+		});
+	}
+
+	public void updateBefore(final CreatorSection section) {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				section.getCheckBox().setForeground(Color.BLUE);
+			}
+		});
+	}
+	public void updateAfter(final CreatorSection section, final int count, final boolean ok) {
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -96,55 +97,19 @@ public class DataWriter extends Thread {
 					} else {
 						section.getCheckBox().setForeground(Color.RED.darker().darker());
 					}
+					for (ProgressMonitor pm : progressMonitors) {
+						pm.setValue(count);
+					}
 				}
 			});
-
-			++count;
-		}
-		for (ProgressMonitor pm : progressMonitors) {
-			pm.setValue(count);
-		}
-
-		zipIt(filenames);
-		frame.endRun();
 	}
 
-	public void zipIt(List<String> filenames) {
-
-		byte[] buffer = new byte[1024];
-
-		try {
-			
-			String zipFile = Program.getFilename("data.zip");
-			FileOutputStream fos = new FileOutputStream(zipFile);
-			ZipOutputStream zos = new ZipOutputStream(fos);
-
-			LOG.info("Zip");
-			LOG.info("	Output: " + zipFile);
-
-			for (String filename : filenames) {
-				LOG.info("	Adding: " + filename);
-				ZipEntry ze = new ZipEntry(filename);
-				zos.putNextEntry(ze);
-
-				FileInputStream in = new FileInputStream(Program.getFilename(filename));
-
-				int len;
-				while ((len = in.read(buffer)) > 0) {
-					zos.write(buffer, 0, len);
-				}
-
-				in.close();
-				zos.closeEntry();
+	public void updateEnd() {
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				frame.endRun();
 			}
-			//remember close it
-			zos.close();
-
-			System.out.println("Done");
-		} catch (IOException ex) {
-			ex.printStackTrace();
-		} catch (XmlException ex) {
-			ex.printStackTrace();
-		}
+		});
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -19,15 +19,18 @@
  *
  */
 
-package net.nikr.eve.io.creator.impl;
+package net.nikr.eve.io.creator.impl.sql;
 
 import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashSet;
+import java.util.Set;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.online.EveCentralTest;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
@@ -37,9 +40,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
-public class Items extends AbstractXmlWriter implements Creator {
+public class ItemsSql extends AbstractXmlWriter implements Creator {
 	
-	private final static Logger LOG = LoggerFactory.getLogger(Items.class);
+	private final static Logger LOG = LoggerFactory.getLogger(ItemsSql.class);
 	
 	@Override
 	public boolean create() {
@@ -63,11 +66,63 @@ public class Items extends AbstractXmlWriter implements Creator {
 
 	@Override
 	public String getFilename() {
-		return "data"+File.separator+"items.xml";
+		return "sql"+File.separator+"items.xml";
+	}
+
+	@Override
+	public String getName() {
+		return "Items (SQL)";
+	}
+
+	private Set<Integer> makeEveCentralList() throws XmlException {
+		Statement stmt;
+		String query;
+		ResultSet rs;
+		Connection connection = Program.openConnection();
+		Set<Integer> typeIDs = new HashSet<Integer>();
+		try {
+			stmt = connection.createStatement();
+			query = "SELECT"
+					+ " invTypes.typeID"
+					+ " ,invTypes.marketGroupID"
+					+ " FROM "
+					+ " invTypes"
+					+ " LEFT JOIN invMarketGroups ON invTypes.marketGroupID = invMarketGroups.marketGroupID"
+					/*
+					+ " WHERE"
+					+ " ((invCategories.published = 1 AND invCategories.categoryName != 'Celestial')"
+					+ " OR invTypes.published = 1"
+					+ " OR invGroups.published = 1"
+					+ " OR invTypes.typeID = 3468" //Plastic wrapper
+					+ " OR invTypes.typeID = 27)" //Office
+					+ " AND invCategories.categoryName != 'Infantry'" //Office
+					*/
+					;
+			rs = stmt.executeQuery(query);
+			if (rs == null) {
+				return null;
+			}
+			while (rs.next()) {
+				if (rs.getInt("marketGroupID") != 0) {
+					typeIDs.add(rs.getInt("typeID"));
+				}
+			}
+			Program.close(rs);
+			Program.close(stmt);
+
+		} catch (SQLException ex) {
+			throw new XmlException(ex);
+		} finally {
+			Program.close(connection);
+		}
+		return typeIDs;
 	}
 
 	private boolean createItems(Document xmldoc) throws XmlException {
-
+		LOG.info("		Testing on EveCentral...");
+		Set<Integer> blacklist = new HashSet<Integer>();
+		blacklist = EveCentralTest.testEveCentral(makeEveCentralList());
+		Set<String> blacklistedItems = new HashSet<String>();
 		Statement stmt;
 		String query;
 		ResultSet rs;
@@ -75,7 +130,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 		Element parentNode = xmldoc.getDocumentElement();
 		try {
 			stmt = connection.createStatement();
-			query = "SELECT marketGroupID FROM invmarketgroups WHERE marketGroupName = 'Planetary Materials'";
+			query = "SELECT marketGroupID FROM invMarketGroups WHERE marketGroupName = 'Planetary Materials'";
 			rs = stmt.executeQuery(query);
 			if (rs == null) {
 				return false;
@@ -94,9 +149,14 @@ public class Items extends AbstractXmlWriter implements Creator {
 					+ " LEFT JOIN invGroups ON invTypes.groupID = invGroups.groupID"
 					+ " LEFT JOIN invCategories ON invGroups.categoryID = invCategories.categoryID"
 					+ " WHERE"
-					+ " (invCategories.published = 1 OR invTypes.typeID = 27)"
-					+ " AND (invCategories.categoryName != 'Celestial' OR invTypes.published = 1 OR invGroups.published = 1)"
+					+ " ((invCategories.published = 1 AND invCategories.categoryName != 'Celestial')"
+					+ " OR invTypes.published = 1"
+					+ " OR invGroups.published = 1"
+					+ " OR invTypes.typeID = 3468" //Plastic wrapper
+					+ " OR invTypes.typeID = 27)" //Office
+					+ " AND invCategories.categoryName != 'Infantry'" //Office
 					;
+					
 			rs = stmt.executeQuery(query);
 			if (rs == null) {
 				return false;
@@ -129,9 +189,12 @@ public class Items extends AbstractXmlWriter implements Creator {
 					+ " LEFT JOIN invMetaGroups ON invMetaTypes.metaGroupID = invMetaGroups.metaGroupID"
 					+ " LEFT JOIN invMarketGroups ON invTypes.marketGroupID = invMarketGroups.marketGroupID"
 					+ " WHERE"
-					+ " (invCategories.published = 1 OR invTypes.typeID = 27)"
-					+ " AND (invCategories.categoryName != 'Celestial' OR invTypes.published = 1 OR invGroups.published = 1)"
-					+ " ORDER BY invTypes.typeID"
+					+ " ((invCategories.published = 1 AND invCategories.categoryName != 'Celestial')"
+					+ " OR invTypes.published = 1"
+					+ " OR invGroups.published = 1"
+					+ " OR invTypes.typeID = 3468" //Plastic wrapper
+					+ " OR invTypes.typeID = 27)" //Office
+					+ " AND invCategories.categoryName != 'Infantry'" //Office
 					;
 			rs = stmt.executeQuery(query);
 			if (rs == null) {
@@ -150,16 +213,23 @@ public class Items extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "category", rs.getString("categoryName"));
 				node.setAttributeNS(null, "price", String.valueOf(rs.getLong("basePrice")));
 				node.setAttributeNS(null, "volume", String.valueOf(rs.getDouble("volume")));
-				Meta meta = getMetaLevel(connection, id, rs.getString("metaGroupName"));
-				node.setAttributeNS(null, "meta", String.valueOf(meta.getLevel()));
-				node.setAttributeNS(null, "tech", meta.getTech());
-				node.setAttributeNS(null, "pi", rs.getInt("invMarketGroups.parentGroupID") == planetaryMaterialsID ? "true" : "false");
+				String tech = rs.getString("metaGroupName");
+				if (tech == null) {
+					tech = "Tech I";
+				}
+				node.setAttributeNS(null, "meta", String.valueOf(getMetaLevel(connection, id)));
+				node.setAttributeNS(null, "tech", tech);
+				node.setAttributeNS(null, "pi", rs.getInt("parentGroupID") == planetaryMaterialsID ? "true" : "false");
 				node.setAttributeNS(null, "portion", String.valueOf(rs.getInt("portionSize")));
 				node.setAttributeNS(null, "product", String.valueOf(getProductTypeID(connection, id)));
 
 				int nMarketGroup = rs.getInt("marketGroupID");
 				boolean bMarketGroup = (nMarketGroup != 0);
-				node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup));
+				boolean blacklisted = blacklist.contains(id);
+				node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup && !blacklisted));
+				if (bMarketGroup && blacklisted) {
+					blacklistedItems.add(name);
+				}
 				parentNode.appendChild(node);
 
 				addMaterials(connection, xmldoc, node, id, rs.getInt("portionSize"));
@@ -171,16 +241,30 @@ public class Items extends AbstractXmlWriter implements Creator {
 			if (realCount != count){
 				return false;
 			}
-
 		} catch (SQLException ex) {
 			throw new XmlException(ex);
 		} finally {
 			Program.close(connection);
 		}
+		//StringBuilder builder = new StringBuilder();
+		//boolean first = true;
+		LOG.info("Blacked items: ");
+		for (String name : blacklistedItems) {
+			LOG.info(name);
+			/*
+			if (first) {
+				first = false;
+			} else {
+				builder.append(", ");
+			}
+			builder.append(name);
+			*/
+		}
+		//LOG.info("Blacked items are: " + builder.toString());
 		return true;
 	}
 
-	private Meta getMetaLevel(Connection connection, int id, String metaGroupName){
+	private int getMetaLevel(Connection connection, int id){
 		Statement stmt = null;
 		ResultSet rs = null;
 		try {
@@ -189,7 +273,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				+ " WHERE attributeID = 633 AND typeID = " + id;
 			rs = stmt.executeQuery(query);
 			if (rs == null) {
-				return new Meta();
+				return 0;
 			}
 			while (rs.next()) {
 				int metaLevel = 0;
@@ -201,11 +285,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 				if (valueInt != 0){
 					metaLevel = valueInt;
 				}
-				if (metaGroupName != null) {
-					return new Meta(metaGroupName, metaLevel);
-				} else {
-					return new Meta("Tech I", metaLevel);
-				}
+				return metaLevel;
 			}
 		} catch (SQLException ex) {
 			LOG.error("Items not saved (SQL): "+ex.getMessage(), ex);
@@ -213,7 +293,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 			Program.close(rs);
 			Program.close(stmt);
 		}
-		return new Meta();
+		return 0;
 	}
 
 	private int getProductTypeID(Connection connection, int typeID){
@@ -221,7 +301,8 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		try {
 			stmt = connection.createStatement();
-			String query = "SELECT productTypeID FROM industryactivityproducts WHERE typeID = "+typeID + " AND activityID = 1";
+			//String query = "SELECT productTypeID FROM industryActivityProducts WHERE typeID = "+typeID + " AND activityID = 1";
+			String query = "SELECT productTypeID FROM invBlueprintTypes WHERE blueprintTypeID = "+typeID;
 			rs = stmt.executeQuery(query);
 			if (rs == null) {
 				return 0;
@@ -243,7 +324,7 @@ public class Items extends AbstractXmlWriter implements Creator {
 		ResultSet rs = null;
 		try {
 			stmt = connection.createStatement();
-			String query = "SELECT * FROM invTypeMaterials WHERE typeID = "+typeID; // AND typeID >= 34 AND typeID <= 40
+			String query = "SELECT * FROM invTypeMaterials WHERE typeID = "+typeID+ " ORDER BY materialTypeID DESC"; // AND typeID >= 34 AND typeID <= 40
 			rs = stmt.executeQuery(query);
 			if (rs == null) {
 				return;
@@ -312,33 +393,5 @@ public class Items extends AbstractXmlWriter implements Creator {
 			Program.close(stmt);
 		}
 		return false;
-	}
-
-	@Override
-	public String getName() {
-		return "Items";
-	}
-	
-	private static class Meta{
-		private final String tech;
-		private final int level;
-
-		public Meta() {
-			tech = "Tech I";
-			level = 0;
-		}	
-
-		public Meta(String tech, int level) {
-			this.tech = tech;
-			this.level = level;
-		}
-
-		public int getLevel() {
-			return level;
-		}
-
-		public String getTech() {
-			return tech;
-		}
 	}
 }

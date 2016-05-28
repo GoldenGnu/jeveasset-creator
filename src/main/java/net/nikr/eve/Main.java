@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 public class Main {
 	private final static Logger LOG = LoggerFactory.getLogger(Main.class);
+	private static boolean lookAndFeel = false;
 	
 	public Main() {
 		Program program = new Program();
@@ -52,32 +53,33 @@ public class Main {
 	
 	private static void createAndShowGUI() {
 		initLookAndFeel();
-
-		//Make sure we have nice window decorations.
-		JFrame.setDefaultLookAndFeelDecorated(true);
-		JDialog.setDefaultLookAndFeelDecorated(true);
-
 		Main main = new Main();
 	}
 	
-	private static void initLookAndFeel() {
-		String lookAndFeel = null;
-		//lookAndFeel = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
-		lookAndFeel = UIManager.getSystemLookAndFeelClassName(); //System
-		//lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName(); //Java
-		//lookAndFeel = "javax.swing.plaf.metal.MetalLookAndFeel";
-		//lookAndFeel = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"; //GTK
-		//lookAndFeel = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
-		try {
-			UIManager.setLookAndFeel(lookAndFeel);
-		} catch (ClassNotFoundException e) {
-			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
-		} catch (IllegalAccessException e) {
-			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
-		} catch (InstantiationException e) {
-			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
-		} catch (UnsupportedLookAndFeelException e) {
-			LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+	public static void initLookAndFeel() {
+		if (!lookAndFeel) {
+			lookAndFeel = true;
+			String lookAndFeel = null;
+			//lookAndFeel = "com.sun.java.swing.plaf.windows.WindowsLookAndFeel";
+			lookAndFeel = UIManager.getSystemLookAndFeelClassName(); //System
+			//lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName(); //Java
+			//lookAndFeel = "javax.swing.plaf.metal.MetalLookAndFeel";
+			//lookAndFeel = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel"; //GTK
+			//lookAndFeel = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+			try {
+				UIManager.setLookAndFeel(lookAndFeel);
+			} catch (ClassNotFoundException e) {
+				LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+			} catch (IllegalAccessException e) {
+				LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+			} catch (InstantiationException e) {
+				LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+			} catch (UnsupportedLookAndFeelException e) {
+				LOG.error("Failed to set LookAndFeel: "+lookAndFeel, e);
+			}
+			//Make sure we have nice window decorations.
+			JFrame.setDefaultLookAndFeelDecorated(true);
+			JDialog.setDefaultLookAndFeelDecorated(true);
 		}
 	}
 

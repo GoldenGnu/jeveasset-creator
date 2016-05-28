@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -29,7 +29,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import net.nikr.eve.gui.MainFrame;
-import net.nikr.eve.io.ftp.FtpReader;
 import net.nikr.eve.io.sql.ConnectionData;
 import net.nikr.eve.io.sql.ConnectionReader;
 import net.nikr.eve.io.xml.XmlException;
@@ -47,11 +46,8 @@ public class Program {
 	
 
 	public Program() {
-		//Test connection
-		Connection connection = openConnection();
-		close(connection);
 		//Create GUI
-		MainFrame frame = new MainFrame(ConnectionReader.getConnectionData(), FtpReader.getFtpData());
+		MainFrame frame = new MainFrame();
 		//Show GUI
 		frame.setVisible(true);
 	}
@@ -74,7 +70,10 @@ public class Program {
 			String connectionUrl = connectionData.getConnectionUrl();
 			Connection connection = DriverManager.getConnection(connectionUrl, connectionData.getUsername(), connectionData.getPassword());
 			return connection;
-		} catch (Exception ex) {
+		} catch (ClassNotFoundException ex) {
+			LOG.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
+			throw new RuntimeException("Connecting to SQL server failed (SQL)", ex);
+		} catch (SQLException ex) {
 			LOG.error("Connecting to SQL server failed (SQL): "+ex.getMessage(), ex);
 			throw new RuntimeException("Connecting to SQL server failed (SQL)", ex);
 		}

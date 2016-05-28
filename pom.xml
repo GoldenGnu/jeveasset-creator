@@ -4,7 +4,7 @@
 	<groupId>net.nikr</groupId>
 	<artifactId>jeveassets-creator</artifactId>
 	<packaging>jar</packaging>
-	<version>1.1.0</version>
+	<version>1.5.0</version>
 	<name>jeveassets-creator</name>
 	<url>http://maven.apache.org</url>
 	<build>
@@ -69,7 +69,6 @@
 							<target>
 								<copy todir="${project.build.directory}">
 									<fileset dir="" includes="connection.xml"/>
-									<fileset dir="" includes="ftp.xml"/>
 									<fileset dir="tools" includes="list.php"/>
 								</copy>
 							</target>
@@ -84,14 +83,22 @@
 						<phase>package</phase>
 						<configuration>
 							<target>
+								<!-- backwards compatibility -->
 								<copy file="${project.build.directory}/data/data.dat" tofile="${project.build.directory}/update_version.dat" />
+								<!-- copy yaml or sql to data -->
+								<copy todir="${project.build.directory}/data">
+									<fileset dir="${data.dir}" includes="*.*"/>
+								</copy>
+								<!-- copy data file to install folder -->
 								<copy todir="${project.build.directory}/install/data">
 									<fileset dir="${project.build.directory}/data" includes="*.xml"/>
 									<fileset dir="${project.build.directory}/data" includes="*.dat"/>
 								</copy>
+								<!-- copy tool far to install folder -->
 								<copy todir="${project.build.directory}/install/izpack">
 									<fileset dir="tools" includes="izpack-util.jar"/>
 								</copy>
+								<!-- copy config files to install folder -->
 								<copy todir="${project.build.directory}/install/izpack">
 									<fileset dir="src/main/izpack" includes="ProcessPanel.Spec.xml"/>
 								</copy>
@@ -111,18 +118,18 @@
 									 server="ftp.nikr.net"
 									 userid="${ftp.user}"
 									 password="${ftp.pass}"
-									 remotedir="eve.nikr.net/jeveassets/update" >
+									 remotedir="${upload.data.file}" >
 									<fileset>
-										<include name="data/**"/>
+										<include name="**"/>
 									</fileset>
 								</ftp>
 								<ftp action="rmdir"
 									 server="ftp.nikr.net"
 									 userid="${ftp.user}"
 									 password="${ftp.pass}"
-									 remotedir="eve.nikr.net/jeveassets/update" >
+									 remotedir="${upload.data.file}" >
 									<fileset>
-										<include name="data/**"/>
+										<include name="**"/>
 									</fileset>
 								</ftp>
 							</target>
@@ -230,7 +237,7 @@
 							<includes>installer.jar,*.dat,*.md5,data/*,*.php</includes>
 							<serverId>eve-nikr-net</serverId>
 							<url>ftp://ftp.nikr.net</url>
-							<toDir>eve.nikr.net/jeveassets/update/data</toDir>
+							<toDir>${upload.data.file}</toDir>
 						</configuration>
 					</execution>
 					<execution>
@@ -244,7 +251,7 @@
 							<includes>*.zip</includes>
 							<serverId>eve-nikr-net</serverId>
 							<url>ftp://ftp.nikr.net</url>
-							<toDir>eve.nikr.net/jeveassets</toDir>
+							<toDir>${upload.data.zip}</toDir>
 						</configuration>
 					</execution>
 				</executions>
@@ -276,6 +283,18 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12</version>
+				<configuration>
+					<excludes>
+						<exclude>${skip.test.1}</exclude>
+						<exclude>${skip.test.2}</exclude>
+						<exclude>${skip.test.3}</exclude>
+					</excludes>
+				</configuration>
+			</plugin>
 		</plugins>
 		<extensions>
 			<!-- Enabling the use of FTP -->
@@ -286,18 +305,90 @@
 			</extension>
 		</extensions>
 	</build>
+
+	<profiles>
+		<profile>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<skip.test.1>**/YamlDataBuilderTest.java</skip.test.1>
+				<skip.test.2>**/SqlDataBuilderTest.java</skip.test.2>
+				<skip.test.3>**/VersionDataBuilderTest.java</skip.test.3>
+				<data.dir>${project.build.directory}/data</data.dir>
+			</properties>
+		</profile>
+		<profile>
+			<id>DATA-SQL</id>
+			<properties>
+				<skip.test.1>**/YamlDataBuilderTest.java</skip.test.1>
+				<skip.test.2>**/VersionSkipWorkaroundTest.java</skip.test.2>
+				<skip.test.3>NOTHING</skip.test.3>
+				<data.dir>${project.build.directory}/sql</data.dir>
+			</properties>
+		</profile>
+		<profile>
+			<id>DATA-YAML</id>
+			<properties>
+				<skip.test.1>**/SqlDataBuilderTest.java</skip.test.1>
+				<skip.test.2>**/VersionSkipWorkaroundTest.java</skip.test.2>
+				<skip.test.3>NOTHING</skip.test.3>
+				<data.dir>${project.build.directory}/yaml</data.dir>
+			</properties>
+		</profile>
+		<profile>
+			<id>DebugCompare</id>
+			<properties>
+				<skip.test.1>**/VersionSkipWorkaroundTest.java</skip.test.1>
+				<skip.test.2>NOTHING</skip.test.2>
+				<skip.test.3>NOTHING</skip.test.3>
+				<data.dir>${project.build.directory}/data</data.dir>
+			</properties>
+		</profile>
+	</profiles>
+	<repositories>
+		<repository>
+			<id>maven.nikr.net</id>
+			<name>maven.nikr.net</name>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+			<url>http://maven.nikr.net/</url>
+		</repository>
+	</repositories>
 	<dependencies>
+		<dependency>
+			<groupId>uk.me.candle</groupId>
+			<artifactId>pricing</artifactId>
+			<version>1.5.1</version>
+			<exclusions>
+				<exclusion>
+					<artifactId>xmlParserAPIs</artifactId>
+					<groupId>xerces</groupId>
+				</exclusion>
+				<exclusion>
+					<artifactId>xercesImpl</artifactId>
+					<groupId>xerces</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.esotericsoftware.yamlbeans</groupId>
+			<artifactId>yamlbeans</artifactId>
+			<version>1.09</version>
+		</dependency>
 		<dependency>
 			<groupId>net.sourceforge.jtds</groupId>
 			<artifactId>jtds</artifactId>
-			<version>1.2.2</version>
-			<!--<scope>runtime</scope>-->
+			<version>1.3.1</version>
 		</dependency>
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.18</version>
-			<!--<scope>runtime</scope>-->
+			<version>5.1.36</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -326,11 +417,6 @@
 			<version>2.4</version>  
 		</dependency>  
 		<dependency>
-			<groupId>com.esotericsoftware.yamlbeans</groupId>
-			<artifactId>yamlbeans</artifactId>
-			<version>1.09</version>
-		</dependency>
-		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.10</version>
@@ -339,8 +425,17 @@
 	</dependencies>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.build.sourceVersion>1.6</project.build.sourceVersion>
-		<targetJdk>1.6</targetJdk>
+		<project.build.sourceVersion>1.8</project.build.sourceVersion>
+		<!-- Live deploy location -->
+		<upload.data.file>eve.nikr.net/jeveassets/update/data</upload.data.file>
+		<upload.data.zip>eve.nikr.net/jeveassets</upload.data.zip>
+		<!-- Test deploy location -->
+		<!-- 
+		<upload.data.file>eve.nikr.net/test/update/data</upload.data.file>
+		<upload.data.zip>eve.nikr.net/test</upload.data.zip>
+		-->
+		
+		<targetJdk>1.8</targetJdk>
 	</properties>
 </project>
 

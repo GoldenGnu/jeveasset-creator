@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -19,7 +19,7 @@
  *
  */
 
-package net.nikr.eve.io.creator.impl;
+package net.nikr.eve.io.creator.impl.sql;
 
 import java.io.File;
 import java.sql.Connection;
@@ -41,9 +41,9 @@ import org.w3c.dom.Element;
 
 
 
-public class Locations extends AbstractXmlWriter implements Creator {
+public class LocationsSql extends AbstractXmlWriter implements Creator {
 	
-	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
+	private final static Logger LOG = LoggerFactory.getLogger(LocationsSql.class);
 
 	private final DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
 
@@ -80,7 +80,12 @@ public class Locations extends AbstractXmlWriter implements Creator {
 
 	@Override
 	public String getFilename() {
-		return "data"+File.separator+"locations.xml";
+		return "sql"+File.separator+"locations.xml";
+	}
+
+	@Override
+	public String getName() {
+		return "Locations (SQL)";
 	}
 
 	private boolean createLocations(Document xmldoc) throws XmlException {
@@ -187,10 +192,5 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		number = Math.round(number);
 		number = number / 10;
 		return securityformater.format(number);
-	}
-
-	@Override
-	public String getName() {
-		return "Locations";
 	}
 }

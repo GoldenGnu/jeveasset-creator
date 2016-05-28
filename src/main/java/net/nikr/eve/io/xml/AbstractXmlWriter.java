@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -78,13 +78,13 @@ public abstract class AbstractXmlWriter {
 			Result result = new StreamResult(outputStreamWriter);
 
 			TransformerFactory factory = TransformerFactory.newInstance();
-			factory.setAttribute("indent-number", 4);
 
 			Transformer transformer;
 			transformer = factory.newTransformer();
 			transformer.setOutputProperty(OutputKeys.METHOD, "xml");
 			transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 			transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
+			transformer.setOutputProperty("{http://xml.apache.org/xalan}indent-amount", "4");
 			transformer.setOutputProperty(OutputKeys.ENCODING, encoding);
 			transformer.transform(source, result);
 			createHashFile(md, filename);

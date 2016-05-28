@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -19,7 +19,7 @@
  *
  */
 
-package net.nikr.eve.io.creator.impl;
+package net.nikr.eve.io.creator.impl.sql;
 
 import java.io.File;
 import java.sql.Connection;
@@ -37,9 +37,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
-public class Flags extends AbstractXmlWriter implements Creator {
+public class FlagsSql extends AbstractXmlWriter implements Creator {
 	
-	private final static Logger LOG = LoggerFactory.getLogger(Flags.class);
+	private final static Logger LOG = LoggerFactory.getLogger(FlagsSql.class);
 
 	@Override
 	public boolean create() {
@@ -62,10 +62,13 @@ public class Flags extends AbstractXmlWriter implements Creator {
 
 	@Override
 	public String getFilename() {
-		return "data"+File.separator+"flags.xml";
+		return "sql"+File.separator+"flags.xml";
 	}
 
-	
+	@Override
+	public String getName() {
+		return "Flags (SQL)";
+	}
 
 	private boolean createFlags(Document xmldoc) throws XmlException {
 		Element parentNode = xmldoc.getDocumentElement();
@@ -96,10 +99,4 @@ public class Flags extends AbstractXmlWriter implements Creator {
 		}
 		return true;
 	}
-
-	@Override
-	public String getName() {
-		return "Flags";
-	}
-
 }

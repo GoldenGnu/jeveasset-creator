@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -21,25 +21,32 @@
 
 package net.nikr.eve.io.creator;
 
-// <editor-fold defaultstate="collapsed" desc="imports">
-import net.nikr.eve.io.creator.impl.Flags;
-import net.nikr.eve.io.creator.impl.Items;
-import net.nikr.eve.io.creator.impl.Jumps;
-import net.nikr.eve.io.creator.impl.Locations;
+import net.nikr.eve.io.creator.impl.sql.FlagsSql;
+import net.nikr.eve.io.creator.impl.yaml.FlagsYaml;
+import net.nikr.eve.io.creator.impl.sql.ItemsSql;
+import net.nikr.eve.io.creator.impl.yaml.ItemsYaml;
+import net.nikr.eve.io.creator.impl.sql.JumpsSql;
+import net.nikr.eve.io.creator.impl.yaml.JumpsYaml;
+import net.nikr.eve.io.creator.impl.sql.LocationsSql;
+import net.nikr.eve.io.creator.impl.yaml.LocationsYaml;
 import net.nikr.eve.io.creator.impl.Version;
 
-// </editor-fold>
 /**
  *
  * @author Andrew Wheat
  */
 public enum Creators {
-	LOCATIONS(new Locations())
-	, ITEMS(new Items())
-	, JUMPS(new Jumps())
-	, FLAGS(new Flags())
+	LOCATIONS_SQL(new LocationsSql())
+	, ITEMS_SQL(new ItemsSql())
+	, JUMPS_SQL(new JumpsSql())
+	, FLAGS_SQL(new FlagsSql())
+	, LOCATIONS_YAML(new LocationsYaml())
+	, ITEMS_YAML(new ItemsYaml())
+	, JUMPS_YAML(new JumpsYaml())
+	, FLAGS_YAML(new FlagsYaml())
 	, VERSION(new Version())
 	;
+
 
 	Creator creator;
 

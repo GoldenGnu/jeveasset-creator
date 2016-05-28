@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -21,12 +21,9 @@
 
 package net.nikr.eve.gui;
 
-// <editor-fold defaultstate="collapsed" desc="imports">
-
 import javax.swing.JProgressBar;
 import net.nikr.eve.io.ProgressMonitor;
 
-// </editor-fold>
 /**
  * added the ProgressMonitor interface so that it can be passed to non-gui classes as a progress monitor.
  * @author Andrew Wheat

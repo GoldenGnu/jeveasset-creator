@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -19,46 +19,28 @@
  *
  */
 
-package net.nikr.eve.io.ftp;
+package net.nikr.eve.io.data.flag;
+
+import java.util.ArrayList;
 
 
-public class FtpData {
-	private String url;
-	private String host;
-	private String username;
-	private String password;
+public class Flag {
+	private int flagID;
+	private String flagName;
+	private String flagText;
+	private int orderID;
 
-	public FtpData() { }
-
-	public String getUrl() {
-		return url;
+	public int getFlagID() {
+		return flagID;
 	}
 
-	public void setUrl(String url) {
-		this.url = url;
+	public String getFlagName() {
+		return flagName;
 	}
 
-	public String getHost() {
-		return host;
+	public String getFlagText() {
+		return flagText;
 	}
 
-	public void setHost(String host) {
-		this.host = host;
-	}
-
-	public String getUsername() {
-		return username;
-	}
-
-	public void setUsername(String username) {
-		this.username = username;
-	}
-
-	public String getPassword() {
-		return password;
-	}
-
-	public void setPassword(String password) {
-		this.password = password;
-	}
+	public static class FlagList extends ArrayList<Flag> { }
 }

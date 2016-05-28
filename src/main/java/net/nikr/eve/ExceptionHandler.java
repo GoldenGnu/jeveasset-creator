@@ -1,20 +1,20 @@
 /*
- * Copyright 2011 Niklas Kyster Rasmussen
- * 
- * This file is part of WotXP.
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
- * WotXP is free software; you can redistribute it and/or
+ * This file is part of XML Creator for jEveAssets
+ *
+ * XML Creator for jEveAssets is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
  *
- * WotXP is distributed in the hope that it will be useful,
+ * XML Creator for jEveAssets is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with WotXP; if not, write to the Free Software
+ * along with XML Creator for jEveAssets; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public class ExceptionHandler implements Thread.UncaughtExceptionHandler {
 
 	private final static Logger LOG = LoggerFactory.getLogger(ExceptionHandler.class);
-	private final static String NEW_LINE = System.getProperty("line.separator");
 	
 	private static String message = "";
 	private static boolean error = false;

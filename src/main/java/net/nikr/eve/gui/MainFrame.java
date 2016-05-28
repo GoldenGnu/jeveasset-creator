@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -39,13 +39,10 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import net.nikr.eve.io.sql.ConnectionData;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.DataWriter;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.creator.Creators;
-import net.nikr.eve.io.ftp.FtpData;
-import net.nikr.eve.io.ftp.FtpWriter;
 
 
 public class MainFrame extends JFrame implements WindowListener, ActionListener	{
@@ -61,14 +58,8 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 	private final JCheckBox jAll;
 	private final ProgressBar jProgressBar;
 	List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
-
-	//Data
-	private final ConnectionData connectionData;
-	private final FtpData ftpData;
 	
-	public MainFrame(ConnectionData connectionData, FtpData ftpData){
-		this.connectionData = connectionData;
-		this.ftpData = ftpData;
+	public MainFrame(){
 		setLayout(new BorderLayout(1, 4));
 		
 		//Main Panel
@@ -167,7 +158,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 					sections.add(cs);
 				}
 			}
-			DataWriter dataWriter = new DataWriter(this, creatorList, sections, connectionData);
+			DataWriter dataWriter = new DataWriter(this, creatorList, sections);
 			dataWriter.addProgressMonitor(jProgressBar);
 			dataWriter.start();
 		}
@@ -209,12 +200,6 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		JOptionPane.showMessageDialog(this, builder.toString(), "Done", JOptionPane.INFORMATION_MESSAGE);
 		for (CreatorSection cs : creatorSections) {
 			cs.getCheckBox().setForeground(Color.BLACK);
-		}
-		int value = JOptionPane.showConfirmDialog(this, "Upload via FTP?", "Update", JOptionPane.OK_CANCEL_OPTION);
-		if (value == JOptionPane.OK_OPTION) {
-			setAllEnabled(false);
-			FtpWriter.upload(ftpData, jProgressBar);
-			setAllEnabled(true);
 		}
 	}
 	private void setAllEnabled(boolean b){

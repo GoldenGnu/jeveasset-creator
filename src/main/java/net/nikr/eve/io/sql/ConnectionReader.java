@@ -1,5 +1,5 @@
 /*
- * Copyright 2009, Niklas Kyster Rasmussen
+ * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -52,7 +52,6 @@ public class ConnectionReader extends AbstractXmlReader {
 		ConnectionData connectionData = null;
 		try {
 			String fName = Program.getFilename("connection.xml");
-			System.out.println("fName = " + fName);
 			Element element = getDocumentElement(fName);
 			connectionData = parseConnection(element);
 			if (connectionData.getPassword().isEmpty()){

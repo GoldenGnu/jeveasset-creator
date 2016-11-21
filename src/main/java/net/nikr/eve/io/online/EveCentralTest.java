@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Proxy;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -49,8 +48,8 @@ public class EveCentralTest implements PricingListener{
 
 	private static boolean skip;
 
-	private Set<Integer> queue = new HashSet<Integer>();
-	private Set<Integer> blacklist = new HashSet<Integer>();
+	private final Set<Integer> queue = Collections.synchronizedSet(new HashSet<Integer>()) ;
+	private final Set<Integer> blacklist = Collections.synchronizedSet(new HashSet<Integer>()) ;
 
 	private EveCentralTest() {}
 
@@ -62,27 +61,21 @@ public class EveCentralTest implements PricingListener{
 	private Set<Integer> runTest(Set<Integer> typeIDs) {
 		if (skip) {
 			LOG.warn("Skipping EveCentral Test");
-			return blacklist;
+			return new HashSet<Integer>();
 		}
 		Level level = org.apache.log4j.Logger.getRootLogger().getLevel();
-		org.apache.log4j.Logger.getRootLogger().setLevel(Level.ERROR);
+		org.apache.log4j.Logger.getRootLogger().setLevel(Level.OFF);
 		Pricing pricing = PricingFactory.getPricing(new DefaultPricingOptions());
-		clear();
-		addAll(typeIDs);
+		queue.clear();
+		blacklist.clear();
+		queue.addAll(typeIDs);
 		pricing.addPricingListener(this);
 		for (int typeID : typeIDs) {
-			createPrice(pricing, typeID);
+			pricing.getPrice(typeID);
 		}
 		int percentLast = 0;
-		while (!isEmpty()) {
-			synchronized(this) {
-				try {
-					wait();
-				} catch (InterruptedException ex) {
-					//No problem
-				}
-			}
-			double done = typeIDs.size() - size();
+		while (!queue.isEmpty()) {
+			double done = typeIDs.size() - queue.size();
 			int percent = (int)(done * 100.0 /  typeIDs.size());
 			if (percent > percentLast) {
 				percentLast = percent;
@@ -98,42 +91,22 @@ public class EveCentralTest implements PricingListener{
 					System.out.print(".");
 				}
 			}
+			synchronized(this) {
+				try {
+					wait();
+				} catch (InterruptedException ex) {
+					//No problem
+				}
+			}
 		}
 		System.out.print("\r\n");
 		org.apache.log4j.Logger.getRootLogger().setLevel(level);
 		return blacklist;
 	}
 
-	private synchronized void clear() {
-		queue.clear();
-	}
-
-	private synchronized boolean addAll(Collection<? extends Integer> c) {
-		return queue.addAll(c);
-	}
-
-	private synchronized boolean isEmpty() {
-		return queue.isEmpty();
-	}
-
-	private synchronized int size() {
-		return queue.size();
-	}
-
-	private synchronized void remove(int i) {
-		queue.remove(i);
-	}
-
-	private void createPrice(Pricing pricing, int typeID) {
-		Double price = pricing.getPrice(typeID);
-		if (price != null) {
-			remove(typeID);
-		}
-	}
-
 	@Override
 	public void priceUpdated(int typeID, Pricing pricing) {
-		createPrice(pricing, typeID);
+		queue.remove(typeID);
 		synchronized(this) {
 			notifyAll();
 		}
@@ -142,7 +115,7 @@ public class EveCentralTest implements PricingListener{
 	@Override
 	public void priceUpdateFailed(int typeID, Pricing pricing) {
 		blacklist.add(typeID);
-		remove(typeID);
+		queue.remove(typeID);
 		synchronized(this) {
 			notifyAll();
 		}

@@ -137,6 +137,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 						|| group.isPublished()
 						|| typeID == 27 //Office
 						|| typeID == 3468 //Plastic wrapper
+						|| typeID == 60 //
 						) && !category.getName().equals("Infantry")) {
 					node.setAttributeNS(null, "id", String.valueOf(typeID));
 					String typeName = type.getName().replace("  ", " ").replace("\t", " ");
@@ -197,7 +198,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 						Collections.sort(materials, new Comparator<TypeMaterial>() {
 							@Override
 							public int compare(TypeMaterial o1, TypeMaterial o2) {
-								return Integer.compare(o2.getMaterialTypeID(), o1.getMaterialTypeID());
+								return Integer.compare(o1.getMaterialTypeID(), o2.getMaterialTypeID());
 							}
 						});
 						for (TypeMaterial material : materials) {

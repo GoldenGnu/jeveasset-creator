@@ -162,7 +162,9 @@ public class YamlHelper {
 				JOptionPane.showMessageDialog(null, "The directory is not a valid SDE.", "Open Error", JOptionPane.ERROR_MESSAGE);
 				rc = jFileChooser.showOpenDialog(null);
 			}
-			file = jFileChooser.getSelectedFile();
+			if (rc == JFileChooser.APPROVE_OPTION) {
+				file = jFileChooser.getSelectedFile();
+			}
 		}
 
 		private File getFile() {

@@ -46,7 +46,8 @@ public class EveCentralTest implements PricingListener{
 
 	private final static Logger LOG = LoggerFactory.getLogger(EveCentralTest.class);
 
-	private static boolean skip;
+	private static boolean skip = false;
+	private static PricingFetch PRICING_FETCH = PricingFetch.EVEMARKETER;
 
 	private final Set<Integer> queue = Collections.synchronizedSet(new HashSet<Integer>()) ;
 	private final Set<Integer> blacklist = Collections.synchronizedSet(new HashSet<Integer>()) ;
@@ -70,32 +71,36 @@ public class EveCentralTest implements PricingListener{
 		blacklist.clear();
 		queue.addAll(typeIDs);
 		pricing.addPricingListener(this);
-		for (int typeID : typeIDs) {
-			pricing.getPrice(typeID);
-		}
+		pricing.updatePrices(typeIDs);
 		int percentLast = 0;
 		while (!queue.isEmpty()) {
+			synchronized(this) {
+				try {
+					wait(1000);
+				} catch (InterruptedException ex) {
+					//No problem
+				}
+			}
 			double done = typeIDs.size() - queue.size();
 			int percent = (int)(done * 100.0 /  typeIDs.size());
 			if (percent > percentLast) {
 				percentLast = percent;
-				if (percent == 100) {
-					System.out.print("!");
-				} else if (percent == 75) {
-					System.out.print("3/4");
-				} else if (percent == 50) {
-					System.out.print("1/2");
-				} else if (percent == 25) {
-					System.out.print("1/4");
-				} else {
-					System.out.print(".");
-				}
-			}
-			synchronized(this) {
-				try {
-					wait();
-				} catch (InterruptedException ex) {
-					//No problem
+				switch (percent) {
+					case 100:
+						System.out.print("!");
+						break;
+					case 75:
+						System.out.print("3/4");
+						break;
+					case 50:
+						System.out.print("1/2");
+						break;
+					case 25:
+						System.out.print("1/4");
+						break;
+					default:
+						System.out.print(".");
+						break;
 				}
 			}
 		}
@@ -128,7 +133,11 @@ public class EveCentralTest implements PricingListener{
 	public static void setSkip(boolean skip) {
 		EveCentralTest.skip = skip;
 	}
-	
+
+	public static void setPricingFetch(PricingFetch pricingFetch) {
+		EveCentralTest.PRICING_FETCH = pricingFetch;
+	}
+
 	private static class DefaultPricingOptions implements PricingOptions {
 
 		@Override
@@ -138,7 +147,7 @@ public class EveCentralTest implements PricingListener{
 
 		@Override
 		public PricingFetch getPricingFetchImplementation() {
-			return PricingFetch.EVE_CENTRAL;
+			return PRICING_FETCH;
 		}
 
 		@Override
@@ -189,6 +198,11 @@ public class EveCentralTest implements PricingListener{
 		@Override
 		public boolean getUseBinaryErrorSearch() {
 			return true;
+		}
+
+		@Override
+		public int getTimeout() {
+			return 20;
 		}
 	}
 }

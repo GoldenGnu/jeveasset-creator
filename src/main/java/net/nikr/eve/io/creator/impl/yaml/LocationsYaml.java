@@ -35,11 +35,9 @@ import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.map.Location;
 import net.nikr.eve.io.data.map.LocationID;
 import net.nikr.eve.io.data.Name;
-import net.nikr.eve.io.data.map.Station;
 import net.nikr.eve.util.Duration;
 import net.nikr.eve.io.yaml.LocationsReader;
 import net.nikr.eve.io.yaml.NameReader;
-import net.nikr.eve.io.yaml.StationReader;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
@@ -96,9 +94,6 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 			LOG.info("		Map...");
 			LocationsReader locationsLoader = new LocationsReader();
 			List<LocationID> locationsIDs = locationsLoader.loadLocations();
-			LOG.info("		Stations...");
-			StationReader stationReader = new StationReader();
-			Map<Integer, Station> stations = stationReader.loadStations();
 			LOG.info("		Names...");
 			NameReader nameReader = new NameReader();
 			Map<Integer, Name> names = nameReader.loadNames();
@@ -106,14 +101,7 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 			Set<Location> locations = new TreeSet<Location>();
 			for (LocationID locationID : locationsIDs) {
 				int stationID = locationID.getStationID();
-				//String stationName = names.get(stationID).getItemName();
-				Station station = stations.get(stationID);
-				String stationName = "";
-				if (station != null) {
-					stationName = station.getStationName();
-				} else if (stationID != 0) {
-					throw new RuntimeException("stationID: " + stationID + " is missing from staStations.yaml");
-				}
+				String stationName = names.get(stationID).getItemName();
 				int systemID = locationID.getSystemID();
 				String systemName = names.get(systemID).getItemName();
 				int regionID = locationID.getRegionID();

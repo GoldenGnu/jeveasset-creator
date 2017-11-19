@@ -42,11 +42,11 @@ import net.nikr.eve.io.data.inv.MetaType;
 import net.nikr.eve.io.data.inv.Type;
 import net.nikr.eve.io.data.inv.TypeAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
-import net.nikr.eve.util.Duration;
 import net.nikr.eve.io.online.EveCentralTest;
-import net.nikr.eve.io.yaml.InvReader;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
+import net.nikr.eve.io.yaml.InvReader;
+import net.nikr.eve.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -63,23 +63,21 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 		Duration duration = new Duration();
 		duration.start();
 		LOG.info("Items:");
-		boolean success = false;
 		try {
 			LOG.info("	XML: init...");
 			Document xmldoc = getXmlDocument("rows");
 			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
 			xmldoc.getDocumentElement().appendChild(comment);
-			success = createItems(xmldoc);
+			boolean success = createItems(xmldoc);
 			LOG.info("	XML: Saving...");
 			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
-			
+			duration.end();
+			LOG.info("	Items completed in " + duration.getString());
+			return success;
 		} catch (XmlException ex) {
 			LOG.error("Items not saved (XML): "+ex.getMessage(), ex);
 			return false;
 		}
-		duration.end();
-		LOG.info("	Items completed in " + duration.getString());
-		return success;
 	}
 
 	@Override
@@ -122,8 +120,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					marketIDs.add(entry.getKey());
 				}
 			}
-			Set<Integer> blacklist = new HashSet<Integer>();
-			blacklist = EveCentralTest.testEveCentral(marketIDs);
+			Set<Integer> blacklist = EveCentralTest.testEveCentral(marketIDs);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
@@ -137,9 +134,13 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 						|| group.isPublished()
 						|| typeID == 27 //Office
 						|| typeID == 3468 //Plastic wrapper
-						|| typeID == 60 //
+						|| typeID == 60 //Asset Safety Wrap
+						|| type.getGroupID() == 186 //Wrecks
 						) && !category.getName().equals("Infantry")) {
 					node.setAttributeNS(null, "id", String.valueOf(typeID));
+					if (type.getName() == null) {
+						continue;
+					}
 					String typeName = type.getName().replace("  ", " ").replace("\t", " ");
 					node.setAttributeNS(null, "name", typeName);
 					if (!typeName.equals(type.getName())) {
@@ -172,20 +173,42 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					node.setAttributeNS(null, "pi", category.getName().equals("Planetary Commodities") || category.getName().equals("Planetary Resources") ? "true" : "false");
 					node.setAttributeNS(null, "portion", String.valueOf(type.getPortionSize()));
 			//Product ID -> DB
-					int product = 0;
+					int productTypeID = 0;
+					int productQuantity = 0;
 					Blueprint blueprint = blueprints.get(typeID);
 					if (blueprint != null) {
-						BlueprintActivity activity = blueprint.getActivities().get("manufacturing");
-						if (activity != null) {
-							List<BlueprintMaterial> products = activity.products;
+						BlueprintActivity manufacturing = blueprint.getActivities().get("manufacturing");
+						BlueprintActivity reaction = blueprint.getActivities().get("reaction");
+						if (manufacturing != null) {
+							List<BlueprintMaterial> products = manufacturing.products;
 							if (products != null && products.size() == 1) {
-								product = products.get(0).typeID;
+								productTypeID = products.get(0).typeID;
+								productQuantity = products.get(0).quantity;
+								Type productType = typeIDs.get(productTypeID);
+								if (productType != null && products.get(0).quantity != productType.getPortionSize())  {
+									System.out.println("Manufacturing Portion/ProductQuantity mismatch for " + typeName + " => Portion " + typeIDs.get(productTypeID).getPortionSize() + " ProductQuantity : " + products.get(0).quantity);
+								}
 							} else {
-								System.out.println("products: " + products);
+								System.out.println("Manufacturing products" + typeName + " products: " + products);
+							}
+						} else if (reaction != null) {
+							List<BlueprintMaterial> products = reaction.products;
+							if (products != null && products.size() == 1) {
+								productTypeID = products.get(0).typeID;
+								productQuantity = products.get(0).quantity;
+								Type productType = typeIDs.get(productTypeID);
+								if (productType != null && products.get(0).quantity != productType.getPortionSize())  {
+									System.out.println("Reaction Portion/ProductQuantity mismatch for " + typeName + " => Portion " + typeIDs.get(productTypeID).getPortionSize() + " ProductQuantity : " + products.get(0).quantity);
+								}
+							} else {
+								System.out.println("Reaction products" + typeName + " products: " + products);
 							}
 						}
 					}
-					node.setAttributeNS(null, "product", String.valueOf(product));
+					node.setAttributeNS(null, "product", String.valueOf(productTypeID));
+					if (productQuantity > 1) {
+						node.setAttributeNS(null, "productquantity", String.valueOf(productQuantity));
+					}
 					boolean bMarketGroup = (type.getMarketGroupID() != 0);
 					boolean blacklisted = blacklist.contains(typeID);
 					node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup && !blacklisted));
@@ -213,10 +236,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					}
 				}
 			}
-			LOG.info("		Blacklisted Items: ");
-			for (String name : blacklistedItems) {
-				LOG.info("			" + name);
-			}
+			LOG.info("		Blacklisted Items: " + blacklistedItems.size());
 			if (blacklist.isEmpty()) {
 				LOG.info("			none");
 			}
@@ -230,7 +250,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			return true;
 		} catch (IOException ex) {
 			LOG.error(ex.getMessage(), ex);
+			return false;
 		}
-		return false;
 	}
 }

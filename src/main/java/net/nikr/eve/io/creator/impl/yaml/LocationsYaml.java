@@ -101,11 +101,20 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 			Set<Location> locations = new TreeSet<Location>();
 			for (LocationID locationID : locationsIDs) {
 				int stationID = locationID.getStationID();
-				String stationName = names.get(stationID).getItemName();
 				int systemID = locationID.getSystemID();
-				String systemName = names.get(systemID).getItemName();
 				int regionID = locationID.getRegionID();
-				String regionName = names.get(regionID).getItemName();
+				String stationName;
+				String systemName;
+				String regionName;
+				if (locationID.getRegionID() >= 12000000 && locationID.getRegionID() < 13000000) {
+					stationName = ""; //Abyssal Stations doesn't exist
+					systemName = "Abyssal System #" + systemID;
+					regionName = "Abyssal Region #" + regionID;
+				} else {
+					stationName = names.get(stationID).getItemName();
+					systemName = names.get(systemID).getItemName();
+					regionName = names.get(regionID).getItemName();
+				}
 				float security = locationID.getSecurity();
 				if (stationID != 0) { //Station
 					Location stationLocation = new Location(stationID, stationName, systemID, systemName, regionID, regionName, security);

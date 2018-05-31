@@ -58,12 +58,24 @@ public class InvReader {
 		return YamlHelper.convert(reader.read(CategoryMap.class, Category.class));
 	}
 
-	public Map<Integer, TypeAttribute> loadTypeAttributes() throws IOException {
+	public Map<Integer, TypeAttribute> loadMetaLevelAttributes() throws IOException {
 		YamlReader reader = YamlHelper.getReader(SdeFile.DGMTYPEATTRIBUTES);
 		List<TypeAttribute> list = reader.read(TypeAttributeList.class, TypeAttribute.class);
 		Map<Integer, TypeAttribute> map = new HashMap<Integer, TypeAttribute>();
 		for (TypeAttribute value : list) {
 			if (value.getAttributeID() == 633) {
+				map.put(value.getTypeID(), value);
+			}
+		}
+		return map;
+	}
+
+	public Map<Integer, TypeAttribute> loadMetaGroupAttributes() throws IOException {
+		YamlReader reader = YamlHelper.getReader(SdeFile.DGMTYPEATTRIBUTES);
+		List<TypeAttribute> list = reader.read(TypeAttributeList.class, TypeAttribute.class);
+		Map<Integer, TypeAttribute> map = new HashMap<Integer, TypeAttribute>();
+		for (TypeAttribute value : list) {
+			if (value.getAttributeID() == 1692) {
 				map.put(value.getTypeID(), value);
 			}
 		}

@@ -104,7 +104,8 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			LOG.info("		Categories...");
 			Map<Integer, Category> categories = reader.loadCategories();
 			LOG.info("		Attributes...");
-			Map<Integer, TypeAttribute> typeAttributes = reader.loadTypeAttributes();
+			Map<Integer, TypeAttribute> metaLevelAttributes = reader.loadMetaLevelAttributes();
+			Map<Integer, TypeAttribute> metaGroupAttributes = reader.loadMetaGroupAttributes();
 			LOG.info("		Meta Types...");
 			Map<Integer, MetaType> metaTypes = reader.loadMetaTypes();
 			LOG.info("		Meta Groups...");
@@ -152,18 +153,20 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					node.setAttributeNS(null, "volume", String.valueOf(type.getVolume()));
 			//META -> DB
 					int metaLevel = 0;
-					TypeAttribute typeAttribute = typeAttributes.get(typeID);
+					TypeAttribute typeAttribute = metaLevelAttributes.get(typeID);
 					if (typeAttribute != null) {
-						if (typeAttribute.getValueInt() != 0) {
-							metaLevel = typeAttribute.getValueInt();
-						} else if (typeAttribute.getValueFloat() != 0) {
-							metaLevel = Math.round(typeAttribute.getValueFloat());
-						}
+						metaLevel = get(typeAttribute);
 					}
 					String techLevel = "Tech I";
 					MetaType metaType = metaTypes.get(typeID);
+					TypeAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
 					if (metaType != null) {
 						MetaGroup metaGroup = metaGroups.get(metaType.getMetaGroupID());
+						if (metaGroup != null) {
+							techLevel = metaGroup.getMetaGroupName();
+						}
+					} else if (metaGroupAttribute != null) {
+						MetaGroup metaGroup = metaGroups.get(get(metaGroupAttribute));
 						if (metaGroup != null) {
 							techLevel = metaGroup.getMetaGroupName();
 						}
@@ -251,6 +254,16 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 		} catch (IOException ex) {
 			LOG.error(ex.getMessage(), ex);
 			return false;
+		}
+	}
+
+	private int get(TypeAttribute typeAttribute) {
+		if (typeAttribute.getValueInt() != 0) {
+			return typeAttribute.getValueInt();
+		} else if (typeAttribute.getValueFloat() != 0) {
+			return Math.round(typeAttribute.getValueFloat());
+		} else {
+			return 0;
 		}
 	}
 }

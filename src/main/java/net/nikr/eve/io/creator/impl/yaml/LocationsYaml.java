@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -35,10 +36,12 @@ import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.map.Location;
 import net.nikr.eve.io.data.map.LocationID;
 import net.nikr.eve.io.data.Name;
+import net.nikr.eve.io.data.map.ConquerableStation;
 import net.nikr.eve.util.Duration;
 import net.nikr.eve.io.yaml.LocationsReader;
 import net.nikr.eve.io.yaml.NameReader;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
+import net.nikr.eve.io.xml.ConquerableStationsReader;
 import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +102,7 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 			Map<Integer, Name> names = nameReader.loadNames();
 			LOG.info("	YAML: Prcessing...");
 			Set<Location> locations = new TreeSet<Location>();
+			Map<Integer, LocationID> systemToLocation = new HashMap<>();
 			for (LocationID locationID : locationsIDs) {
 				int stationID = locationID.getStationID();
 				int systemID = locationID.getSystemID();
@@ -120,6 +124,7 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 					Location stationLocation = new Location(stationID, stationName, systemID, systemName, regionID, regionName, security);
 					locations.add(stationLocation);
 				} else if (systemID != 0) { //System
+					systemToLocation.put(systemID, locationID);
 					Location systemLocation = new Location(0, "", systemID, systemName, regionID, regionName, security);
 					locations.add(systemLocation);
 				} else if (regionID != 0) { //Region
@@ -127,8 +132,32 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 					locations.add(regionLocation);
 				}
 			}
-			names = null;
-			locationsIDs = null;
+			LOG.info("	XML: Loading...");
+			List<ConquerableStation> conquerableStations = ConquerableStationsReader.load();
+			LOG.info("	XML: Prcessing...");
+			for (ConquerableStation conqurableStation : conquerableStations) {
+				int fixedLocationID = conqurableStation.getLocationID();
+				if (fixedLocationID >= 66000000) {
+					if (fixedLocationID < 66014933) {
+						fixedLocationID = fixedLocationID - 6000001;
+					} else {
+						fixedLocationID = fixedLocationID - 6000000;
+					}
+				}
+				int stationID = fixedLocationID;
+				int systemID = conqurableStation.getSystemID();
+				int regionID = systemToLocation.get(conqurableStation.getSystemID()).getRegionID();
+				float security = systemToLocation.get(conqurableStation.getSystemID()).getSecurity();
+				String stationName = "Conquerable Station #" + fixedLocationID;
+				String systemName = names.get(systemID).getItemName();
+				String regionName = names.get(regionID).getItemName();
+				Location stationLocation = new Location(stationID, stationName, systemID, systemName, regionID, regionName, security);
+				locations.add(stationLocation);
+			}
+			systemToLocation.clear();
+			conquerableStations.clear();
+			names.clear();
+			locationsIDs.clear();
 			LOG.info("	XML: Creating...");
 			for (Location location : locations) {
 				Element node = xmldoc.createElementNS(null, "row");

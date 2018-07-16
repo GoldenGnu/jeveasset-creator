@@ -4,7 +4,7 @@
 	<groupId>net.nikr</groupId>
 	<artifactId>jeveassets-creator</artifactId>
 	<packaging>jar</packaging>
-	<version>1.5.1</version>
+	<version>1.6.0</version>
 	<name>jeveassets-creator</name>
 	<url>http://maven.apache.org</url>
 	<build>
@@ -70,6 +70,7 @@
 								<copy todir="${project.build.directory}">
 									<fileset dir="" includes="connection.xml"/>
 									<fileset dir="tools" includes="list.php"/>
+									<fileset dir="" includes="conquerable_stations.xml"/>
 								</copy>
 							</target>
 						</configuration>

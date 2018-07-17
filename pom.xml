@@ -4,7 +4,7 @@
 	<groupId>net.nikr</groupId>
 	<artifactId>jeveassets-creator</artifactId>
 	<packaging>jar</packaging>
-	<version>1.6.0</version>
+	<version>1.6.1</version>
 	<name>jeveassets-creator</name>
 	<url>http://maven.apache.org</url>
 	<build>

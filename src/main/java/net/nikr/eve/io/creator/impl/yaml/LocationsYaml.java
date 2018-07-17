@@ -178,10 +178,17 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 	}
 
 	private String roundSecurity(double number) {
-		if (number < 0) number = 0;
-		number = number * 10;
-		number = Math.round(number);
-		number = number / 10;
+		if (number < 0) { //0.0
+			number = 0;
+		} else if (number >= 0 && number <= 0.05) { //0.1
+			number = number * 10;
+			number = Math.ceil(number);
+			number = number / 10;
+		} else { //0.2 - 1.0
+			number = number * 10;
+			number = Math.round(number);
+			number = number / 10;
+		}
 		return securityformater.format(number);
 	}
 }

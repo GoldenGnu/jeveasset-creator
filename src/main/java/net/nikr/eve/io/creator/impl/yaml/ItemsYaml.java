@@ -187,10 +187,6 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 							if (products != null && products.size() == 1) {
 								productTypeID = products.get(0).typeID;
 								productQuantity = products.get(0).quantity;
-								Type productType = typeIDs.get(productTypeID);
-								if (productType != null && products.get(0).quantity != productType.getPortionSize())  {
-									System.out.println("Manufacturing Portion/ProductQuantity mismatch for " + typeName + " => Portion " + typeIDs.get(productTypeID).getPortionSize() + " ProductQuantity : " + products.get(0).quantity);
-								}
 							} else {
 								System.out.println("Manufacturing products" + typeName + " products: " + products);
 							}
@@ -199,10 +195,6 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 							if (products != null && products.size() == 1) {
 								productTypeID = products.get(0).typeID;
 								productQuantity = products.get(0).quantity;
-								Type productType = typeIDs.get(productTypeID);
-								if (productType != null && products.get(0).quantity != productType.getPortionSize())  {
-									System.out.println("Reaction Portion/ProductQuantity mismatch for " + typeName + " => Portion " + typeIDs.get(productTypeID).getPortionSize() + " ProductQuantity : " + products.get(0).quantity);
-								}
 							} else {
 								System.out.println("Reaction products" + typeName + " products: " + products);
 							}

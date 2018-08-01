@@ -47,6 +47,9 @@ import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.InvReader;
 import net.nikr.eve.util.Duration;
+import net.troja.eve.esi.ApiException;
+import net.troja.eve.esi.api.UniverseApi;
+import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -93,8 +96,8 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 	private boolean createItems(Document xmldoc) {
 		NumberFormat intFormat = new DecimalFormat("0");
 		try {
-			Set<String> blacklistedItems = new HashSet<String>();
-			Set<String> spacedItems = new HashSet<String>();
+			Set<String> blacklistedItems = new HashSet<>();
+			Set<String> spacedItems = new HashSet<>();
 			LOG.info("	YAML: Loading...");
 			InvReader reader = new InvReader();
 			LOG.info("		Types...");
@@ -115,15 +118,19 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			LOG.info("		Blueprints...");
 			Map<Integer, Blueprint> blueprints =  reader.loadBlueprints();
 			LOG.info("	EveCentral: Validating...");
-			Set<Integer> marketIDs = new HashSet<Integer>();
+			Set<Integer> marketIDs = new HashSet<>();
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
 				if (entry.getValue().getMarketGroupID() != 0) {
 					marketIDs.add(entry.getKey());
 				}
 			}
+			UniverseApi esi = new UniverseApi();
 			Set<Integer> blacklist = EveCentralTest.testEveCentral(marketIDs);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
+			int esiOK = 0;
+			int esiIgnore = 0;
+			int esiError = 0;
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
 				Element node = xmldoc.createElementNS(null, "row");
 				Integer typeID = entry.getKey();
@@ -139,13 +146,27 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 						|| type.getGroupID() == 186 //Wrecks
 						) && !category.getName().equals("Infantry")) {
 					node.setAttributeNS(null, "id", String.valueOf(typeID));
-					if (type.getName() == null) {
-						continue;
+					final String typeName;
+					if (type.getName() != null) {
+						typeName = type.getName();
+					} else {
+						try {
+							List<UniverseNamesResponse> list = esi.postUniverseNames(Collections.singletonList(typeID), "tranquility");
+							typeName = list.get(0).getName();
+							if (typeName.startsWith("[no messageID: ")) {
+								esiIgnore++;
+								continue;
+							}
+							esiOK++;
+						} catch (ApiException ex) {
+							esiError++;
+							continue;
+						}
 					}
-					String typeName = type.getName().replace("  ", " ").replace("\t", " ");
-					node.setAttributeNS(null, "name", typeName);
-					if (!typeName.equals(type.getName())) {
-						spacedItems.add(type.getName().replace("  ", " \\S").replace("\t", "\\t"));
+					String typeNameFixed = typeName.replace("  ", " ").replace("\t", " ");
+					node.setAttributeNS(null, "name", typeNameFixed);
+					if (!typeNameFixed.equals(typeName)) {
+						spacedItems.add(typeName.replace("  ", " \\S").replace("\t", "\\t"));
 					}
 					node.setAttributeNS(null, "group", group.getName());
 					node.setAttributeNS(null, "category", category.getName());
@@ -242,6 +263,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			if (spacedItems.isEmpty()) {
 				LOG.info("			none");
 			}
+			LOG.info("		ESI requests: " + esiOK + " successful, " + esiError + " unsuccessful, " + esiIgnore + " ignored");
 			return true;
 		} catch (IOException ex) {
 			LOG.error(ex.getMessage(), ex);

@@ -27,14 +27,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import javax.swing.SwingWorker;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import net.nikr.eve.io.data.map.Jump;
 import net.nikr.eve.io.data.map.SolarSystem;
 import net.nikr.eve.io.data.map.Stargate;
@@ -50,7 +54,8 @@ public class JumpsReader extends SolarSystemReader {
 		Set<Jump> destinationJumps = Collections.synchronizedSet(new TreeSet<Jump>());
 		List<JumpReader> jumpReaders = Collections.synchronizedList(new ArrayList<JumpReader>());
 		loadJumps(jumpReaders, destinationLookup, destinationJumps, Paths.get(YamlHelper.getFile(YamlHelper.SdeFile.UNIVERSE)));
-		for (JumpReader reader : jumpReaders) {
+		List<Future<Object>> futures = startReturn(jumpReaders);
+		for (Future<Object> reader : futures) {
 			try {
 				reader.get();
 			} catch (InterruptedException | ExecutionException ex) {
@@ -75,7 +80,6 @@ public class JumpsReader extends SolarSystemReader {
 				if (path.getFileName().toString().equals("solarsystem.staticdata")) {
 					JumpReader reader = new JumpReader(destinationLookup, destinationJumps, path.toAbsolutePath().toString());
 					jumpReaders.add(reader);
-					reader.execute();
 				}
 			}
 		}
@@ -92,7 +96,16 @@ public class JumpsReader extends SolarSystemReader {
 		}
 	}
 
-	private class JumpReader extends SwingWorker<Void, Void>{
+	public static <K> List<Future<K>> startReturn(Collection<? extends Callable<K>> updaters) {
+		ExecutorService executor = Executors.newFixedThreadPool(4);
+		try {
+			return executor.invokeAll(updaters);
+		} catch (InterruptedException ex) {
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+	}
+
+	private class JumpReader implements Callable<Object> {
 
 		private final Map<Integer, Integer> destinationLookup;
 		private final Set<Jump> destinationJumps;
@@ -105,7 +118,7 @@ public class JumpsReader extends SolarSystemReader {
 		}
 
 		@Override
-		protected Void doInBackground() throws Exception {
+		public Object call() throws Exception {
 			loadJumps(destinationLookup, destinationJumps, fullFilename);
 			return null;
 		}

@@ -28,10 +28,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import javax.swing.SwingWorker;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import net.nikr.eve.io.data.map.LocationID;
 import net.nikr.eve.io.data.map.Planet;
 import net.nikr.eve.io.data.map.Region;
@@ -49,7 +53,8 @@ public class LocationsReader extends SolarSystemReader{
 		List<LocationID> locations = Collections.synchronizedList(new ArrayList<LocationID>());
 		List<SystemReader> systemReaders = Collections.synchronizedList(new ArrayList<SystemReader>());
 		processPaths(systemReaders, locations, 0, Paths.get(YamlHelper.getFile(YamlHelper.SdeFile.UNIVERSE)));
-		for (SystemReader reader : systemReaders) {
+		List<Future<Object>> futures = startReturn(systemReaders);
+		for (Future<Object> reader : futures) {
 			try {
 				reader.get();
 			} catch (InterruptedException | ExecutionException ex) {
@@ -73,7 +78,6 @@ public class LocationsReader extends SolarSystemReader{
 				if (path.getFileName().toString().equals("solarsystem.staticdata")) {
 					SystemReader reader = new SystemReader(locations, regionID, path.toAbsolutePath().toString());
 					systemReaders.add(reader);
-					reader.execute();
 				}
 			}
 		}
@@ -103,13 +107,22 @@ public class LocationsReader extends SolarSystemReader{
 		}
 	}
 
+	public static <K> List<Future<K>> startReturn(Collection<? extends Callable<K>> updaters) {
+		ExecutorService executor = Executors.newFixedThreadPool(4);
+		try {
+			return executor.invokeAll(updaters);
+		} catch (InterruptedException ex) {
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+	}
+
 	private int loadRegion(String filename) throws IOException {
 		YamlReader reader = YamlHelper.getReader(filename);
 		Region region = reader.read(Region.class);
 		return region.getRegionID();
 	}
 
-	private class SystemReader extends SwingWorker<Void, Void>{
+	private class SystemReader implements Callable<Object> {
 
 		private final List<LocationID> locations;
 		private final int regionID;
@@ -122,7 +135,7 @@ public class LocationsReader extends SolarSystemReader{
 		}
 
 		@Override
-		protected Void doInBackground() throws Exception {
+		public Object call() throws Exception {
 			loadSolarSystem(locations, regionID, fullFilename);
 			return null;
 		}

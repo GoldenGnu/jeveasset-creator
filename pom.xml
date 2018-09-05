@@ -116,7 +116,7 @@
 						<configuration>
 							<target>
 								<ftp action="delete"
-									 server="ftp.nikr.net"
+									 server="linux227.unoeuro.com"
 									 userid="${ftp.user}"
 									 password="${ftp.pass}"
 									 remotedir="${upload.data.file}" >
@@ -125,7 +125,7 @@
 									</fileset>
 								</ftp>
 								<ftp action="rmdir"
-									 server="ftp.nikr.net"
+									 server="linux227.unoeuro.com"
 									 userid="${ftp.user}"
 									 password="${ftp.pass}"
 									 remotedir="${upload.data.file}" >
@@ -237,7 +237,7 @@
 							<fromDir>${project.build.directory}</fromDir>
 							<includes>installer.jar,*.dat,*.md5,data/*,*.php</includes>
 							<serverId>eve-nikr-net</serverId>
-							<url>ftp://ftp.nikr.net</url>
+							<url>ftp://linux227.unoeuro.com</url>
 							<toDir>${upload.data.file}</toDir>
 						</configuration>
 					</execution>
@@ -251,7 +251,7 @@
 							<fromDir>${project.build.directory}</fromDir>
 							<includes>*.zip</includes>
 							<serverId>eve-nikr-net</serverId>
-							<url>ftp://ftp.nikr.net</url>
+							<url>ftp://linux227.unoeuro.com</url>
 							<toDir>${upload.data.zip}</toDir>
 						</configuration>
 					</execution>

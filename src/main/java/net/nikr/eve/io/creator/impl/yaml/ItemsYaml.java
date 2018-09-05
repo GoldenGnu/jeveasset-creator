@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,7 @@ import net.troja.eve.esi.ApiException;
 import net.troja.eve.esi.api.MarketApi;
 import net.troja.eve.esi.api.UniverseApi;
 import net.troja.eve.esi.model.MarketGroupResponse;
+import net.troja.eve.esi.model.TypeResponse;
 import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +69,9 @@ import org.w3c.dom.Element;
 
 public class ItemsYaml extends AbstractXmlWriter implements Creator{
 
-	private final static Logger LOG = LoggerFactory.getLogger(ItemsYaml.class);
+	private static final Logger LOG = LoggerFactory.getLogger(ItemsYaml.class);
+
+	private static final String DATASOURCE = "tranquility";
 
 	@Override
 	public boolean create() {
@@ -125,7 +129,10 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			LOG.info("		Blueprints...");
 			Map<Integer, Blueprint> blueprints =  reader.loadBlueprints();
 			LOG.info("	ESI: Loading...");
+			LOG.info("		Market Groups...");
 			Set<Integer> marketGroupsTypeIDs = getMarketGroupsTypeIDs();
+			LOG.info("		Packaged Volume...");
+			Map<Integer, Float> volume = getVolume(typeIDs, categories, groupIDs);
 			UniverseApi universeApi = new UniverseApi();
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
@@ -173,6 +180,10 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					node.setAttributeNS(null, "category", category.getName());
 					node.setAttributeNS(null, "price", intFormat.format(type.getBasePrice()));
 					node.setAttributeNS(null, "volume", String.valueOf(type.getVolume()));
+					Float packagedVolume = volume.get(typeID);
+					if (packagedVolume != null) {
+						node.setAttributeNS(null, "packagedvolume", String.valueOf(packagedVolume));
+					}
 			//META -> DB
 					int metaLevel = 0;
 					TypeAttribute typeAttribute = metaLevelAttributes.get(typeID);
@@ -283,7 +294,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			for (Integer marketGroup : marketsGroups) {
 				updates.add(new UpdateGroup(marketGroup));
 			}
-			
+
 			List<Future<List<Integer>>> futures = startReturn(updates);
 			for (Future<List<Integer>> future : futures) {
 				try {
@@ -300,6 +311,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 
 	private static class UpdateGroup implements Callable<List<Integer>> {
 
+		private final MarketApi marketApi = new MarketApi();
 		private final Integer marketGroup;
 		private final List<Integer> typeIDs = new ArrayList<>();
 		private int retries = 0;
@@ -310,19 +322,18 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 
 		@Override
 		public List<Integer> call() throws Exception {
-			update();
+			MarketGroupResponse response = update();
+			typeIDs.addAll(response.getTypes());
 			return typeIDs;
 		}
 
-		private void update() {
+		private MarketGroupResponse update() {
 			try {
-				MarketApi marketApi = new MarketApi();
-				MarketGroupResponse response = marketApi.getMarketsGroupsMarketGroupId(marketGroup, null, "tranquility", null, null);
-				typeIDs.addAll(response.getTypes());
+				return marketApi.getMarketsGroupsMarketGroupId(marketGroup, null, DATASOURCE, null, null);
 			} catch (ApiException ex) {
 				retries++;
 				if (retries <= 3) {
-					update();
+					return update();
 				} else {
 					throw new RuntimeException(ex.getMessage(), ex);
 				}
@@ -336,6 +347,85 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			return executor.invokeAll(updaters);
 		} catch (InterruptedException ex) {
 			throw new RuntimeException(ex.getMessage(), ex);
+		}
+	}
+
+	private Map<Integer, Float> getVolume(Map<Integer, Type> typeIDs, Map<Integer, Category> categories, Map<Integer, Group> groupIDs) {
+		List<UpdateVolume> updates = new ArrayList<>();
+		for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
+			Group group = groupIDs.get(entry.getValue().getGroupID());
+			Category category = categories.get(group.getCategoryID());
+			if (category.getName().equals("Ship") || category.getName().equals("Module") || category.getName().equals("Celestial")) {
+				updates.add(new UpdateVolume(entry.getKey()));
+			}
+		}
+		List<Future<TypeData>> futures = startReturn(updates);
+		Map<Integer, Float> volume = new HashMap<>();
+		for (Future<TypeData> future : futures) {
+			try {
+				TypeData typeData = future.get();
+				if (typeData.haveData()) {
+					volume.put(typeData.getTypeID(), typeData.getPackagedVolume());
+				}
+			} catch (InterruptedException | ExecutionException ex) {
+				throw new RuntimeException(ex.getMessage(), ex);
+			}
+		}
+		return volume;
+	}
+
+	private static class UpdateVolume implements Callable<TypeData> {
+
+		private final UniverseApi api = new UniverseApi();
+		private final int typeID;
+		private int retries = 0;
+
+		public UpdateVolume(int typeID) {
+			this.typeID = typeID;
+		}
+		
+		@Override
+		public TypeData call() throws Exception {
+			TypeResponse response = update();
+			return new TypeData(typeID, response);
+		}
+
+		private TypeResponse update() {
+			try {
+				return api.getUniverseTypesTypeId(typeID, null, DATASOURCE, null, null);
+			} catch (ApiException ex) {
+				retries++;
+				if (retries <= 3) {
+					return update();
+				} else {
+					throw new RuntimeException(ex.getMessage(), ex);
+				}
+			}
+		}
+	}
+
+	private static class TypeData {
+		private final int typeID;
+		private final TypeResponse response;
+
+		public TypeData(int typeID, TypeResponse response) {
+			this.typeID = typeID;
+			this.response = response;
+		}
+
+		public int getTypeID() {
+			return typeID;
+		}
+
+		private boolean haveData() {
+			return response.getPackagedVolume() != null
+					//&& !response.getPackagedVolume().equals(0f)
+					&& !response.getPackagedVolume().equals(response.getVolume());
+					
+		}
+
+		private Float getPackagedVolume() {
+			return response.getPackagedVolume();
 		}
 	}
 	

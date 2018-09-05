@@ -24,12 +24,19 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.inv.Blueprint;
@@ -42,13 +49,14 @@ import net.nikr.eve.io.data.inv.MetaType;
 import net.nikr.eve.io.data.inv.Type;
 import net.nikr.eve.io.data.inv.TypeAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
-import net.nikr.eve.io.online.EveCentralTest;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.InvReader;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiException;
+import net.troja.eve.esi.api.MarketApi;
 import net.troja.eve.esi.api.UniverseApi;
+import net.troja.eve.esi.model.MarketGroupResponse;
 import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +104,6 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 	private boolean createItems(Document xmldoc) {
 		NumberFormat intFormat = new DecimalFormat("0");
 		try {
-			Set<String> blacklistedItems = new HashSet<>();
 			Set<String> spacedItems = new HashSet<>();
 			LOG.info("	YAML: Loading...");
 			InvReader reader = new InvReader();
@@ -117,15 +124,9 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			Map<Integer, List<TypeMaterial>> typeMaterials = reader.loadTypeMaterials();
 			LOG.info("		Blueprints...");
 			Map<Integer, Blueprint> blueprints =  reader.loadBlueprints();
-			LOG.info("	EveCentral: Validating...");
-			Set<Integer> marketIDs = new HashSet<>();
-			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
-				if (entry.getValue().getMarketGroupID() != 0) {
-					marketIDs.add(entry.getKey());
-				}
-			}
-			UniverseApi esi = new UniverseApi();
-			Set<Integer> blacklist = EveCentralTest.testEveCentral(marketIDs);
+			LOG.info("	ESI: Loading...");
+			Set<Integer> marketGroupsTypeIDs = getMarketGroupsTypeIDs();
+			UniverseApi universeApi = new UniverseApi();
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			int esiOK = 0;
@@ -151,7 +152,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 						typeName = type.getName();
 					} else {
 						try {
-							List<UniverseNamesResponse> list = esi.postUniverseNames(Collections.singletonList(typeID), "tranquility");
+							List<UniverseNamesResponse> list = universeApi.postUniverseNames(Collections.singletonList(typeID), "tranquility");
 							typeName = list.get(0).getName();
 							if (typeName.startsWith("[no messageID: ")) {
 								esiIgnore++;
@@ -225,12 +226,8 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					if (productQuantity > 1) {
 						node.setAttributeNS(null, "productquantity", String.valueOf(productQuantity));
 					}
-					boolean bMarketGroup = (type.getMarketGroupID() != 0);
-					boolean blacklisted = blacklist.contains(typeID);
-					node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup && !blacklisted));
-					if (bMarketGroup && blacklisted) {
-						blacklistedItems.add(typeName);
-					}
+					boolean bMarketGroup = marketGroupsTypeIDs.contains(typeID);
+					node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup));
 					parentNode.appendChild(node);
 					List<TypeMaterial> materials = typeMaterials.get(typeID);
 					if (materials != null) {
@@ -251,10 +248,6 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 						}
 					}
 				}
-			}
-			LOG.info("		Blacklisted Items: " + blacklistedItems.size());
-			if (blacklist.isEmpty()) {
-				LOG.info("			none");
 			}
 			LOG.info("		Items contains too much space: ");
 			for (String name : spacedItems) {
@@ -280,4 +273,70 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			return 0;
 		}
 	}
+
+	private Set<Integer> getMarketGroupsTypeIDs() {
+		Set<Integer> typeIDs = new HashSet<>();
+		try {
+			MarketApi marketApi = new MarketApi();
+			List<Integer> marketsGroups = marketApi.getMarketsGroups("tranquility", null);
+			List<UpdateGroup> updates = new ArrayList<>();
+			for (Integer marketGroup : marketsGroups) {
+				updates.add(new UpdateGroup(marketGroup));
+			}
+			
+			List<Future<List<Integer>>> futures = startReturn(updates);
+			for (Future<List<Integer>> future : futures) {
+				try {
+					typeIDs.addAll(future.get());
+				} catch (InterruptedException | ExecutionException ex) {
+					throw new RuntimeException(ex.getMessage(), ex);
+				}
+			}
+			return typeIDs;
+		} catch (ApiException ex) {
+			throw new RuntimeException("Failed to get marker groups");
+		}
+	}
+
+	private static class UpdateGroup implements Callable<List<Integer>> {
+
+		private final Integer marketGroup;
+		private final List<Integer> typeIDs = new ArrayList<>();
+		private int retries = 0;
+
+		public UpdateGroup(Integer marketGroup) {
+			this.marketGroup = marketGroup;
+		}
+
+		@Override
+		public List<Integer> call() throws Exception {
+			update();
+			return typeIDs;
+		}
+
+		private void update() {
+			try {
+				MarketApi marketApi = new MarketApi();
+				MarketGroupResponse response = marketApi.getMarketsGroupsMarketGroupId(marketGroup, null, "tranquility", null, null);
+				typeIDs.addAll(response.getTypes());
+			} catch (ApiException ex) {
+				retries++;
+				if (retries <= 3) {
+					update();
+				} else {
+					throw new RuntimeException(ex.getMessage(), ex);
+				}
+			}
+		}
+	}
+
+	public static <K> List<Future<K>> startReturn(Collection<? extends Callable<K>> updaters) {
+		ExecutorService executor = Executors.newFixedThreadPool(100);
+		try {
+			return executor.invokeAll(updaters);
+		} catch (InterruptedException ex) {
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+	}
+	
 }

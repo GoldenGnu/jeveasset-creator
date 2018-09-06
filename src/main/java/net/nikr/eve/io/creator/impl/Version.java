@@ -136,7 +136,7 @@ public class Version extends AbstractXmlWriter implements Creator {
 		@Override
 		public void run() {
 			Main.initLookAndFeel();
-			version = (String) JOptionPane.showInputDialog(null, "Enter version: [NAME] X.X.X", "Version", JOptionPane.QUESTION_MESSAGE, null, null, "");
+			version = (String) JOptionPane.showInputDialog(null, "Enter version: YYYY-MM-DD[a-z]", "Version", JOptionPane.QUESTION_MESSAGE, null, null, "");
 		}
 
 		public String getVersion() {

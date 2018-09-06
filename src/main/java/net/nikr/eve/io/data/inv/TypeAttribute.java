@@ -25,8 +25,8 @@ package net.nikr.eve.io.data.inv;
 public class TypeAttribute {
 	private int attributeID;
 	private int typeID;
-	private int valueInt;
-	private float valueFloat;
+	private Integer valueInt;
+	private Float valueFloat;
 
 	public int getAttributeID() {
 		return attributeID;
@@ -36,11 +36,11 @@ public class TypeAttribute {
 		return typeID;
 	}
 
-	public int getValueInt() {
+	public Integer getValueInt() {
 		return valueInt;
 	}
 
-	public float getValueFloat() {
+	public Float getValueFloat() {
 		return valueFloat;
 	}
 }

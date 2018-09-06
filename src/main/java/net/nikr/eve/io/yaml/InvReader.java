@@ -58,28 +58,22 @@ public class InvReader {
 		return YamlHelper.convert(reader.read(CategoryMap.class, Category.class));
 	}
 
-	public Map<Integer, TypeAttribute> loadMetaLevelAttributes() throws IOException {
+	public Attributes loadAttributes() throws IOException {
 		YamlReader reader = YamlHelper.getReader(SdeFile.DGMTYPEATTRIBUTES);
 		List<TypeAttribute> list = reader.read(TypeAttributeList.class, TypeAttribute.class);
-		Map<Integer, TypeAttribute> map = new HashMap<Integer, TypeAttribute>();
+		Attributes attributes = new Attributes();
 		for (TypeAttribute value : list) {
-			if (value.getAttributeID() == 633) {
-				map.put(value.getTypeID(), value);
+			if (value.getAttributeID() == 422) { //422 = tech level
+				attributes.getTechLevelAttributes().put(value.getTypeID(), value);
+			}
+			if (value.getAttributeID() == 633) { //633 = meta level
+				attributes.getMetaLevelAttributes().put(value.getTypeID(), value);
+			}
+			if (value.getAttributeID() == 1692) { //1692 = meta group
+				attributes.getMetaGroupAttributes().put(value.getTypeID(), value);
 			}
 		}
-		return map;
-	}
-
-	public Map<Integer, TypeAttribute> loadMetaGroupAttributes() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.DGMTYPEATTRIBUTES);
-		List<TypeAttribute> list = reader.read(TypeAttributeList.class, TypeAttribute.class);
-		Map<Integer, TypeAttribute> map = new HashMap<Integer, TypeAttribute>();
-		for (TypeAttribute value : list) {
-			if (value.getAttributeID() == 1692) {
-				map.put(value.getTypeID(), value);
-			}
-		}
-		return map;
+		return attributes;
 	}
 
 	public Map<Integer, MetaType> loadMetaTypes() throws IOException {
@@ -134,4 +128,22 @@ public class InvReader {
 	public static class MetaGroupList extends ArrayList<MetaGroup> { }
 	public static class TypeMaterialList extends ArrayList<TypeMaterial> { }
 	public static class BlueprintMap extends TreeMap<String, Blueprint> { }
+
+	public static class Attributes {
+		private final Map<Integer, TypeAttribute> metaLevelAttributes = new HashMap<>();
+		private final Map<Integer, TypeAttribute> metaGroupAttributes = new HashMap<>();
+		private final Map<Integer, TypeAttribute> techLevelAttributes = new HashMap<>();
+
+		public Map<Integer, TypeAttribute> getMetaLevelAttributes() {
+			return metaLevelAttributes;
+		}
+
+		public Map<Integer, TypeAttribute> getMetaGroupAttributes() {
+			return metaGroupAttributes;
+		}
+
+		public Map<Integer, TypeAttribute> getTechLevelAttributes() {
+			return techLevelAttributes;
+		}
+	}
 }

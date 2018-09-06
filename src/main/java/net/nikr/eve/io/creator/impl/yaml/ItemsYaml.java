@@ -109,6 +109,8 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 		NumberFormat intFormat = new DecimalFormat("0");
 		try {
 			Set<String> spacedItems = new HashSet<>();
+			Set<String> techLevelItems = new HashSet<>();
+			Set<String> productsItems = new HashSet<>();
 			LOG.info("	YAML: Loading...");
 			InvReader reader = new InvReader();
 			LOG.info("		Types...");
@@ -118,8 +120,10 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			LOG.info("		Categories...");
 			Map<Integer, Category> categories = reader.loadCategories();
 			LOG.info("		Attributes...");
-			Map<Integer, TypeAttribute> metaLevelAttributes = reader.loadMetaLevelAttributes();
-			Map<Integer, TypeAttribute> metaGroupAttributes = reader.loadMetaGroupAttributes();
+			InvReader.Attributes attributes = reader.loadAttributes();
+			Map<Integer, TypeAttribute> metaLevelAttributes = attributes.getMetaLevelAttributes();
+			Map<Integer, TypeAttribute> metaGroupAttributes = attributes.getMetaGroupAttributes();
+			Map<Integer, TypeAttribute> techLevelAttributes = attributes.getTechLevelAttributes();
 			LOG.info("		Meta Types...");
 			Map<Integer, MetaType> metaTypes = reader.loadMetaTypes();
 			LOG.info("		Meta Groups...");
@@ -184,31 +188,46 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					if (packagedVolume != null) {
 						node.setAttributeNS(null, "packagedvolume", String.valueOf(packagedVolume));
 					}
-			//META -> DB
+			//Meta level
 					int metaLevel = 0;
-					TypeAttribute typeAttribute = metaLevelAttributes.get(typeID);
-					if (typeAttribute != null) {
-						metaLevel = get(typeAttribute);
-					}
-					String techLevel = "Tech I";
-					MetaType metaType = metaTypes.get(typeID);
-					TypeAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
-					if (metaType != null) {
-						MetaGroup metaGroup = metaGroups.get(metaType.getMetaGroupID());
-						if (metaGroup != null) {
-							techLevel = metaGroup.getMetaGroupName();
-						}
-					} else if (metaGroupAttribute != null) {
-						MetaGroup metaGroup = metaGroups.get(get(metaGroupAttribute));
-						if (metaGroup != null) {
-							techLevel = metaGroup.getMetaGroupName();
-						}
+					TypeAttribute metaLevelAttribute = metaLevelAttributes.get(typeID);
+					if (metaLevelAttribute != null) {
+						metaLevel = get(metaLevelAttribute);
 					}
 					node.setAttributeNS(null, "meta", String.valueOf(metaLevel));
+			//Tech Level
+					TypeAttribute techLevelAttribute  = techLevelAttributes.get(typeID);
+					final String techLevel;
+					MetaGroup metaGroup = null;
+					//From meta type
+					MetaType metaType = metaTypes.get(typeID);
+					if (metaGroup == null && metaType != null) {
+						metaGroup = metaGroups.get(metaType.getMetaGroupID());
+					}
+					//From meta group attribute
+					TypeAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
+					if (metaGroup == null && metaGroupAttribute != null) {
+						metaGroup = metaGroups.get(get(metaGroupAttribute));
+					}
+					if (metaGroup != null) {
+						techLevel = metaGroup.getMetaGroupName();
+					} else if (techLevelAttribute != null) {
+						switch (get(techLevelAttribute)) {
+							case 1: techLevel = "Tech I"; break;
+							case 2: techLevel = "Tech II"; break;
+							case 3: techLevel = "Tech III"; break;
+							default: 
+								techLevel = "Tech I";
+								techLevelItems.add(typeName + ":" + get(techLevelAttribute));
+								break;
+						}
+					} else {
+						techLevel = "Tech I";
+					}
 					node.setAttributeNS(null, "tech", techLevel);
 					node.setAttributeNS(null, "pi", category.getName().equals("Planetary Commodities") || category.getName().equals("Planetary Resources") ? "true" : "false");
 					node.setAttributeNS(null, "portion", String.valueOf(type.getPortionSize()));
-			//Product ID -> DB
+			//Product ID
 					int productTypeID = 0;
 					int productQuantity = 0;
 					Blueprint blueprint = blueprints.get(typeID);
@@ -221,7 +240,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 								productTypeID = products.get(0).typeID;
 								productQuantity = products.get(0).quantity;
 							} else {
-								System.out.println("Manufacturing products" + typeName + " products: " + products);
+								productsItems.add("Manufacturing products: " + typeName + " products: " + products);
 							}
 						} else if (reaction != null) {
 							List<BlueprintMaterial> products = reaction.products;
@@ -229,7 +248,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 								productTypeID = products.get(0).typeID;
 								productQuantity = products.get(0).quantity;
 							} else {
-								System.out.println("Reaction products" + typeName + " products: " + products);
+								productsItems.add("Reaction products: " + typeName + " products: " + products);
 							}
 						}
 					}
@@ -260,8 +279,16 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					}
 				}
 			}
-			LOG.info("		Items contains too much space: ");
+			LOG.info("		Items contains too much space:");
 			for (String name : spacedItems) {
+				LOG.info("			" + name);
+			}
+			LOG.info("		Items with \"strange\" tech levels:");
+			for (String name : techLevelItems) {
+				LOG.info("			" + name);
+			}
+			LOG.info("		Items missing products:");
+			for (String name : productsItems) {
 				LOG.info("			" + name);
 			}
 			if (spacedItems.isEmpty()) {
@@ -276,9 +303,11 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 	}
 
 	private int get(TypeAttribute typeAttribute) {
-		if (typeAttribute.getValueInt() != 0) {
+		if (typeAttribute.getValueInt() != null && typeAttribute.getValueFloat() != null) {
+			return (int) Math.max(typeAttribute.getValueInt(), typeAttribute.getValueFloat());
+		} else if (typeAttribute.getValueInt() != null) {
 			return typeAttribute.getValueInt();
-		} else if (typeAttribute.getValueFloat() != 0) {
+		} else if (typeAttribute.getValueFloat() != null) {
 			return Math.round(typeAttribute.getValueFloat());
 		} else {
 			return 0;

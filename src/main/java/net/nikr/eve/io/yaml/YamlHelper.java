@@ -47,12 +47,10 @@ public class YamlHelper {
 		, GROUPIDS("fsd", "groupIDs.yaml")
 		, CATEGORYIDS("fsd", "categoryIDs.yaml")
 		, DGMTYPEATTRIBUTES("bsd", "dgmTypeAttributes.yaml")
-		, INVMETATYPES("bsd", "invMetaTypes.yaml")
-		, INVMETAGROUPS("bsd", "invMetaGroups.yaml")
+		, METAGROUPS("fsd", "metaGroups.yaml")
 		, INVTYPEMATERIALS("bsd", "invTypeMaterials.yaml")
 		, BLUEPRINTS("fsd", "blueprints.yaml")
 		, INVNAMES("bsd", "invNames.yaml")
-		, STASTATIONS("bsd", "staStations.yaml")
 		, INVFLAGS("bsd", "invFlags.yaml")
 		, UNIVERSE("fsd" + File.separator + "universe", "")
 		;

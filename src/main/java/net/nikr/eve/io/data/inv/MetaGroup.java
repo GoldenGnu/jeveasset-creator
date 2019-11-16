@@ -18,21 +18,18 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-
 package net.nikr.eve.io.data.inv;
 
+import java.util.Map;
 
 public class MetaGroup {
 
-	private int metaGroupID;
-	private String metaGroupName;
-	private String description;
-
-	public int getMetaGroupID() {
-		return metaGroupID;
-	}
+	public Map<String, String> descriptionID;
+	public Integer iconID;
+	public String iconSuffix;
+	public Map<String, String> nameID;
 
 	public String getMetaGroupName() {
-		return metaGroupName;
+		return nameID.get("en");
 	}
 }

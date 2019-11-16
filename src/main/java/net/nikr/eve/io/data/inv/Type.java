@@ -33,6 +33,7 @@ public class Type {
 	private int marketGroupID; //invTypes.marketGroupID
 	private int portionSize; //invTypes.portionSize
 	private boolean published; //invTypes.published
+	private Integer metaGroupID; //invTypes.metaGroupID
 	//Unused
 	private int groupID;
 	private double mass;
@@ -49,11 +50,16 @@ public class Type {
 	private Map<Integer, List<Integer>> traits;
 	private String sofDnaAddition;
 	private int sofMaterialSetID;
+	private int variationParentTypeID;
 
 	public Type() { }
 
 	public int getMarketGroupID() {
 		return marketGroupID;
+	}
+
+	public Integer getMetaGroupID() {
+		return metaGroupID;
 	}
 
 	public int getGroupID() {

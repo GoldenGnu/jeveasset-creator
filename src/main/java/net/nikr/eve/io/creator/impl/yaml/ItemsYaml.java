@@ -46,7 +46,6 @@ import net.nikr.eve.io.data.inv.BlueprintMaterial;
 import net.nikr.eve.io.data.inv.Category;
 import net.nikr.eve.io.data.inv.Group;
 import net.nikr.eve.io.data.inv.MetaGroup;
-import net.nikr.eve.io.data.inv.MetaType;
 import net.nikr.eve.io.data.inv.Type;
 import net.nikr.eve.io.data.inv.TypeAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
@@ -124,8 +123,6 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			Map<Integer, TypeAttribute> metaLevelAttributes = attributes.getMetaLevelAttributes();
 			Map<Integer, TypeAttribute> metaGroupAttributes = attributes.getMetaGroupAttributes();
 			Map<Integer, TypeAttribute> techLevelAttributes = attributes.getTechLevelAttributes();
-			LOG.info("		Meta Types...");
-			Map<Integer, MetaType> metaTypes = reader.loadMetaTypes();
 			LOG.info("		Meta Groups...");
 			Map<Integer, MetaGroup> metaGroups = reader.loadMetaGroups();
 			LOG.info("		Materials...");
@@ -184,6 +181,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					node.setAttributeNS(null, "category", category.getName());
 					node.setAttributeNS(null, "price", intFormat.format(type.getBasePrice()));
 					node.setAttributeNS(null, "volume", String.valueOf(type.getVolume()));
+			//Packaged Volume
 					Float packagedVolume = volume.get(typeID);
 					if (packagedVolume != null) {
 						node.setAttributeNS(null, "packagedvolume", String.valueOf(packagedVolume));
@@ -200,9 +198,9 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 					final String techLevel;
 					MetaGroup metaGroup = null;
 					//From meta type
-					MetaType metaType = metaTypes.get(typeID);
-					if (metaGroup == null && metaType != null) {
-						metaGroup = metaGroups.get(metaType.getMetaGroupID());
+					Integer metaGroupID =  type.getMetaGroupID();
+					if (metaGroup == null && metaGroupID != null) {
+						metaGroup = metaGroups.get(metaGroupID);
 					}
 					//From meta group attribute
 					TypeAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
@@ -210,7 +208,11 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 						metaGroup = metaGroups.get(get(metaGroupAttribute));
 					}
 					if (metaGroup != null) {
-						techLevel = metaGroup.getMetaGroupName();
+						if (metaGroup.getMetaGroupName().contains("Structure")) {
+							techLevel = metaGroup.getMetaGroupName().replace("Structure", "").trim();
+						} else {
+							techLevel = metaGroup.getMetaGroupName();
+						}
 					} else if (techLevelAttribute != null) {
 						switch (get(techLevelAttribute)) {
 							case 1: techLevel = "Tech I"; break;
@@ -303,12 +305,10 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 	}
 
 	private int get(TypeAttribute typeAttribute) {
-		if (typeAttribute.getValueInt() != null && typeAttribute.getValueFloat() != null) {
-			return (int) Math.max(typeAttribute.getValueInt(), typeAttribute.getValueFloat());
+		if (typeAttribute.getValueFloat() != null) {
+			return Math.round(typeAttribute.getValueFloat());
 		} else if (typeAttribute.getValueInt() != null) {
 			return typeAttribute.getValueInt();
-		} else if (typeAttribute.getValueFloat() != null) {
-			return Math.round(typeAttribute.getValueFloat());
 		} else {
 			return 0;
 		}

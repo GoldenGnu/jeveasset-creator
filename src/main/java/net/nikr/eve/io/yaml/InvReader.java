@@ -35,7 +35,6 @@ import net.nikr.eve.io.data.inv.BlueprintSkill;
 import net.nikr.eve.io.data.inv.Category;
 import net.nikr.eve.io.data.inv.Group;
 import net.nikr.eve.io.data.inv.MetaGroup;
-import net.nikr.eve.io.data.inv.MetaType;
 import net.nikr.eve.io.data.inv.Type;
 import net.nikr.eve.io.data.inv.TypeAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
@@ -76,24 +75,9 @@ public class InvReader {
 		return attributes;
 	}
 
-	public Map<Integer, MetaType> loadMetaTypes() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.INVMETATYPES);
-		List<MetaType> list = reader.read(MetaTypeList.class, MetaType.class);
-		Map<Integer, MetaType> map = new HashMap<Integer, MetaType>();
-		for (MetaType value : list) {
-			map.put(value.getTypeID(), value);
-		}
-		return map;
-	}
-
 	public Map<Integer, MetaGroup> loadMetaGroups() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.INVMETAGROUPS);
-		List<MetaGroup> list = reader.read(MetaGroupList.class, MetaGroup.class);
-		Map<Integer, MetaGroup> map = new HashMap<Integer, MetaGroup>();
-		for (MetaGroup value : list) {
-			map.put(value.getMetaGroupID(), value);
-		}
-		return map;
+		YamlReader reader = YamlHelper.getReader(SdeFile.METAGROUPS);
+		return YamlHelper.convert(reader.read(MetaGroupMap.class, MetaGroup.class));
 	}
 
 	public Map<Integer, List<TypeMaterial>> loadTypeMaterials() throws IOException {
@@ -124,8 +108,7 @@ public class InvReader {
 	public static class GroupMap extends TreeMap<String, Group> { }
 	public static class CategoryMap extends TreeMap<String, Category> { }
 	public static class TypeAttributeList extends ArrayList<TypeAttribute> { }
-	public static class MetaTypeList extends ArrayList<MetaType> { }
-	public static class MetaGroupList extends ArrayList<MetaGroup> { }
+	public static class MetaGroupMap extends TreeMap<String, MetaGroup> { }
 	public static class TypeMaterialList extends ArrayList<TypeMaterial> { }
 	public static class BlueprintMap extends TreeMap<String, Blueprint> { }
 

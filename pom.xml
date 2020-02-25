@@ -4,7 +4,7 @@
 	<groupId>net.nikr</groupId>
 	<artifactId>jeveassets-creator</artifactId>
 	<packaging>jar</packaging>
-	<version>1.6.1</version>
+	<version>1.7.0</version>
 	<name>jeveassets-creator</name>
 	<url>http://maven.apache.org</url>
 	<build>
@@ -86,10 +86,6 @@
 							<target>
 								<!-- backwards compatibility -->
 								<copy file="${project.build.directory}/data/data.dat" tofile="${project.build.directory}/update_version.dat" />
-								<!-- copy yaml or sql to data -->
-								<copy todir="${project.build.directory}/data">
-									<fileset dir="${data.dir}" includes="*.*"/>
-								</copy>
 								<!-- copy data file to install folder -->
 								<copy todir="${project.build.directory}/install/data">
 									<fileset dir="${project.build.directory}/data" includes="*.xml"/>
@@ -294,7 +290,6 @@
 					<excludes>
 						<exclude>${skip.test.1}</exclude>
 						<exclude>${skip.test.2}</exclude>
-						<exclude>${skip.test.3}</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -315,37 +310,22 @@
 				<activeByDefault>true</activeByDefault>
 			</activation>
 			<properties>
-				<skip.test.1>**/YamlDataBuilderTest.java</skip.test.1>
-				<skip.test.2>**/SqlDataBuilderTest.java</skip.test.2>
-				<skip.test.3>**/VersionDataBuilderTest.java</skip.test.3>
-				<data.dir>${project.build.directory}/data</data.dir>
+				<skip.test.1>**/RequireUpdateTest.java</skip.test.1>
+				<skip.test.2>**/SafeDeployTest.java</skip.test.2>
 			</properties>
 		</profile>
 		<profile>
-			<id>DATA-SQL</id>
+			<id>BUILD-check-if-require-update</id>
 			<properties>
-				<skip.test.1>**/YamlDataBuilderTest.java</skip.test.1>
-				<skip.test.2>**/VersionSkipWorkaroundTest.java</skip.test.2>
-				<skip.test.3>NOTHING</skip.test.3>
-				<data.dir>${project.build.directory}/sql</data.dir>
+				<skip.test.1>**/InteractiveDataBuilderTest.java</skip.test.1>
+				<skip.test.2>**/SafeDeployTest.java</skip.test.2>
 			</properties>
 		</profile>
 		<profile>
-			<id>DATA-YAML</id>
+			<id>BUILD-safe-deploy</id>
 			<properties>
-				<skip.test.1>**/SqlDataBuilderTest.java</skip.test.1>
-				<skip.test.2>**/VersionSkipWorkaroundTest.java</skip.test.2>
-				<skip.test.3>NOTHING</skip.test.3>
-				<data.dir>${project.build.directory}/yaml</data.dir>
-			</properties>
-		</profile>
-		<profile>
-			<id>DebugCompare</id>
-			<properties>
-				<skip.test.1>**/VersionSkipWorkaroundTest.java</skip.test.1>
-				<skip.test.2>NOTHING</skip.test.2>
-				<skip.test.3>NOTHING</skip.test.3>
-				<data.dir>${project.build.directory}/data</data.dir>
+				<skip.test.1>**/RequireUpdateTest.java</skip.test.1>
+				<skip.test.2>**/InteractiveDataBuilderTest.java</skip.test.2>
 			</properties>
 		</profile>
 	</profiles>
@@ -366,22 +346,7 @@
 		<dependency>
 			<groupId>net.troja.eve</groupId>
 			<artifactId>eve-esi</artifactId>
-			<version>2.2.8</version>
-		</dependency>
-		<dependency>
-			<groupId>uk.me.candle</groupId>
-			<artifactId>pricing</artifactId>
-			<version>1.8.0</version>
-			<exclusions>
-				<exclusion>
-					<artifactId>xmlParserAPIs</artifactId>
-					<groupId>xerces</groupId>
-				</exclusion>
-				<exclusion>
-					<artifactId>xercesImpl</artifactId>
-					<groupId>xerces</groupId>
-				</exclusion>
-			</exclusions>
+			<version>3.5.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.esotericsoftware.yamlbeans</groupId>
@@ -389,41 +354,23 @@
 			<version>1.09</version>
 		</dependency>
 		<dependency>
-			<groupId>net.sourceforge.jtds</groupId>
-			<artifactId>jtds</artifactId>
-			<version>1.3.1</version>
-		</dependency>
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.36</version>
-		</dependency>
-		<dependency>
+			<!-- slf4j -->
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-			<version>1.6.1</version>
+			<version>1.7.25</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-log4j12</artifactId>
-			<version>1.6.1</version>
+			<!-- use logback for logging -->
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<version>1.2.3</version>
 		</dependency>
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
-			<!--<scope>runtime</scope>-->
+		 <dependency>
+			 <!-- use logback for logging -->
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-core</artifactId>
+			<version>1.2.3</version>
 		</dependency>
-		<dependency>  
-			<groupId>commons-net</groupId>  
-			<artifactId>commons-net</artifactId>  
-			<version>2.0</version>  
-		</dependency>  
-		<dependency>  
-			<groupId>commons-io</groupId>  
-			<artifactId>commons-io</artifactId>  
-			<version>2.4</version>  
-		</dependency>  
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>

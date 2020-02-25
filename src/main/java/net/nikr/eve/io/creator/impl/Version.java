@@ -22,21 +22,23 @@ package net.nikr.eve.io.creator.impl;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.security.DigestInputStream;
+import java.io.OutputStreamWriter;
+import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import net.nikr.eve.Main;
 import net.nikr.eve.Program;
+import net.nikr.eve.Program.Worker;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.Settings;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
-import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,8 +49,17 @@ public class Version extends AbstractXmlWriter implements Creator {
 
 	@Override
 	public boolean create() {
-		
-		String version = inputVersion();
+		LOG.info("Version:");
+		String version;
+		if (Settings.isAuto()) {
+			version = getVersion();
+			LOG.info("	Auto: " + version);
+		} else {
+			LOG.info("	Asking user...");
+			version = Program.run(new VersionGetter());
+			LOG.info("	Set to: " + version);
+			
+		}
 		if (version == null) {
 			return false;
 		}
@@ -56,35 +67,20 @@ public class Version extends AbstractXmlWriter implements Creator {
 	}
 
 	public boolean createVersion(String version) {
-		LOG.info("Version:");
 		BufferedWriter writer = null;
 		InputStream input = null;
 		int n;
 		try {
 			//create a temporary file
-			String filename = Program.getFilename(getFilename());
-			File file = new File(filename);
-			//MessageDigest md = MessageDigest.getInstance("MD5");
-			writer = new BufferedWriter(new FileWriter(file));
-			if (version != null) {
-				writer.write(version);
-				writer.close();
-
-				//Hash file
-				MessageDigest md = MessageDigest.getInstance("MD5");
-
-				byte[] buffer = new byte[4096];
-				input = new DigestInputStream(new FileInputStream(file), md);
-				while ((n = input.read(buffer)) != -1) {
-					//Digest
-				}
-				createHashFile(md, filename);
-				return true;
-			}
-			
+			File file = Program.getDataFile("data.dat");
+			MessageDigest md = MessageDigest.getInstance("MD5");
+			writer = new BufferedWriter(new OutputStreamWriter(new DigestOutputStream(new FileOutputStream(file), md)));
+			writer.write(version);
+			writer.close();
+			//Hash file
+			createHashFile(md, file);
+			return true;
 		} catch (IOException ex) {
-			LOG.error(ex.getMessage(), ex);
-		} catch (XmlException ex) {
 			LOG.error(ex.getMessage(), ex);
 		} catch (NoSuchAlgorithmException ex) {
 			LOG.error(ex.getMessage(), ex);
@@ -108,38 +104,34 @@ public class Version extends AbstractXmlWriter implements Creator {
 	}
 
 	@Override
-	public String getFilename() {
-		return "data" + File.separator + "data.dat";
+	public String getName() {
+		return "data.dat";
 	}
 
 	@Override
-	public String getName() {
-		return "Version (DAT)";
+	public File getFile() {
+		return null;
 	}
 
-	private String inputVersion() {
-		VersionGetter versionGetter = new VersionGetter();
-		try {
-			SwingUtilities.invokeAndWait(versionGetter);
-		} catch (InterruptedException ex) {
-
-		} catch (InvocationTargetException ex) {
-
-		}
-		return versionGetter.getVersion();
+	public static String getVersion() {
+		Date today = new Date();
+		DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+		return format.format(today);
 	}
 
-	private static class VersionGetter implements Runnable {
+	private static class VersionGetter extends Worker<String> {
 
 		private String version = null;
 
 		@Override
 		public void run() {
 			Main.initLookAndFeel();
-			version = (String) JOptionPane.showInputDialog(null, "Enter version: YYYY-MM-DD[a-z]", "Version", JOptionPane.QUESTION_MESSAGE, null, null, "");
+			
+			version = (String) JOptionPane.showInputDialog(window, "Enter version: YYYY-MM-DD[a-z]", "Version", JOptionPane.QUESTION_MESSAGE, null, null, getVersion());
 		}
 
-		public String getVersion() {
+		@Override
+		public String get() {
 			return version;
 		}
 	}

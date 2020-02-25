@@ -21,20 +21,38 @@
 
 package net.nikr.eve;
 
-import net.nikr.eve.io.creator.Creators;
+import net.nikr.eve.io.creator.CreatorType;
+import net.nikr.eve.util.Duration;
+import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static org.junit.Assert.assertTrue;
 
 
-public class VersionDataBuilderTest {
-	private final static Logger LOG = LoggerFactory.getLogger(VersionDataBuilderTest.class);
+public class SafeDeployTest {
+	private final static Logger LOG = LoggerFactory.getLogger(SafeDeployTest.class);
 
 	@Test
-	public void versionTest() throws Exception {
-		final boolean ok = Creators.VERSION.getCreator().create();
-		assertTrue(ok);
-		LOG.info("Version completed");
+	public void test() throws Exception {
+		LOG.info("--- Safe Deploy ---");
+		Settings.setFailOnCurrent(true);
+		Settings.setAuto(true);
+		Duration duration = new Duration();
+		duration.start();
+		for (CreatorType creators : CreatorType.values()) {
+			final boolean ok = creators.getCreator().create();
+			assertTrue(ok);
+		}
+		duration.end();
+		LOG.info("Everything completed in: " + duration.getString());
+	}
+
+	public static void main(String[] args) {
+		SafeDeployTest test = new SafeDeployTest();
+		try {
+			test.test();
+		} catch (Exception ex) {
+			
+		}
 	}
 }

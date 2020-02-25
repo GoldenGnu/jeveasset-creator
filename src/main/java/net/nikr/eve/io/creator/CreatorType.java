@@ -21,24 +21,32 @@
 
 package net.nikr.eve.io.creator;
 
-import net.nikr.eve.io.creator.impl.sql.FlagsSql;
-import net.nikr.eve.io.creator.impl.sql.ItemsSql;
-import net.nikr.eve.io.creator.impl.sql.JumpsSql;
-import net.nikr.eve.io.creator.impl.sql.LocationsSql;
+import net.nikr.eve.io.creator.impl.OnlineOutdated;
+import net.nikr.eve.io.creator.impl.Flags;
+import net.nikr.eve.io.creator.impl.Items;
+import net.nikr.eve.io.creator.impl.Jumps;
+import net.nikr.eve.io.creator.impl.Locations;
+import net.nikr.eve.io.creator.impl.Sde;
+import net.nikr.eve.io.creator.impl.Version;
+
 /**
  *
  * @author Andrew Wheat
  */
-public enum SqlCreators {
-	LOCATIONS(new LocationsSql())
-	, ITEMS(new ItemsSql())
-	, JUMPS(new JumpsSql())
-	, FLAGS(new FlagsSql())
+public enum CreatorType {
+	SDE(new Sde())
+	, VERSION(new Version())
+	, LOCATIONS_YAML(new Locations())
+	, ITEMS_YAML(new Items())
+	, JUMPS_YAML(new Jumps())
+	, FLAGS_YAML(new Flags())
+	, ONLINE_OUTDATED(new OnlineOutdated())
 	;
+
 
 	Creator creator;
 
-	private SqlCreators(Creator creator) {
+	private CreatorType(Creator creator) {
 		this.creator = creator;
 	}
 

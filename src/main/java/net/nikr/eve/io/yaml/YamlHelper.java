@@ -34,13 +34,11 @@ import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import net.nikr.eve.Main;
+import net.nikr.eve.Program;
+import net.nikr.eve.Settings;
 
 
 public class YamlHelper {
-
-	public static enum SdeLanguage {
-		
-	}
 
 	public static enum SdeFile {
 		TYPEIDS("fsd", "typeIDs.yaml")
@@ -54,7 +52,7 @@ public class YamlHelper {
 		, INVFLAGS("bsd", "invFlags.yaml")
 		, UNIVERSE("fsd" + File.separator + "universe", "")
 		;
-		
+
 		private final String dir;
 		private final String filename;
 
@@ -94,25 +92,34 @@ public class YamlHelper {
 
 	private static String getSde(String sdeFile) {
 		if (sde == null) {
-			File run = getSdeInProgramDirectoryRun();
-			File test = getSdeInProgramDirectoryTest();
-			if (validSde(run)) {
-				sde = run.getAbsolutePath();
-			} else if (validSde(test)){
-				sde = test.getAbsolutePath();
-			} else {
+			File user = getUserDirectory();
+			File project = getProjectDirectory();
+			File target = getTargetDirectory();
+			if (validSde(user)) {
+				sde = user.getAbsolutePath();
+			} else if (validSde(project)){
+				sde = project.getAbsolutePath();
+			} else if (validSde(target)){
+				sde = target.getAbsolutePath();
+			} else if (!Settings.isAuto()) {
 				File file = chooseFile();
 				if (file != null) {
 					sde = file.getAbsolutePath();
 				} else {
 					throw new RuntimeException("No SDE found");
 				}
+			} else {
+				throw new RuntimeException("No SDE found");
 			}
 		}
 		return sde + File.separator + sdeFile;
 	}
 
-	private static File getSdeInProgramDirectoryRun() {
+	private static File getUserDirectory() {
+		return Program.getUserFile("sde");
+	}
+
+	private static File getTargetDirectory() {
 		File file;
 		URL location = YamlHelper.class.getProtectionDomain().getCodeSource().getLocation();
 		try {
@@ -123,7 +130,7 @@ public class YamlHelper {
 		return new File(file.getParentFile().getAbsolutePath() + File.separator + "sde");
 	}
 
-	private static File getSdeInProgramDirectoryTest() {
+	private static File getProjectDirectory() {
 		File file;
 		URL location = YamlHelper.class.getProtectionDomain().getCodeSource().getLocation();
 		try {

@@ -21,9 +21,7 @@
 
 package net.nikr.eve;
 
-import net.nikr.eve.io.creator.SqlCreators;
-import net.nikr.eve.io.online.EveCentralTest;
-import net.nikr.eve.io.sql.ConnectionReader;
+import net.nikr.eve.io.creator.CreatorType;
 import net.nikr.eve.util.Duration;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -31,21 +29,29 @@ import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertTrue;
 
 
-public class SqlDataBuilderTest {
+public class InteractiveDataBuilderTest {
 
-	private final static Logger LOG = LoggerFactory.getLogger(SqlDataBuilderTest.class);
+	private final static Logger LOG = LoggerFactory.getLogger(InteractiveDataBuilderTest.class);
 
 	@Test
-	public void sqlTest() throws Exception {
-		EveCentralTest.setSkip(true);
+	public void test() throws Exception {
+		LOG.info("--- Interactive Data Builder ---");
 		Duration duration = new Duration();
 		duration.start();
-		ConnectionReader.getConnectionData();
-		for (SqlCreators creators : SqlCreators.values()) {
+		for (CreatorType creators : CreatorType.values()) {
 			final boolean ok = creators.getCreator().create();
 			assertTrue(ok);
 		}
 		duration.end();
-		LOG.info("SQL completed in: " + duration.getString());
+		LOG.info("Everything completed in: " + duration.getString());
+	}
+
+	public static void main(String[] args) {
+		InteractiveDataBuilderTest test = new InteractiveDataBuilderTest();
+		try {
+			test.test();
+		} catch (Exception ex) {
+			
+		}
 	}
 }

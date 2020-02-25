@@ -27,6 +27,7 @@ import javax.swing.SwingUtilities;
 import net.nikr.eve.gui.MainFrame;
 import net.nikr.eve.gui.MainFrame.CreatorSection;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.creator.impl.Sde;
 import org.slf4j.LoggerFactory;
 
 public class DataWriter extends Thread {
@@ -60,6 +61,9 @@ public class DataWriter extends Thread {
 			final boolean ok = creator.create();
 			++count;
 			updateAfter(section, count, ok);
+			if (creator instanceof Sde && !ok) {
+				break;
+			}
 		}
 		updateEnd();
 	}

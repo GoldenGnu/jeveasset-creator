@@ -19,15 +19,16 @@
  *
  */
 
-package net.nikr.eve.io.creator.impl.sql;
+package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.io.IOException;
+import java.util.Set;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.data.map.Jump;
+import net.nikr.eve.util.Duration;
+import net.nikr.eve.io.yaml.JumpsReader;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import org.slf4j.Logger;
@@ -36,67 +37,61 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
-public class FlagsSql extends AbstractXmlWriter implements Creator {
+public class Jumps extends AbstractXmlWriter implements Creator {
 	
-	private final static Logger LOG = LoggerFactory.getLogger(FlagsSql.class);
+	private final static Logger LOG = LoggerFactory.getLogger(Jumps.class);
 
 	@Override
 	public boolean create() {
-		LOG.info("Flags:");
+		Duration duration = new Duration();
+		duration.start();
+		LOG.info("Jumps:");
 		boolean success = false;
 		try {
 			Document xmldoc = getXmlDocument("rows");
-			LOG.info("	Creating...");
+			LOG.info("	XML: init...");
 			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
 			xmldoc.getDocumentElement().appendChild(comment);
-			success = createFlags(xmldoc);
-			LOG.info("	Saving...");
-			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
+			success = createJumps(xmldoc);
+			LOG.info("	XML: Saving...");
+			writeXmlFile(xmldoc, getFile());
 		} catch (XmlException ex) {
-			LOG.error("Flags not saved (XML): "+ex.getMessage(), ex);
+			LOG.error("Jumps not saved (XML): " + ex.getMessage(), ex);
 		}
-		LOG.info("	Flags done");
+		duration.end();
+		LOG.info("	Jumps done in " + duration.getString());
 		return success;
 	}
 
 	@Override
-	public String getFilename() {
-		return "sql"+File.separator+"flags.xml";
+	public String getName() {
+		return "jumps.xml";
 	}
 
 	@Override
-	public String getName() {
-		return "Flags (SQL)";
+	public File getFile() {
+		return Program.getDataFile("jumps.xml");
 	}
 
-	private boolean createFlags(Document xmldoc) throws XmlException {
-		Element parentNode = xmldoc.getDocumentElement();
-		ResultSet rs = null;
-		Statement stmt = null;
-		Connection connection = Program.openConnection();
+	private boolean createJumps(Document xmldoc) throws XmlException {
 		try {
-			stmt = connection.createStatement();
-			String query = "SELECT flagID, flagName, flagText FROM invFlags ORDER BY flagID" ;
-			rs = stmt.executeQuery(query);
-			if (rs == null) return false;
-			while (rs.next()) {
+			LOG.info("	YAML: Loading...");
+			JumpsReader jumpsReader = new JumpsReader();
+			Set<Jump> jumps = jumpsReader.loadJumps();
+			LOG.info("	XML: Creating...");
+			Element parentNode = xmldoc.getDocumentElement();
+			for (Jump jump : jumps) {
 				Element node = xmldoc.createElementNS(null, "row");
-				int flagID = rs.getInt("flagID");
-				String flagName = rs.getString("flagName");
-				String flagText = rs.getString("flagText");
-				node.setAttributeNS(null, "flagid", String.valueOf(flagID));
-				node.setAttributeNS(null, "flagname", flagName);
-				node.setAttributeNS(null, "flagtext", flagText);
+				long from = jump.getFrom();
+				long to = jump.getTo();
+				node.setAttributeNS(null, "from", String.valueOf(from));
+				node.setAttributeNS(null, "to", String.valueOf(to));
 				parentNode.appendChild(node);
 			}
-		} catch (SQLException ex) {
-			throw new XmlException(ex);
-		} finally {
-			Program.close(rs);
-			Program.close(stmt);
-			Program.close(connection);
+			return true;
+		} catch (IOException ex) {
+			LOG.error(ex.getMessage(), ex);
 		}
-		return true;
+		return false;
 	}
 }

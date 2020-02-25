@@ -18,7 +18,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package net.nikr.eve.io.creator.impl.yaml;
+package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,9 +66,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 
-public class ItemsYaml extends AbstractXmlWriter implements Creator{
+public class Items extends AbstractXmlWriter implements Creator{
 
-	private static final Logger LOG = LoggerFactory.getLogger(ItemsYaml.class);
+	private static final Logger LOG = LoggerFactory.getLogger(Items.class);
 
 	private static final String DATASOURCE = "tranquility";
 
@@ -84,7 +84,7 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 			xmldoc.getDocumentElement().appendChild(comment);
 			boolean success = createItems(xmldoc);
 			LOG.info("	XML: Saving...");
-			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
+			writeXmlFile(xmldoc, getFile());
 			duration.end();
 			LOG.info("	Items completed in " + duration.getString());
 			return success;
@@ -95,13 +95,13 @@ public class ItemsYaml extends AbstractXmlWriter implements Creator{
 	}
 
 	@Override
-	public String getFilename() {
-		return "yaml"+File.separator+"items.xml";
+	public String getName() {
+		return "items.xml";
 	}
 
 	@Override
-	public String getName() {
-		return "Items (YAML)";
+	public File getFile() {
+		return Program.getDataFile("items.xml");
 	}
 
 	private boolean createItems(Document xmldoc) {

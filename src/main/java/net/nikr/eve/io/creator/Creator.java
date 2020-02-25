@@ -21,6 +21,8 @@
 
 package net.nikr.eve.io.creator;
 
+import java.io.File;
+
 /**
  *
  * @author Andrew Wheat
@@ -28,6 +30,5 @@ package net.nikr.eve.io.creator;
 public interface Creator {
 	public boolean create();
 	public String getName();
-	public String getFilename();
-	
+	public File getFile();
 }

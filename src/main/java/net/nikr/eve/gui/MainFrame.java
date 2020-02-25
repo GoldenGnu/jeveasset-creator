@@ -42,7 +42,7 @@ import javax.swing.JSeparator;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.DataWriter;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.eve.io.creator.Creators;
+import net.nikr.eve.io.creator.CreatorType;
 
 
 public class MainFrame extends JFrame implements WindowListener, ActionListener	{
@@ -64,7 +64,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		
 		//Main Panel
 		jPanel = new JPanel();
-		jPanel.setLayout(new GridLayout(Creators.values().length+1, 2, 5, 5));
+		jPanel.setLayout(new GridLayout(CreatorType.values().length+1, 2, 5, 5));
 
 		GroupLayout layout = new GroupLayout(jPanel);
 		jPanel.setLayout(layout);
@@ -84,11 +84,17 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		horizontalGroup.addComponent(jSeparator1);
 		verticalGroup.addComponent(jSeparator1, 5, 5, 5);
 
-		for (Creators creator : Creators.values()) {
-			CreatorSection cs = new CreatorSection(creator.getCreator());
+		for (CreatorType creator : CreatorType.values()) {
+			CreatorSection cs = new CreatorSection(creator);
 			creatorSections.add(cs);
-			cs.getCheckBox().setActionCommand(CHECK);
-			cs.getCheckBox().addActionListener(this);
+			if (creator != CreatorType.SDE) {
+				cs.getCheckBox().setActionCommand(CHECK);
+				cs.getCheckBox().addActionListener(this);
+			} else {
+				cs.getCheckBox().setSelected(true);
+				cs.getCheckBox().setEnabled(false);
+			}
+			
 			horizontalGroup.addComponent(cs.getCheckBox());
 			verticalGroup.addComponent(cs.getCheckBox(), 30, 30, 30);
 		}
@@ -165,16 +171,20 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		if (CHECK.equals(e.getActionCommand())){
 			boolean selected = true;
 			for (CreatorSection cs : creatorSections) {
-				if (!cs.getCheckBox().isSelected()){
-					selected = false;
-					break;
+				if (cs.getType() != CreatorType.SDE) {
+					if (!cs.getCheckBox().isSelected()){
+						selected = false;
+						break;
+					}
 				}
 			}
 			jAll.setSelected(selected);
 		}
 		if (CHECK_ALL.equals(e.getActionCommand())){
 			for (CreatorSection cs : creatorSections) {
-				cs.getCheckBox().setSelected(jAll.isSelected());
+				if (cs.getType() != CreatorType.SDE) {
+					cs.getCheckBox().setSelected(jAll.isSelected());
+				}
 			}
 		}
 	}
@@ -204,7 +214,9 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 	}
 	private void setAllEnabled(boolean b){
 		for (CreatorSection cs : creatorSections) {
-			cs.getCheckBox().setEnabled(b);
+			if (cs.getType() != CreatorType.SDE) {
+				cs.getCheckBox().setEnabled(b);
+			}
 		}
 		jAll.setEnabled(b);
 		jRun.setEnabled(b);
@@ -213,11 +225,15 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 
 	public static class CreatorSection {
 		private static final long serialVersionUID = 1l;
-		private final Creator creator;
+		private final CreatorType type;
 		private final JCheckBox jCheckbox;
 
 		public Creator getCreator() {
-			return creator;
+			return type.getCreator();
+		}
+
+		public CreatorType getType() {
+			return type;
 		}
 
 		public boolean isSelected() {
@@ -228,9 +244,9 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 			return jCheckbox;
 		}
 
-		public CreatorSection(Creator creator) {
-			this.creator = creator;
-			jCheckbox = new JCheckBox(creator.getName());
+		public CreatorSection(CreatorType creator) {
+			this.type = creator;
+			jCheckbox = new JCheckBox(creator.getCreator().getName());
 		}
 	}
 

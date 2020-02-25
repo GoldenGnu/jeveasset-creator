@@ -19,7 +19,7 @@
  *
  */
 
-package net.nikr.eve.io.creator.impl.yaml;
+package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
 import java.io.IOException;
@@ -51,9 +51,9 @@ import org.w3c.dom.Element;
 
 
 
-public class LocationsYaml extends AbstractXmlWriter implements Creator {
+public class Locations extends AbstractXmlWriter implements Creator {
 	
-	private final static Logger LOG = LoggerFactory.getLogger(LocationsYaml.class);
+	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
 
 	private final DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
 	
@@ -71,7 +71,7 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 			xmldoc.getDocumentElement().appendChild(comment);
 			success = createLocations(xmldoc);
 			LOG.info("	XML: Saving...");
-			writeXmlFile(xmldoc, Program.getFilename(getFilename()));
+			writeXmlFile(xmldoc, getFile());
 		} catch (XmlException ex) {
 			LOG.error("Locations not saved (XML): " + ex.getMessage(), ex);
 		}
@@ -82,12 +82,12 @@ public class LocationsYaml extends AbstractXmlWriter implements Creator {
 
 	@Override
 	public String getName() {
-		return "Locations (YAML)";
+		return "locations.xml";
 	}
 
 	@Override
-	public String getFilename() {
-		return "yaml"+File.separator+"locations.xml";
+	public File getFile() {
+		return Program.getDataFile("locations.xml");
 	}
 
 	private boolean createLocations(Document xmldoc) throws XmlException {

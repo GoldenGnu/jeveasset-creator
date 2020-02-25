@@ -21,18 +21,37 @@
 
 package net.nikr.eve;
 
-import net.nikr.eve.io.creator.impl.Version;
-import org.junit.Test;
+import net.nikr.eve.io.creator.CreatorType;
+import net.nikr.eve.util.Duration;
 import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-public class VersionSkipWorkaroundTest {
+public class RequireUpdateTest {
+	private final static Logger LOG = LoggerFactory.getLogger(RequireUpdateTest.class);
 
 	@Test
-	public void versionWorkaround() throws Exception {
-		//final boolean ok = Creators.VERSION.getCreator().create();
-		Version version = new Version();
-		boolean ok = version.createVersion("");
-		assertTrue(ok);
+	public void test() throws Exception {
+		Settings.setFailOnOutdated(true);
+		Settings.setAuto(true);
+		Duration duration = new Duration();
+		duration.start();
+		for (CreatorType creators : CreatorType.values()) {
+			final boolean ok = creators.getCreator().create();
+			assertTrue(ok);
+		}
+		duration.end();
+		LOG.info("Everything completed in: " + duration.getString());
+	}
+
+	public static void main(String[] args) {
+		RequireUpdateTest test = new RequireUpdateTest();
+		try {
+			test.test();
+		} catch (Exception ex) {
+			
+		}
 	}
 }

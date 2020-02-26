@@ -1,0 +1,31 @@
+name: Tests
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    name: Checking for updates
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Cache Maven
+      uses: actions/cache@v1
+      with:
+        path: ~/.m2/repository
+        key: maven-${{ hashFiles('**/pom.xml') }}
+        restore-keys: |
+          maven-
+    - name: Cache SDE
+      uses: actions/cache@v1
+      with:
+        path: ~/.jeveassets-creator-cache
+        key: sde-${{ hashFiles('~/.jeveassets-creator-cache/sde.zip') }}
+        restore-keys: |
+          sde-
+    - name: JDK
+      uses: actions/setup-java@v1
+      with:
+        java-version: 8
+    - name: Build with Maven
+      run: mvn -B package --file pom.xml -P BUILD-check-if-require-update

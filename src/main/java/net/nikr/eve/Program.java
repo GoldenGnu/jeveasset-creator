@@ -78,7 +78,7 @@ public class Program {
 		try {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			md.update(Files.readAllBytes(file.toPath()));
-			return DatatypeConverter.printHexBinary(md.digest()).toUpperCase();
+			return DatatypeConverter.printHexBinary(md.digest()).toLowerCase();
 		} catch (IOException ex) {
 			return null;
 		} catch (NoSuchAlgorithmException ex) {
@@ -95,7 +95,7 @@ public class Program {
 				while ((inputLine = in.readLine()) != null) {
 					builder.append(inputLine);
 				}
-				return builder.toString().toUpperCase();
+				return builder.toString().toLowerCase();
 			}
 		} catch (IOException ex) {
 			return null;

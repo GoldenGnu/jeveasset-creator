@@ -95,7 +95,7 @@ public abstract class AbstractXmlWriter {
 		try {
 			File file = new File(source.getAbsolutePath() + ".md5");
 			writer = new BufferedWriter(new FileWriter(file));
-			writer.write(DatatypeConverter.printHexBinary(md.digest()).toUpperCase());
+			writer.write(DatatypeConverter.printHexBinary(md.digest()).toLowerCase());
 		} finally {
 			if (writer != null) {
 				writer.close();

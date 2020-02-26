@@ -63,6 +63,8 @@ public abstract class AbstractXmlWriter {
 
 	protected void writeXmlFile(Document doc, File file, String encoding) throws XmlException {
 		DOMSource source = new DOMSource(doc);
+		String old = System.getProperty("line.separator");
+		System.setProperty("line.separator", "\r\n");
 		try (FileOutputStream outputStream = new FileOutputStream(file)) {
 			MessageDigest md = MessageDigest.getInstance("MD5");
 			DigestOutputStream digestOutputStream = new DigestOutputStream(outputStream, md);
@@ -87,6 +89,8 @@ public abstract class AbstractXmlWriter {
 			throw new XmlException(ex.getMessage(), ex);
 		} catch (NoSuchAlgorithmException ex) {
 			throw new XmlException(ex.getMessage(), ex);
+		} finally {
+			System.setProperty("line.separator", old);
 		}
 	}
 

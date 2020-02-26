@@ -34,6 +34,7 @@ public class RequireUpdateTest {
 
 	@Test
 	public void test() throws Exception {
+		LOG.info("--- Require Update ---");
 		Settings.setFailOnOutdated(true);
 		Settings.setAuto(true);
 		Duration duration = new Duration();

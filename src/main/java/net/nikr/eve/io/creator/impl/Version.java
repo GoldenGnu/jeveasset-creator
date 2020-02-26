@@ -127,11 +127,16 @@ public class Version extends AbstractXmlWriter implements Creator {
 		if (local.equals(online.replaceAll("[a-zA-Z]", ""))) { //Same date
 			if (online.length() == 10) { //identical
 				return local + "a";
-			} else { //already have a letter (add the next letter)
+			} else { //already have one or more letters
+				//Get last letter
 				char[] chars = online.toCharArray();
 				char c = chars[chars.length-1];
-				chars[chars.length-1] = (char) (c + 1);
-				return String.valueOf(chars);
+				if (c == 'z') { //Letter sequenze reached the end, adding new letter
+					return online + "a";
+				} else { //Replace last letter with the letter next in the alphabet
+					chars[chars.length-1] = (char) (c + 1);
+					return String.valueOf(chars);
+				}
 			}
 		} else { //New date
 			return local;

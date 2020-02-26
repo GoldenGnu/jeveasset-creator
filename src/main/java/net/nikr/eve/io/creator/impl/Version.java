@@ -20,12 +20,15 @@
  */
 package net.nikr.eve.io.creator.impl;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.URL;
 import java.security.DigestOutputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -116,7 +119,39 @@ public class Version extends AbstractXmlWriter implements Creator {
 	public static String getVersion() {
 		Date today = new Date();
 		DateFormat format = new SimpleDateFormat("yyyy-MM-dd");
-		return format.format(today);
+
+		return getVersion(format.format(today), getOnlineVersion());
+	}
+
+	public static String getVersion(String local, String online) {
+		if (local.equals(online.replaceAll("[a-zA-Z]", ""))) { //Same date
+			if (online.length() == 10) { //identical
+				return local + "a";
+			} else { //already have a letter (add the next letter)
+				char[] chars = online.toCharArray();
+				char c = chars[chars.length-1];
+				chars[chars.length-1] = (char) (c + 1);
+				return String.valueOf(chars);
+			}
+		} else { //New date
+			return local;
+		}
+	}
+
+	private static String getOnlineVersion() {
+		try {
+			StringBuilder builder = new StringBuilder();
+			URL url = new URL(OnlineOutdated.REPO + "data.dat");
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()))) {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					builder.append(inputLine);
+				}
+				return builder.toString();
+			}
+		} catch (IOException ex) {
+			return null;
+		}
 	}
 
 	private static class VersionGetter extends Worker<String> {

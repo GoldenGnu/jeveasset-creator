@@ -32,7 +32,7 @@ public class OnlineOutdated implements Creator {
 
 	private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(OnlineOutdated.class);
 
-	private final static String REPO = "https://eve.nikr.net/jeveassets/update/data/data/";
+	public final static String REPO = "https://eve.nikr.net/jeveassets/update/data/data/";
 
 	@Override
 	public boolean create() {
@@ -44,7 +44,7 @@ public class OnlineOutdated implements Creator {
 				continue;
 			}
 			String datafile = file.getName() + ".md5";
-			String downloadMd5 = Program.downloadMd5(REPO+datafile);
+			String downloadMd5 = Program.downloadMd5(REPO + datafile);
 			String fileMD5 = Program.fileMD5(file);
 			if (!fileMD5.equals(downloadMd5)) {
 				LOG.info("	" + file.getName() + " is outdated online");
@@ -52,12 +52,15 @@ public class OnlineOutdated implements Creator {
 			}
 		}
 		if (Settings.isFailOnOutdated() && outdated) {
-			LOG.info("	failing due to outdated");
+			LOG.info("	Failed due to outdated");
 			return false;
 		}
 		if (Settings.isFailOnCurrent() && !outdated) {
-			LOG.info("	failing due to current");
+			LOG.info("	Faile due to current");
 			return false;
+		}
+		if (!outdated) {
+			LOG.info("	Everything current");
 		}
 		return true;
 	}

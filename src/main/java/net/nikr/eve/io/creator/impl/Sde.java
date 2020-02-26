@@ -62,13 +62,8 @@ public class Sde implements Creator {
 			return false;
 		}
 		File sde = Program.getUserFile(SDE);
-		//SDE current
-		if (!Settings.isAuto() && validateSDE(sde, downloadMD5)) {
-			LOG.info("	SDE is latest");
-			if (!Program.run(new ConfirmDialog("Current SDE found in cache.\r\nUse it to generate the data files?", "SDE current"))) {
-				sde = null;
-			}
-		} else {
+		//SDE outdated -> download
+		if (!validateSDE(sde, downloadMD5)) {
 			LOG.info("	SDE outdated: download");
 			if (Settings.isAuto() || Program.run(new ConfirmDialog("Download the latest SDE to cache?", "SDE outdated"))) {
 				//Delete unzipped sde folder, as it needs to be updated after download
@@ -81,6 +76,12 @@ public class Sde implements Creator {
 					LOG.error("		-!- Failed to download SDE");
 					return false;
 				}
+			}
+		} else { //SDE current
+			if (!Settings.isAuto() && !Program.run(new ConfirmDialog("Current SDE found in cache.\r\nUse it to generate the data files?", "SDE current"))) {
+				sde = null;
+			} else {
+				LOG.info("	SDE is latest");
 			}
 		}
 		//SDE outdated -> browse

@@ -74,6 +74,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		SequentialGroup verticalGroup = layout.createSequentialGroup();
 
 		jAll = new JCheckBox("All");
+		jAll.setSelected(true);
 		jAll.setActionCommand(CHECK_ALL);
 		jAll.addActionListener(this);
 
@@ -91,7 +92,6 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 				cs.getCheckBox().setActionCommand(CHECK);
 				cs.getCheckBox().addActionListener(this);
 			} else {
-				cs.getCheckBox().setSelected(true);
 				cs.getCheckBox().setEnabled(false);
 			}
 			
@@ -247,6 +247,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		public CreatorSection(CreatorType creator) {
 			this.type = creator;
 			jCheckbox = new JCheckBox(creator.getCreator().getName());
+			jCheckbox.setSelected(true);
 		}
 	}
 

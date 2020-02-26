@@ -285,11 +285,12 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
-				<version>2.12</version>
+				<version>2.22.2</version>
 				<configuration>
 					<excludes>
 						<exclude>${skip.test.1}</exclude>
 						<exclude>${skip.test.2}</exclude>
+						<exclude>${skip.test.3}</exclude>
 					</excludes>
 				</configuration>
 			</plugin>
@@ -312,6 +313,7 @@
 			<properties>
 				<skip.test.1>**/RequireUpdateTest.java</skip.test.1>
 				<skip.test.2>**/SafeDeployTest.java</skip.test.2>
+				<skip.test.3></skip.test.3>
 			</properties>
 		</profile>
 		<profile>
@@ -319,6 +321,7 @@
 			<properties>
 				<skip.test.1>**/InteractiveDataBuilderTest.java</skip.test.1>
 				<skip.test.2>**/SafeDeployTest.java</skip.test.2>
+				<skip.test.3></skip.test.3>
 			</properties>
 		</profile>
 		<profile>
@@ -326,6 +329,15 @@
 			<properties>
 				<skip.test.1>**/RequireUpdateTest.java</skip.test.1>
 				<skip.test.2>**/InteractiveDataBuilderTest.java</skip.test.2>
+				<skip.test.3></skip.test.3>
+			</properties>
+		</profile>
+		<profile>
+			<id>BUILD-junit</id>
+			<properties>
+				<skip.test.1>**/RequireUpdateTest.java</skip.test.1>
+				<skip.test.2>**/InteractiveDataBuilderTest.java</skip.test.2>
+				<skip.test.3>**/SafeDeployTest.java</skip.test.3>
 			</properties>
 		</profile>
 	</profiles>
@@ -374,7 +386,7 @@
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
-			<version>4.10</version>
+			<version>4.13</version>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>

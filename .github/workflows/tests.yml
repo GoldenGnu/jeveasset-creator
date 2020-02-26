@@ -20,7 +20,7 @@ jobs:
       uses: actions/cache@v1
       with:
         path: ~/.jeveassets-creator-cache
-        key: sde-${{ hashFiles('**/sde.zip') }}
+        key: sde-$GITHUB_RUN_ID
         restore-keys: |
           sde-
     - name: JDK

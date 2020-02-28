@@ -124,6 +124,12 @@ public class Version extends AbstractXmlWriter implements Creator {
 	}
 
 	public static String getVersion(String local, String online) {
+		if (local == null) {
+			return null;
+		}
+		if (online == null) {
+			return local;
+		}
 		if (local.equals(online.replaceAll("[a-zA-Z]", ""))) { //Same date
 			if (online.length() == 10) { //identical
 				return local + "a";

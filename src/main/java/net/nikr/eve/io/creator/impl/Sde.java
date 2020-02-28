@@ -56,7 +56,7 @@ public class Sde implements Creator {
 		Duration duration = new Duration();
 		duration.start();
 		LOG.info("SDE:");
-		LOG.info("	Downloading SDE md5...");
+		LOG.info("	Downloading MD5...");
 		String downloadMD5 = MD5.download(URL_MD5);
 		if (downloadMD5 == null) {
 			LOG.error("	-!- Failed to download md5");
@@ -99,7 +99,7 @@ public class Sde implements Creator {
 		}
 		try {
 			if (!Program.getUserFile("sde").exists()) {
-				LOG.info("		Unzipping SDE...");
+				LOG.info("	Unzipping SDE...");
 				return unzip(sde);
 			} else {
 				return true;

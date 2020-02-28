@@ -56,7 +56,7 @@ public class OnlineOutdated implements Creator {
 			return false;
 		}
 		if (Settings.isFailOnCurrent() && !outdated) {
-			LOG.info("	Faile due to current");
+			LOG.info("	Failed due to current");
 			return false;
 		}
 		if (!outdated) {

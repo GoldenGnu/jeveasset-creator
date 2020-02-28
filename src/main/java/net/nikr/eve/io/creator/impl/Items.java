@@ -52,6 +52,7 @@ import net.nikr.eve.io.data.inv.TypeMaterial;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.InvReader;
+import net.nikr.eve.io.yaml.InvReader.TypeMaterialList;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiException;
 import net.troja.eve.esi.api.MarketApi;
@@ -126,7 +127,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			LOG.info("		Meta Groups...");
 			Map<Integer, MetaGroup> metaGroups = reader.loadMetaGroups();
 			LOG.info("		Materials...");
-			Map<Integer, List<TypeMaterial>> typeMaterials = reader.loadTypeMaterials();
+			Map<Integer, TypeMaterialList> typeMaterials = reader.loadTypeMaterials();
 			LOG.info("		Blueprints...");
 			Map<Integer, Blueprint> blueprints =  reader.loadBlueprints();
 			LOG.info("	ESI: Loading...");
@@ -261,8 +262,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 					boolean bMarketGroup = marketGroupsTypeIDs.contains(typeID);
 					node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup));
 					parentNode.appendChild(node);
-					List<TypeMaterial> materials = typeMaterials.get(typeID);
-					if (materials != null) {
+					TypeMaterialList materialList = typeMaterials.get(typeID);
+					if (materialList != null) {
+						List<TypeMaterial> materials = materialList.getMaterials();
 						Collections.sort(materials, new Comparator<TypeMaterial>() {
 							@Override
 							public int compare(TypeMaterial o1, TypeMaterial o2) {

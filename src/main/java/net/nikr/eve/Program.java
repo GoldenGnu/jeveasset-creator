@@ -22,18 +22,10 @@
 package net.nikr.eve;
 
 import java.awt.Window;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import javax.swing.SwingUtilities;
-import javax.xml.bind.DatatypeConverter;
 import net.nikr.eve.gui.MainFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,34 +64,6 @@ public class Program {
 		File ret = new File(file.getAbsolutePath()+File.separator+".jeveassets-creator-cache"+File.separator+filename);
 		if (!ret.getParentFile().exists()) ret.getParentFile().mkdirs();
 		return ret;
-	}
-
-	public static String fileMD5(File file) {
-		try {
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			md.update(Files.readAllBytes(file.toPath()));
-			return DatatypeConverter.printHexBinary(md.digest()).toLowerCase();
-		} catch (IOException ex) {
-			return null;
-		} catch (NoSuchAlgorithmException ex) {
-			return null;
-		}
-	}
-
-	public static String downloadMd5(String md5) {
-		try {
-			StringBuilder builder = new StringBuilder();
-			URL url = new URL(md5);
-			try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()))) {
-				String inputLine;
-				while ((inputLine = in.readLine()) != null) {
-					builder.append(inputLine);
-				}
-				return builder.toString().toLowerCase();
-			}
-		} catch (IOException ex) {
-			return null;
-		}
 	}
 
 	public static <T> T run(Worker<T> worker) {

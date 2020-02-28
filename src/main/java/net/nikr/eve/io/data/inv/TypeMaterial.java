@@ -25,7 +25,6 @@ package net.nikr.eve.io.data.inv;
 public class TypeMaterial {
 	private int materialTypeID;
 	private int quantity;
-	private int typeID;
 
 	public int getMaterialTypeID() {
 		return materialTypeID;
@@ -33,9 +32,5 @@ public class TypeMaterial {
 
 	public int getQuantity() {
 		return quantity;
-	}
-
-	public int getTypeID() {
-		return typeID;
 	}
 }

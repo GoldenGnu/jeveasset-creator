@@ -46,7 +46,7 @@ public class YamlHelper {
 		, CATEGORYIDS("fsd", "categoryIDs.yaml")
 		, DGMTYPEATTRIBUTES("bsd", "dgmTypeAttributes.yaml")
 		, METAGROUPS("fsd", "metaGroups.yaml")
-		, INVTYPEMATERIALS("bsd", "invTypeMaterials.yaml")
+		, INVTYPEMATERIALS("fsd", "typeMaterials.yaml")
 		, BLUEPRINTS("fsd", "blueprints.yaml")
 		, INVNAMES("bsd", "invNames.yaml")
 		, INVFLAGS("bsd", "invFlags.yaml")

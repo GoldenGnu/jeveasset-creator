@@ -39,6 +39,7 @@ import net.nikr.eve.Program.Worker;
 import net.nikr.eve.Settings;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.util.Duration;
+import net.nikr.eve.util.MD5;
 import org.slf4j.LoggerFactory;
 
 
@@ -56,7 +57,7 @@ public class Sde implements Creator {
 		duration.start();
 		LOG.info("SDE:");
 		LOG.info("	Downloading SDE md5...");
-		String downloadMD5 = Program.downloadMd5(URL_MD5);
+		String downloadMD5 = MD5.download(URL_MD5);
 		if (downloadMD5 == null) {
 			LOG.error("	-!- Failed to download md5");
 			return false;
@@ -120,10 +121,11 @@ public class Sde implements Creator {
 	}
 
 	private boolean validateSDE(File sde, String matchMD5) {
+		LOG.info("	Validating SDE...");
 		if (sde == null || !sde.exists()) {
 			return false;
 		}
-		String fileMD5 = Program.fileMD5(sde);
+		String fileMD5 = MD5.zip(sde);
 		if (fileMD5 == null) {
 			LOG.error("	-!- Failed to hash file");
 			return false;

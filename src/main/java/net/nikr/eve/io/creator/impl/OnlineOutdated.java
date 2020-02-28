@@ -21,10 +21,10 @@
 package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
-import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.creator.CreatorType;
 import net.nikr.eve.Settings;
+import net.nikr.eve.util.MD5;
 import org.slf4j.LoggerFactory;
 
 
@@ -44,8 +44,8 @@ public class OnlineOutdated implements Creator {
 				continue;
 			}
 			String datafile = file.getName() + ".md5";
-			String downloadMd5 = Program.downloadMd5(REPO + datafile);
-			String fileMD5 = Program.fileMD5(file);
+			String downloadMd5 = MD5.download(REPO + datafile);
+			String fileMD5 = MD5.file(file);
 			if (!fileMD5.equals(downloadMd5)) {
 				LOG.info("	" + file.getName() + " is outdated online");
 				outdated = true;

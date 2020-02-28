@@ -80,19 +80,10 @@ public class InvReader {
 		return YamlHelper.convert(reader.read(MetaGroupMap.class, MetaGroup.class));
 	}
 
-	public Map<Integer, List<TypeMaterial>> loadTypeMaterials() throws IOException {
+	public Map<Integer, TypeMaterialList> loadTypeMaterials() throws IOException {
 		YamlReader reader = YamlHelper.getReader(SdeFile.INVTYPEMATERIALS);
-		List<TypeMaterial> list = reader.read(TypeMaterialList.class, TypeMaterial.class);
-		Map<Integer, List<TypeMaterial>> map = new HashMap<Integer, List<TypeMaterial>>();
-		for (TypeMaterial value : list) {
-			List<TypeMaterial> materials = map.get(value.getTypeID());
-			if (materials == null) {
-				materials = new ArrayList<TypeMaterial>();
-				map.put(value.getTypeID(), materials);
-			}
-			materials.add(value);
-		}
-		return map;
+		reader.getConfig().setPropertyElementType(TypeMaterialList.class, "materials", TypeMaterial.class);
+		return YamlHelper.convert(reader.read(TypeMaterialMap.class, TypeMaterialList.class));
 	}
 
 	public Map<Integer, Blueprint> loadBlueprints() throws IOException {
@@ -109,7 +100,14 @@ public class InvReader {
 	public static class CategoryMap extends TreeMap<String, Category> { }
 	public static class TypeAttributeList extends ArrayList<TypeAttribute> { }
 	public static class MetaGroupMap extends TreeMap<String, MetaGroup> { }
-	public static class TypeMaterialList extends ArrayList<TypeMaterial> { }
+	public static class TypeMaterialMap extends TreeMap<String, TypeMaterialList> { }
+	public static class TypeMaterialList {
+		private List<TypeMaterial> materials = new ArrayList<TypeMaterial>();
+
+		public List<TypeMaterial> getMaterials() {
+			return materials;
+		}
+	}
 	public static class BlueprintMap extends TreeMap<String, Blueprint> { }
 
 	public static class Attributes {

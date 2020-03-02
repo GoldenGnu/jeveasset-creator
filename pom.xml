@@ -394,13 +394,13 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.build.sourceVersion>1.8</project.build.sourceVersion>
 		<!-- Live deploy location -->
+		<!--
 		<upload.data.file>eve.nikr.net/jeveassets/update/data</upload.data.file>
 		<upload.data.zip>eve.nikr.net/jeveassets</upload.data.zip>
+		-->
 		<!-- Test deploy location -->
-		<!--
 		<upload.data.file>eve.nikr.net/test/update/data</upload.data.file>
 		<upload.data.zip>eve.nikr.net/test</upload.data.zip>
-		-->
 
 		<targetJdk>1.8</targetJdk>
 	</properties>

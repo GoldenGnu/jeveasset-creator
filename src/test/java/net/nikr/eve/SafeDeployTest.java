@@ -35,7 +35,7 @@ public class SafeDeployTest {
 	@Test
 	public void test() throws Exception {
 		LOG.info("--- Safe Deploy ---");
-		Settings.setFailOnCurrent(true);
+		//Settings.setFailOnCurrent(true);
 		Settings.setAuto(true);
 		Duration duration = new Duration();
 		duration.start();

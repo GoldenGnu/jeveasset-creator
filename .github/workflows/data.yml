@@ -1,4 +1,4 @@
-name: Data release is current
+name: SDE Update Checker
 
 on:
   push:
@@ -32,3 +32,6 @@ jobs:
         java-version: 8
     - name: Check if data release is current
       run: mvn -B package --file pom.xml -P BUILD-check-if-require-update
+    - name: Release new data version
+      if: failure()
+      run: mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ ftpuser }}" "-Dftp.pass=${{ ftppass }}"

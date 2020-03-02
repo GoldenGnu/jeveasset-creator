@@ -35,13 +35,13 @@ public class SafeDeployTest {
 	@Test
 	public void test() throws Exception {
 		LOG.info("--- Safe Deploy ---");
-		//Settings.setFailOnCurrent(true);
+		Settings.setFailOnCurrent(true);
 		Settings.setAuto(true);
 		Duration duration = new Duration();
 		duration.start();
 		for (CreatorType creators : CreatorType.values()) {
 			final boolean ok = creators.getCreator().create();
-			//assertTrue(ok);
+			assertTrue(ok);
 		}
 		duration.end();
 		LOG.info("Everything completed in: " + duration.getString());

@@ -35,4 +35,4 @@ jobs:
     - name: Release new data version
       #if: failure()
       if: always()
-      run: mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=$ftpuser" "-Dftp.pass=$ftppass"
+      run: mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"

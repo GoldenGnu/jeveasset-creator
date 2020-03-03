@@ -35,8 +35,7 @@ jobs:
     - name: Check if data release is current
       run: mvn -B package --file pom.xml -P BUILD-check-if-require-update
     - name: Release new data version
-      #if: failure()
-      if: always()
+      if: failure()
       run: |
         mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"
         echo ::set-env name=release::done

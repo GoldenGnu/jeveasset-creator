@@ -40,6 +40,6 @@ jobs:
       if: success()
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      uses: Ilshidur/action-discord@master
+      uses: Ilshidur/action-discord@05a28ef
       with:
         args: 'Data update released to test repo'

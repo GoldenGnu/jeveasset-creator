@@ -34,8 +34,9 @@ jobs:
       run: mvn -B package --file pom.xml -P BUILD-check-if-require-update
     - name: Release new data version
       if: failure()
-      run: mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"
-      run: echo ::set-env name=release::done
+      run: |
+        mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"
+        echo ::set-env name=release::done
     - name: Send discord notification for new release
       if: release == 'done'
       env:

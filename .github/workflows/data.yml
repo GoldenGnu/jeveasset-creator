@@ -4,8 +4,7 @@ on:
   push:
   schedule:
     # Daily @ 8:44
-    #- cron:  '44 8 * * *'
-    - cron:  '0 13 * * *'
+    - cron:  '44 8 * * *'
 
 jobs:
   build:
@@ -32,12 +31,15 @@ jobs:
       with:
         java-version: 8
     - name: Check if data release is current
-      env:
-        GITHUB_WORKFLOW: Data release up to date
       run: mvn -B package --file pom.xml -P BUILD-check-if-require-update
     - name: Release new data version
       #if: failure()
       if: always()
-      env:
-        GITHUB_WORKFLOW: New data released
       run: mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"
+    - name: Discord notification
+      if: success()
+      env:
+        DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+      uses: Ilshidur/action-discord@master
+      with:
+        args: 'Data update released to test repo'

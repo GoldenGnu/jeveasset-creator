@@ -37,7 +37,7 @@ jobs:
     - name: Release new data version
       if: failure()
       run: |
-        echo ::set-env name=release::done
+        echo "::set-env name=release::done"
         mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"
     - name: Send discord notification for new release
       if: success() && env.release == 'done'

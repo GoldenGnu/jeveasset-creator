@@ -40,7 +40,7 @@ jobs:
         echo "::set-env name=release::done"
         mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"
     - name: Send discord notification for new release
-      if: env.release == 'done'
+      if: failure() && env.release == 'done'
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
       uses: Ilshidur/action-discord@05a28ef

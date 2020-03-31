@@ -65,7 +65,7 @@ public class Sde implements Creator {
 		File sde = Program.getUserFile(SDE);
 		//SDE outdated -> download
 		if (!validateSDE(sde, downloadMD5)) {
-			LOG.info("	SDE outdated: download");
+			LOG.info("	SDE outdated:");
 			if (Settings.isAuto() || Program.run(new ConfirmDialog("Download the latest SDE to cache?", "SDE outdated"))) {
 				//Delete unzipped sde folder, as it needs to be updated after download
 				LOG.info("		Deleteing unzipped SDE...");

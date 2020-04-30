@@ -108,6 +108,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private boolean createItems(Document xmldoc) {
 		NumberFormat intFormat = new DecimalFormat("0");
 		try {
+			Set<Integer> missingNames = new HashSet<>();
 			Set<String> spacedItems = new HashSet<>();
 			Set<String> techLevelItems = new HashSet<>();
 			Set<String> productsItems = new HashSet<>();
@@ -135,12 +136,10 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Set<Integer> marketGroupsTypeIDs = getMarketGroupsTypeIDs();
 			LOG.info("		Packaged Volume...");
 			Map<Integer, Float> volume = getVolume(typeIDs, categories, groupIDs);
-			UniverseApi universeApi = new UniverseApi();
+			LOG.info("		Names...");
+			Map<Integer, String> names = getNames(typeIDs);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
-			int esiOK = 0;
-			int esiIgnore = 0;
-			int esiError = 0;
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
 				Element node = xmldoc.createElementNS(null, "row");
 				Integer typeID = entry.getKey();
@@ -157,27 +156,36 @@ public class Items extends AbstractXmlWriter implements Creator{
 						) && !category.getName().equals("Infantry")) {
 					node.setAttributeNS(null, "id", String.valueOf(typeID));
 					final String typeName;
-					if (type.getName() != null) {
+					String esiName = names.get(typeID);
+					if (esiName != null) {
+						typeName = esiName;
+					} else if (type.getName() != null) {
 						typeName = type.getName();
 					} else {
-						try {
-							List<UniverseNamesResponse> list = universeApi.postUniverseNames(Collections.singletonList(typeID), "tranquility");
-							typeName = list.get(0).getName();
-							if (typeName.startsWith("[no messageID: ")) {
-								esiIgnore++;
-								continue;
-							}
-							esiOK++;
-						} catch (ApiException ex) {
-							esiError++;
-							continue;
-						}
+						missingNames.add(typeID);
+						continue;
 					}
-					String typeNameFixed = typeName.replace("  ", " ").replace("\t", " ");
-					node.setAttributeNS(null, "name", typeNameFixed);
+					//Normalize Names 
+					String typeNameFixed = typeName
+							.replaceAll(" +", " ") //Replace 2 or more spaces
+							.replace("\t", " ") //Tab
+							.replace("„", "\"") //Index
+							.replace("“", "\"") //Set transmit state
+							.replace("”", "\"") //Cancel character
+							.replace("‘", "'") //Private use one
+							.replace("’", "'") //Private use two
+							.replace("`", "'") //Grave accent
+							.replace("´", "'") //Acute accent
+							.replace("–", "-") //En dash
+							.replace("‐", "-") //Hyphen
+							.replace("‑", "-") //Non-breaking hyphen
+							.replace("‒", "-") //Figure dash
+							.replace("—", "-") //Em dash
+							.trim();
 					if (!typeNameFixed.equals(typeName)) {
-						spacedItems.add(typeName.replace("  ", " \\S").replace("\t", "\\t"));
+						spacedItems.add(typeName);
 					}
+					node.setAttributeNS(null, "name", typeNameFixed);
 					node.setAttributeNS(null, "group", group.getName());
 					node.setAttributeNS(null, "category", category.getName());
 					node.setAttributeNS(null, "price", intFormat.format(type.getBasePrice()));
@@ -298,7 +306,13 @@ public class Items extends AbstractXmlWriter implements Creator{
 			if (spacedItems.isEmpty()) {
 				LOG.info("			none");
 			}
-			LOG.info("		ESI requests: " + esiOK + " successful, " + esiError + " unsuccessful, " + esiIgnore + " ignored");
+			LOG.info("		Items missing names:");
+			for (Integer typeID : missingNames) {
+				LOG.info("			" + typeID);
+			}
+			if (missingNames.isEmpty()) {
+				LOG.info("			none");
+			}
 			return true;
 		} catch (IOException ex) {
 			LOG.error(ex.getMessage(), ex);
@@ -459,5 +473,75 @@ public class Items extends AbstractXmlWriter implements Creator{
 			return response.getPackagedVolume();
 		}
 	}
-	
+
+	private Map<Integer, String> getNames(Map<Integer, Type> typeIDs) {
+		List<UpdateNames> updates = new ArrayList<>();
+		List<List<Integer>> list = splitList(typeIDs.keySet(), 1000);
+		for (List<Integer> entry : list) {
+			updates.add(new UpdateNames(entry));
+		}
+		Map<Integer, String> names = new HashMap<>();
+		List<Future<Map<Integer, String>>> futures = startReturn(updates);
+		for (Future<Map<Integer, String>> future : futures) {
+			try {
+				names.putAll(future.get());
+			} catch (InterruptedException | ExecutionException ex) {
+				throw new RuntimeException(ex.getMessage(), ex);
+			}
+		}
+		return names;
+	}
+
+	private static class UpdateNames implements Callable<Map<Integer, String>> {
+
+		private final UniverseApi api = new UniverseApi();
+		private final List<Integer> entry;
+		private int retries = 0;
+
+		public UpdateNames(List<Integer> entry) {
+			this.entry = entry;
+		}
+
+		@Override
+		public Map<Integer, String> call() throws Exception {
+			List<UniverseNamesResponse> responses = update();
+			Map<Integer, String> names = new HashMap<>();
+			for (UniverseNamesResponse response : responses) {
+				if (response.getCategory() != UniverseNamesResponse.CategoryEnum.INVENTORY_TYPE) {
+					continue;
+				}
+				if (response.getName().startsWith("[no messageID: ")) {
+					continue;
+				}
+				names.put(response.getId(), response.getName());
+			}
+			return names;
+		}
+
+		private List<UniverseNamesResponse> update() {
+			try {
+				return api.postUniverseNames(entry, DATASOURCE);
+			} catch (ApiException ex) {
+				retries++;
+				if (retries <= 3) {
+					return update();
+				} else {
+					throw new RuntimeException(ex.getMessage(), ex);
+				}
+			}
+		}
+	}
+
+	private <T> List<List<T>> splitList(Collection<T> list, final int L) {
+		return splitList(new ArrayList<>(list), L);
+	}
+
+	private <T> List<List<T>> splitList(List<T> list, final int L) {
+		List<List<T>> parts = new ArrayList<>();
+		final int N = list.size();
+		for (int i = 0; i < N; i += L) {
+			parts.add(new ArrayList<>(list.subList(i, Math.min(N, i + L))));
+		}
+		return parts;
+	}
 }

@@ -112,6 +112,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Set<String> spacedItems = new HashSet<>();
 			Set<String> techLevelItems = new HashSet<>();
 			Set<String> productsItems = new HashSet<>();
+			int outdatedNames = 0;
 			LOG.info("	YAML: Loading...");
 			InvReader reader = new InvReader();
 			LOG.info("		Types...");
@@ -164,6 +165,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 					} else {
 						missingNames.add(typeID);
 						continue;
+					}
+					if (esiName != null && !esiName.equals(type.getName())) {
+						outdatedNames++;
 					}
 					//Normalize Names 
 					String typeNameFixed = typeName
@@ -313,6 +317,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			if (missingNames.isEmpty()) {
 				LOG.info("			none");
 			}
+			LOG.info("		" + outdatedNames + " outdated names in the SDE");
 			return true;
 		} catch (IOException ex) {
 			LOG.error(ex.getMessage(), ex);

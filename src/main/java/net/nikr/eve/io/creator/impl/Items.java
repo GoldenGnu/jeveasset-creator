@@ -54,12 +54,13 @@ import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.InvReader;
 import net.nikr.eve.io.yaml.InvReader.TypeMaterialList;
 import net.nikr.eve.util.Duration;
+import net.troja.eve.esi.ApiClient;
+import net.troja.eve.esi.ApiClientBuilder;
 import net.troja.eve.esi.ApiException;
 import net.troja.eve.esi.api.MarketApi;
 import net.troja.eve.esi.api.UniverseApi;
 import net.troja.eve.esi.model.MarketGroupResponse;
 import net.troja.eve.esi.model.TypeResponse;
-import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -70,6 +71,10 @@ import org.w3c.dom.Element;
 public class Items extends AbstractXmlWriter implements Creator{
 
 	private static final Logger LOG = LoggerFactory.getLogger(Items.class);
+
+	private static final ApiClient CLIENT = new ApiClientBuilder().userAgent("jEveAssets XML Builder").build();
+	private static final UniverseApi UNIVERSE_API = new UniverseApi(CLIENT);
+	private static final MarketApi MARKET_API = new MarketApi(CLIENT);
 
 	private static final String DATASOURCE = "tranquility";
 
@@ -112,7 +117,6 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Set<String> spacedItems = new HashSet<>();
 			Set<String> techLevelItems = new HashSet<>();
 			Set<String> productsItems = new HashSet<>();
-			int outdatedNames = 0;
 			LOG.info("	YAML: Loading...");
 			InvReader reader = new InvReader();
 			LOG.info("		Types...");
@@ -137,8 +141,6 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Set<Integer> marketGroupsTypeIDs = getMarketGroupsTypeIDs();
 			LOG.info("		Packaged Volume...");
 			Map<Integer, Float> volume = getVolume(typeIDs, categories, groupIDs);
-			LOG.info("		Names...");
-			Map<Integer, String> names = getNames(typeIDs);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
@@ -157,17 +159,11 @@ public class Items extends AbstractXmlWriter implements Creator{
 						) && !category.getName().equals("Infantry")) {
 					node.setAttributeNS(null, "id", String.valueOf(typeID));
 					final String typeName;
-					String esiName = names.get(typeID);
-					if (esiName != null) {
-						typeName = esiName;
-					} else if (type.getName() != null) {
+					if (type.getName() != null) {
 						typeName = type.getName();
 					} else {
 						missingNames.add(typeID);
 						continue;
-					}
-					if (esiName != null && !esiName.equals(type.getName())) {
-						outdatedNames++;
 					}
 					//Normalize Names 
 					String typeNameFixed = typeName
@@ -317,7 +313,6 @@ public class Items extends AbstractXmlWriter implements Creator{
 			if (missingNames.isEmpty()) {
 				LOG.info("			none");
 			}
-			LOG.info("		" + outdatedNames + " outdated names in the SDE");
 			return true;
 		} catch (IOException ex) {
 			LOG.error(ex.getMessage(), ex);
@@ -338,8 +333,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private Set<Integer> getMarketGroupsTypeIDs() {
 		Set<Integer> typeIDs = new HashSet<>();
 		try {
-			MarketApi marketApi = new MarketApi();
-			List<Integer> marketsGroups = marketApi.getMarketsGroups("tranquility", null);
+			List<Integer> marketsGroups = MARKET_API.getMarketsGroups("tranquility", null);
 			List<UpdateGroup> updates = new ArrayList<>();
 			for (Integer marketGroup : marketsGroups) {
 				updates.add(new UpdateGroup(marketGroup));
@@ -361,7 +355,6 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 	private static class UpdateGroup implements Callable<List<Integer>> {
 
-		private final MarketApi marketApi = new MarketApi();
 		private final Integer marketGroup;
 		private final List<Integer> typeIDs = new ArrayList<>();
 		private int retries = 0;
@@ -379,7 +372,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 		private MarketGroupResponse update() {
 			try {
-				return marketApi.getMarketsGroupsMarketGroupId(marketGroup, null, DATASOURCE, null, null);
+				return MARKET_API.getMarketsGroupsMarketGroupId(marketGroup, null, DATASOURCE, null, null);
 			} catch (ApiException ex) {
 				retries++;
 				if (retries <= 3) {
@@ -426,7 +419,6 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 	private static class UpdateVolume implements Callable<TypeData> {
 
-		private final UniverseApi api = new UniverseApi();
 		private final int typeID;
 		private int retries = 0;
 
@@ -442,7 +434,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 		private TypeResponse update() {
 			try {
-				return api.getUniverseTypesTypeId(typeID, null, DATASOURCE, null, null);
+				return UNIVERSE_API.getUniverseTypesTypeId(typeID, null, DATASOURCE, null, null);
 			} catch (ApiException ex) {
 				retries++;
 				if (retries <= 3) {
@@ -477,76 +469,5 @@ public class Items extends AbstractXmlWriter implements Creator{
 		private Float getPackagedVolume() {
 			return response.getPackagedVolume();
 		}
-	}
-
-	private Map<Integer, String> getNames(Map<Integer, Type> typeIDs) {
-		List<UpdateNames> updates = new ArrayList<>();
-		List<List<Integer>> list = splitList(typeIDs.keySet(), 1000);
-		for (List<Integer> entry : list) {
-			updates.add(new UpdateNames(entry));
-		}
-		Map<Integer, String> names = new HashMap<>();
-		List<Future<Map<Integer, String>>> futures = startReturn(updates);
-		for (Future<Map<Integer, String>> future : futures) {
-			try {
-				names.putAll(future.get());
-			} catch (InterruptedException | ExecutionException ex) {
-				throw new RuntimeException(ex.getMessage(), ex);
-			}
-		}
-		return names;
-	}
-
-	private static class UpdateNames implements Callable<Map<Integer, String>> {
-
-		private final UniverseApi api = new UniverseApi();
-		private final List<Integer> entry;
-		private int retries = 0;
-
-		public UpdateNames(List<Integer> entry) {
-			this.entry = entry;
-		}
-
-		@Override
-		public Map<Integer, String> call() throws Exception {
-			List<UniverseNamesResponse> responses = update();
-			Map<Integer, String> names = new HashMap<>();
-			for (UniverseNamesResponse response : responses) {
-				if (response.getCategory() != UniverseNamesResponse.CategoryEnum.INVENTORY_TYPE) {
-					continue;
-				}
-				if (response.getName().startsWith("[no messageID: ")) {
-					continue;
-				}
-				names.put(response.getId(), response.getName());
-			}
-			return names;
-		}
-
-		private List<UniverseNamesResponse> update() {
-			try {
-				return api.postUniverseNames(entry, DATASOURCE);
-			} catch (ApiException ex) {
-				retries++;
-				if (retries <= 3) {
-					return update();
-				} else {
-					throw new RuntimeException(ex.getMessage(), ex);
-				}
-			}
-		}
-	}
-
-	private <T> List<List<T>> splitList(Collection<T> list, final int L) {
-		return splitList(new ArrayList<>(list), L);
-	}
-
-	private <T> List<List<T>> splitList(List<T> list, final int L) {
-		List<List<T>> parts = new ArrayList<>();
-		final int N = list.size();
-		for (int i = 0; i < N; i += L) {
-			parts.add(new ArrayList<>(list.subList(i, Math.min(N, i + L))));
-		}
-		return parts;
 	}
 }

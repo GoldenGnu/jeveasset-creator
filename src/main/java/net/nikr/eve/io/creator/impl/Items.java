@@ -195,6 +195,10 @@ public class Items extends AbstractXmlWriter implements Creator{
 					if (packagedVolume != null) {
 						node.setAttributeNS(null, "packagedvolume", String.valueOf(packagedVolume));
 					}
+			//Capacity
+					if (type.getCapacity() > 0) {
+						node.setAttributeNS(null, "capacity", String.valueOf(type.getCapacity()));
+					}
 			//Meta level
 					int metaLevel = 0;
 					TypeAttribute metaLevelAttribute = metaLevelAttributes.get(typeID);

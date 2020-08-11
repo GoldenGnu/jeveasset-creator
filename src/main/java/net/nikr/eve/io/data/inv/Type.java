@@ -82,6 +82,10 @@ public class Type {
 		return volume;
 	}
 
+	public double getCapacity() {
+		return capacity;
+	}
+
 	public int getPortionSize() {
 		return portionSize;
 	}

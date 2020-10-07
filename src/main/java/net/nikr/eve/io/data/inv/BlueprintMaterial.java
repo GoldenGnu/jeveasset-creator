@@ -26,4 +26,12 @@ public class BlueprintMaterial {
 	public int quantity;
 	public int typeID;
 	public float probability;
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public int getTypeID() {
+		return typeID;
+	}
 }

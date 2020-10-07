@@ -75,6 +75,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private static final ApiClient CLIENT = new ApiClientBuilder().userAgent("jEveAssets XML Builder").build();
 	private static final UniverseApi UNIVERSE_API = new UniverseApi(CLIENT);
 	private static final MarketApi MARKET_API = new MarketApi(CLIENT);
+	private static final boolean MATS = false;
 
 	private static final String DATASOURCE = "tranquility";
 
@@ -117,6 +118,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Set<String> spacedItems = new HashSet<>();
 			Set<String> techLevelItems = new HashSet<>();
 			Set<String> productsItems = new HashSet<>();
+			LOG.info("	MATS: " + MATS);
 			LOG.info("	YAML: Loading...");
 			InvReader reader = new InvReader();
 			LOG.info("		Types...");
@@ -257,6 +259,14 @@ public class Items extends AbstractXmlWriter implements Creator{
 							} else {
 								productsItems.add("Manufacturing products: " + typeName + " products: " + products);
 							}
+							if (MATS && manufacturing.materials != null) {
+								for (BlueprintMaterial material : manufacturing.materials) {
+									Element materialNode = xmldoc.createElementNS(null, "mfg");
+									materialNode.setAttributeNS(null, "id", String.valueOf(material.getTypeID()));
+									materialNode.setAttributeNS(null, "q", String.valueOf(material.getQuantity()));
+									node.appendChild(materialNode);
+								}
+							}
 						} else if (reaction != null) {
 							List<BlueprintMaterial> products = reaction.products;
 							if (products != null && products.size() == 1) {
@@ -264,6 +274,14 @@ public class Items extends AbstractXmlWriter implements Creator{
 								productQuantity = products.get(0).quantity;
 							} else {
 								productsItems.add("Reaction products: " + typeName + " products: " + products);
+							}
+							if (MATS && reaction.materials != null) {
+								for (BlueprintMaterial material : reaction.materials) {
+									Element materialNode = xmldoc.createElementNS(null, "rxn");
+									materialNode.setAttributeNS(null, "id", String.valueOf(material.getTypeID()));
+									materialNode.setAttributeNS(null, "q", String.valueOf(material.getQuantity()));
+									node.appendChild(materialNode);
+								}
 							}
 						}
 					}

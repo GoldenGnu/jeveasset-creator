@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -57,6 +58,8 @@ import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiClient;
 import net.troja.eve.esi.ApiClientBuilder;
 import net.troja.eve.esi.ApiException;
+import net.troja.eve.esi.ApiResponse;
+import net.troja.eve.esi.HeaderUtil;
 import net.troja.eve.esi.api.MarketApi;
 import net.troja.eve.esi.api.UniverseApi;
 import net.troja.eve.esi.model.MarketGroupResponse;
@@ -78,6 +81,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private static final boolean MATS = false;
 
 	private static final String DATASOURCE = "tranquility";
+
+	private static Integer errorLimit = null;
+	private static Date errorReset = new Date();
 
 	@Override
 	public boolean create() {
@@ -141,8 +147,10 @@ public class Items extends AbstractXmlWriter implements Creator{
 			LOG.info("	ESI: Loading...");
 			LOG.info("		Market Groups...");
 			Set<Integer> marketGroupsTypeIDs = getMarketGroupsTypeIDs();
+			LOG.info("		Types...");
+			Set<Integer> types = getTypes();
 			LOG.info("		Packaged Volume...");
-			Map<Integer, Float> volume = getVolume(typeIDs, categories, groupIDs);
+			Map<Integer, Float> volume = getVolume(typeIDs, types, categories, groupIDs);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
@@ -352,6 +360,15 @@ public class Items extends AbstractXmlWriter implements Creator{
 		}
 	}
 
+	public static <K> List<Future<K>> startReturn(Collection<? extends Callable<K>> updaters) {
+		ExecutorService executor = Executors.newFixedThreadPool(50);
+		try {
+			return executor.invokeAll(updaters);
+		} catch (InterruptedException ex) {
+			throw new RuntimeException(ex.getMessage(), ex);
+		}
+	}
+
 	private Set<Integer> getMarketGroupsTypeIDs() {
 		Set<Integer> typeIDs = new HashSet<>();
 		try {
@@ -394,30 +411,100 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 		private MarketGroupResponse update() {
 			try {
-				return MARKET_API.getMarketsGroupsMarketGroupId(marketGroup, null, DATASOURCE, null, null);
+				checkErrors(); //Update timeframe as needed
+				ApiResponse<MarketGroupResponse> response = MARKET_API.getMarketsGroupsMarketGroupIdWithHttpInfo(marketGroup, null, DATASOURCE, null, null);
+				setErrorLimit(response.getHeaders());
+				return response.getData();
 			} catch (ApiException ex) {
+				setErrorLimit(ex.getResponseHeaders());
 				retries++;
 				if (retries <= 3) {
+					LOG.warn("Failed to update market group:" + marketGroup + " " + ex.getMessage() + "\r\n" + ex.getCode() + " " + ex.getResponseBody(), ex);
+					try {
+						Thread.sleep(retries * 1000);
+					} catch (InterruptedException ex1) {
+						//No problem
+					}
 					return update();
 				} else {
+					LOG.error("Failed to update market group:" + marketGroup + " " + ex.getMessage() + "\r\n" + ex.getCode() + " " + ex.getResponseBody(), ex);
 					throw new RuntimeException(ex.getMessage(), ex);
 				}
 			}
 		}
 	}
 
-	public static <K> List<Future<K>> startReturn(Collection<? extends Callable<K>> updaters) {
-		ExecutorService executor = Executors.newFixedThreadPool(100);
-		try {
-			return executor.invokeAll(updaters);
-		} catch (InterruptedException ex) {
-			throw new RuntimeException(ex.getMessage(), ex);
+	private Set<Integer> getTypes() {
+		Set<Integer> data = new HashSet<>();
+		UpdateTypes updateTypes = new UpdateTypes(1);
+		ApiResponse<List<Integer>> response = updateTypes.update();
+		data.addAll(response.getData());
+		Integer xPages = HeaderUtil.getXPages(response.getHeaders());
+		if (xPages == null || xPages < 2) {
+			throw new RuntimeException("xPages is " + xPages);
+		}
+		List<UpdateTypes> updates = new ArrayList<>();
+		for (int page = 2; page <= xPages; page++) {
+			updates.add(new UpdateTypes(page));
+		}
+		List<Future<List<Integer>>> futures = startReturn(updates);
+		for (Future<List<Integer>> future : futures) {
+			try {
+				data.addAll(future.get());
+			} catch (InterruptedException | ExecutionException ex) {
+				throw new RuntimeException(ex.getMessage(), ex);
+			}
+		}
+		return data;
+	}
+
+	private static class UpdateTypes implements Callable<List<Integer>> {
+
+		private final int page;
+		private int retries = 0;
+
+		public UpdateTypes(int page) {
+			this.page = page;
+		}
+		
+		@Override
+		public List<Integer> call() throws Exception {
+			return update().getData();
+		}
+
+		public ApiResponse<List<Integer>> update() {
+			try {
+				checkErrors(); //Update timeframe as needed
+				ApiResponse<List<Integer>> response = UNIVERSE_API.getUniverseTypesWithHttpInfo(DATASOURCE, null, page);
+				setErrorLimit(response.getHeaders());
+				return response;
+			} catch (ApiException ex) {
+				setErrorLimit(ex.getResponseHeaders());
+				retries++;
+				if (retries <= 3) {
+					LOG.warn("Failed to update page:" + page + " " + ex.getMessage() + "\r\n" + ex.getCode() + " " + ex.getResponseBody());
+					try {
+						Thread.sleep(retries * 1000);
+					} catch (InterruptedException ex1) {
+						//No problem
+					}
+					return update();
+				} else {
+					LOG.error("Failed to update page:" + page + " " + ex.getMessage() + "\r\n" + ex.getCode() + " " + ex.getResponseBody(), ex);
+					throw new RuntimeException(ex.getMessage(), ex);
+				}
+			}
 		}
 	}
 
-	private Map<Integer, Float> getVolume(Map<Integer, Type> typeIDs, Map<Integer, Category> categories, Map<Integer, Group> groupIDs) {
+	private Map<Integer, Float> getVolume(Map<Integer, Type> typeIDs, Set<Integer> types, Map<Integer, Category> categories, Map<Integer, Group> groupIDs) {
 		List<UpdateVolume> updates = new ArrayList<>();
+		Set<String> skipped = new HashSet<>();
 		for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
+			if (!types.contains(entry.getKey())) {
+				skipped.add(entry.getKey().toString());
+				continue;
+			}
 			Group group = groupIDs.get(entry.getValue().getGroupID());
 			Category category = categories.get(group.getCategoryID());
 			if (category.getName().equals("Ship") || category.getName().equals("Module") || category.getName().equals("Celestial")) {
@@ -436,6 +523,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 				throw new RuntimeException(ex.getMessage(), ex);
 			}
 		}
+		LOG.warn("			Skipped: " + String.join(",", skipped));
 		return volume;
 	}
 
@@ -456,12 +544,26 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 		private TypeResponse update() {
 			try {
-				return UNIVERSE_API.getUniverseTypesTypeId(typeID, null, DATASOURCE, null, null);
+				checkErrors(); //Update timeframe as needed
+				ApiResponse<TypeResponse> response = UNIVERSE_API.getUniverseTypesTypeIdWithHttpInfo(typeID, null, DATASOURCE, null, null);
+				setErrorLimit(response.getHeaders());
+				return response.getData();
 			} catch (ApiException ex) {
+				setErrorLimit(ex.getResponseHeaders());
 				retries++;
-				if (retries <= 3) {
+				if (ex.getCode() == 404) {
+					LOG.warn("typeID:" + typeID + " not found");
+					return null;
+				} else if (retries <= 3) {
+					try {
+						Thread.sleep(retries * 1000);
+					} catch (InterruptedException ex1) {
+						//No problem
+					}
+					LOG.warn("Failed to update typeID:" + typeID + " " + ex.getMessage() + "\r\n" + ex.getCode() + " " + ex.getResponseBody());
 					return update();
 				} else {
+					LOG.error("Failed to update typeID:" + typeID + " " + ex.getMessage() + "\r\n" + ex.getCode() + " " + ex.getResponseBody(), ex);
 					throw new RuntimeException(ex.getMessage(), ex);
 				}
 			}
@@ -482,14 +584,74 @@ public class Items extends AbstractXmlWriter implements Creator{
 		}
 
 		private boolean haveData() {
-			return response.getPackagedVolume() != null
-					//&& !response.getPackagedVolume().equals(0f)
-					&& !response.getPackagedVolume().equals(response.getVolume());
+			return response != null
+					&& response.getPackagedVolume() != null
+					&& response.getVolume() != null
+					&& !response.getVolume().equals(response.getPackagedVolume());
 					
 		}
 
 		private Float getPackagedVolume() {
-			return response.getPackagedVolume();
+			if (response != null) {
+				return response.getPackagedVolume();
+			} else {
+				return 0f;
+			}
 		}
+	}
+
+	private synchronized static void setErrorLimit(Map<String, List<String>> responseHeaders) {
+		if (responseHeaders != null) {
+			Integer limit = getHeaderInteger(responseHeaders, "x-esi-error-limit-remain");
+			if (limit != null) {
+				if (errorLimit != null) {
+					errorLimit = Math.min(errorLimit, limit);
+				} else {
+					errorLimit = limit;
+				}
+			}
+			Integer reset = getHeaderInteger(responseHeaders, "x-esi-error-limit-reset");
+			if (reset != null) {
+				errorReset = new Date(System.currentTimeMillis() + (reset * 1000L));
+			}
+		}
+	}
+
+	private synchronized static void checkErrors() {
+		if (errorLimit != null && errorLimit <= 50) { //Error limit reached
+			try {
+				long wait = (errorReset.getTime() + 1000) - System.currentTimeMillis();
+				LOG.warn("Error limit reached waiting: " + milliseconds(wait));
+				if (wait > 0) { //Negative values throws an Exception
+					Thread.sleep(wait); //Wait until the error window is reset
+				}
+				//Reset
+				errorReset = new Date(); //New timeframe
+				errorLimit = null;  //No errors in this timeframe (yet)
+			} catch (InterruptedException ex) {
+				//No problem
+			}
+		} else if (errorLimit != null && errorLimit < 100) { //At least one error
+			LOG.warn("Error limit: " + errorLimit);
+		}
+	}
+
+	private static String milliseconds(long durationInMillis) {
+		long millis = durationInMillis % 1000;
+		long second = (durationInMillis / 1000) % 60;
+
+		return String.format("%02ds %dms", second, millis);
+	}
+
+	private static Integer getHeaderInteger(Map<String, List<String>> responseHeaders, String headerName) {
+		String errorResetHeader = HeaderUtil.getHeader(responseHeaders, headerName);
+		if (errorResetHeader != null) {
+			try {
+				return Integer.valueOf(errorResetHeader);
+			} catch (NumberFormatException ex) {
+				//No problem
+			}
+		}
+		return null;
 	}
 }

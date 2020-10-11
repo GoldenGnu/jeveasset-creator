@@ -100,8 +100,8 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			LOG.info("		Names...");
 			NameReader nameReader = new NameReader();
 			Map<Integer, Name> names = nameReader.loadNames();
-			LOG.info("	YAML: Prcessing...");
-			Set<Location> locations = new TreeSet<Location>();
+			LOG.info("	YAML: Processing...");
+			Set<Location> locations = new TreeSet<>();
 			Map<Integer, LocationID> systemToLocation = new HashMap<>();
 			for (LocationID locationID : locationsIDs) {
 				int stationID = locationID.getStationID();
@@ -117,7 +117,12 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				} else {
 					stationName = names.get(stationID).getItemName();
 					systemName = names.get(systemID).getItemName();
-					regionName = names.get(regionID).getItemName();
+					Name regions = names.get(regionID);
+					if (regions != null) {
+						regionName = names.get(regionID).getItemName();
+					} else {
+						regionName = "Unknown Region #" + regionID;
+					}
 				}
 				float security = locationID.getSecurity();
 				if (stationID != 0) { //Station

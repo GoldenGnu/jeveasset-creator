@@ -120,6 +120,8 @@ public class Locations extends AbstractXmlWriter implements Creator {
 					Name regions = names.get(regionID);
 					if (regions != null) {
 						regionName = names.get(regionID).getItemName();
+					} else if (regionID == 10000070){
+						regionName = "Pochven";
 					} else {
 						regionName = "Unknown Region #" + regionID;
 					}

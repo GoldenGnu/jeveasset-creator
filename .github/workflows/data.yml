@@ -13,16 +13,16 @@ jobs:
       release: nope
     steps:
     - name: Checkout
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
     - name: Cache Maven
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.m2/repository
         key: maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           maven-
     - name: Cache SDE
-      uses: actions/cache@v1
+      uses: actions/cache@v2
       with:
         path: ~/.jeveassets-creator-cache
         key: sde-${{ github.run_number }}

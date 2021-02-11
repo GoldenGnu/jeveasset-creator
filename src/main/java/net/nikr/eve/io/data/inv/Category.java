@@ -21,17 +21,21 @@
 
 package net.nikr.eve.io.data.inv;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Category {
 
 	private Map<String, String> name; //invCategories.categoryName
 	private boolean published; //invCategories.published
-	private int iconID;
 
-	public String getName() {
+	public String getEnglishName() {
 		return name.get("en");
+	}
+
+	public Map<String, String> getName() {
+		return name;
 	}
 
 	public boolean isPublished() {
@@ -40,6 +44,6 @@ public class Category {
 
 	@Override
 	public String toString() {
-		return getName();
+		return getEnglishName();
 	}
 }

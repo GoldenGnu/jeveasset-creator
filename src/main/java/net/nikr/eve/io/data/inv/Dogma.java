@@ -18,22 +18,16 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
+package net.nikr.eve.io.data.inv;
 
-package net.nikr.eve.io.data.map;
-
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.List;
-import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Dogma {
+	private List<DogmaAttribute> dogmaAttributes;
 
-public class Star extends ArrayList<Star> {
-
-	private int id;
-	private long radius;
-	private Map<String, String> statistics;
-	private int typeID;
-	//2nd sun
-	private int effectBeaconTypeID;
-	private int itemID;
-	private List<Double> position;
+	public List<DogmaAttribute> getDogmaAttributes() {
+		return dogmaAttributes;
+	}
 }

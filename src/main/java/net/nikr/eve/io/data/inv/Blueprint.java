@@ -21,14 +21,12 @@
 
 package net.nikr.eve.io.data.inv;
 
-import java.util.HashMap;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Blueprint {
-	private Map<String, BlueprintActivity> activities = new HashMap<String, BlueprintActivity>();
-	private int blueprintTypeID;
-	private int maxProductionLimit;
+	private Map<String, BlueprintActivity> activities;
 
 	public Map<String, BlueprintActivity> getActivities() {
 		return activities;

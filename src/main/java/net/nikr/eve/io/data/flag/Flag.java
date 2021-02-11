@@ -21,14 +21,13 @@
 
 package net.nikr.eve.io.data.flag;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Flag {
 	private int flagID;
 	private String flagName;
 	private String flagText;
-	private int orderID;
 
 	public int getFlagID() {
 		return flagID;
@@ -41,6 +40,4 @@ public class Flag {
 	public String getFlagText() {
 		return flagText;
 	}
-
-	public static class FlagList extends ArrayList<Flag> { }
 }

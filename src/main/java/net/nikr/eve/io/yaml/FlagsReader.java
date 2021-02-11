@@ -20,15 +20,15 @@
  */
 package net.nikr.eve.io.yaml;
 
-import com.esotericsoftware.yamlbeans.YamlReader;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import net.nikr.eve.io.data.flag.Flag;
 
 
 public class FlagsReader {
 	public List<Flag> loadFlags() throws IOException {
-		YamlReader reader = YamlHelper.getReader(YamlHelper.SdeFile.INVFLAGS);
-		return reader.read(Flag.FlagList.class, Flag.class);
+		return YamlHelper.read(YamlHelper.SdeFile.INVFLAGS, new TypeReference<ArrayList<Flag>>(){});
 	}
 }

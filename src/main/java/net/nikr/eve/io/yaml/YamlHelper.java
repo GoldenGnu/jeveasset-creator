@@ -21,15 +21,14 @@
 
 package net.nikr.eve.io.yaml;
 
-import com.esotericsoftware.yamlbeans.YamlReader;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.Map;
-import java.util.TreeMap;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -44,7 +43,7 @@ public class YamlHelper {
 		TYPEIDS("fsd", "typeIDs.yaml")
 		, GROUPIDS("fsd", "groupIDs.yaml")
 		, CATEGORYIDS("fsd", "categoryIDs.yaml")
-		, DGMTYPEATTRIBUTES("bsd", "dgmTypeAttributes.yaml")
+		, TYPEDOGMA("fsd", "typeDogma.yaml")
 		, METAGROUPS("fsd", "metaGroups.yaml")
 		, INVTYPEMATERIALS("fsd", "typeMaterials.yaml")
 		, BLUEPRINTS("fsd", "blueprints.yaml")
@@ -72,22 +71,22 @@ public class YamlHelper {
 		return getSde(sdeFile.getString());
 	}
 
-	public static YamlReader getReader(SdeFile sdeFile) throws IOException {
-		return getReader(getSde(sdeFile.getString()));
+	public static <T, C extends Class<T>> T read(SdeFile sdeFile, C c) throws IOException {
+		return read(getSde(sdeFile.getString()), c);
 	}
 
-	public static YamlReader getReader(String fullFilename) throws IOException {
-		YamlReader reader = new YamlReader(new InputStreamReader(new FileInputStream(fullFilename), "UTF8"));
-		reader.getConfig().setPrivateFields(true);
-		return reader;
+	public static <T, C extends Class<T>> T read(String filename, C c) throws IOException {
+		ObjectMapper om = new ObjectMapper(new YAMLFactory());
+		return om.readValue(new File(filename), c);
 	}
 
-	public static <T> Map<Integer, T> convert(Map<String, T> in) {
-		Map<Integer, T> out = new TreeMap<Integer, T>();
-		for (Map.Entry<String, T> entry : in.entrySet()) {
-			out.put(Integer.valueOf(entry.getKey()), entry.getValue());
-		}
-		return out;
+	public static <T> T read(SdeFile sdeFile, TypeReference<T> t) throws IOException {
+		return read(getSde(sdeFile.getString()), t);
+	}
+
+	public static <T> T read(String filename, TypeReference<T> t) throws IOException {
+		ObjectMapper om = new ObjectMapper(new YAMLFactory());
+		return om.readValue(new File(filename), t);
 	}
 
 	private static String getSde(String sdeFile) {
@@ -124,7 +123,7 @@ public class YamlHelper {
 		URL location = YamlHelper.class.getProtectionDomain().getCodeSource().getLocation();
 		try {
 			file = new File(location.toURI());
-		} catch (Exception ex) {
+		} catch (URISyntaxException ex) {
 			file = new File(location.getPath());
 		}
 		return new File(file.getParentFile().getAbsolutePath() + File.separator + "sde");
@@ -135,7 +134,7 @@ public class YamlHelper {
 		URL location = YamlHelper.class.getProtectionDomain().getCodeSource().getLocation();
 		try {
 			file = new File(location.toURI());
-		} catch (Exception ex) {
+		} catch (URISyntaxException ex) {
 			file = new File(location.getPath());
 		}
 		return new File(file.getParentFile().getParentFile().getAbsolutePath() + File.separator + "sde");
@@ -145,9 +144,7 @@ public class YamlHelper {
 		FileGetter fileGetter = new FileGetter();
 		try {
 			SwingUtilities.invokeAndWait(fileGetter);
-		} catch (InterruptedException ex) {
-
-		} catch (InvocationTargetException ex) {
+		} catch (InterruptedException | InvocationTargetException ex) {
 
 		}
 		return fileGetter.getFile();

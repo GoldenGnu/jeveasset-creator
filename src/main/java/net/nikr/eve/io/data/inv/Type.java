@@ -21,10 +21,10 @@
 
 package net.nikr.eve.io.data.inv;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Type {
 
 	private double volume; //invTypes.volume
@@ -34,28 +34,31 @@ public class Type {
 	private int portionSize; //invTypes.portionSize
 	private boolean published; //invTypes.published
 	private Integer metaGroupID; //invTypes.metaGroupID
-	//Unused
 	private int groupID;
-	private double mass;
-	private double radius;
-	private int graphicID;
-	private int soundID;
-	private Map<String, String> description;
-	private int iconID;
-	private int raceID;
 	private double capacity;
-	private String sofFactionName;
-	private int factionID;
-	private Map<Integer, List<Integer>> masteries;
-	private Map<Integer, List<Integer>> traits;
-	private String sofDnaAddition;
-	private int sofMaterialSetID;
-	private int variationParentTypeID;
 
-	public Type() { }
+	public double getVolume() {
+		return volume;
+	}
+
+	public Map<String, String> getName() {
+		return name;
+	}
+
+	public double getBasePrice() {
+		return basePrice;
+	}
 
 	public int getMarketGroupID() {
 		return marketGroupID;
+	}
+
+	public int getPortionSize() {
+		return portionSize;
+	}
+
+	public boolean isPublished() {
+		return published;
 	}
 
 	public Integer getMetaGroupID() {
@@ -66,32 +69,16 @@ public class Type {
 		return groupID;
 	}
 
-	public boolean isPublished() {
-		return published;
-	}
-
-	public String getName() {
-		return name.get("en");
-	}
-
-	public double getBasePrice() {
-		return basePrice;
-	}
-
-	public double getVolume() {
-		return volume;
-	}
-
 	public double getCapacity() {
 		return capacity;
 	}
 
-	public int getPortionSize() {
-		return portionSize;
+	public String getEnglishName() {
+		return name.get("en");
 	}
 
 	@Override
 	public String toString() {
-		return getName();
+		return getEnglishName();
 	}
 }

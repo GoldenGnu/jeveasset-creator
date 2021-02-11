@@ -21,109 +21,91 @@
 
 package net.nikr.eve.io.yaml;
 
-import com.esotericsoftware.yamlbeans.YamlReader;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import net.nikr.eve.io.data.inv.Blueprint;
-import net.nikr.eve.io.data.inv.BlueprintActivity;
-import net.nikr.eve.io.data.inv.BlueprintMaterial;
-import net.nikr.eve.io.data.inv.BlueprintSkill;
 import net.nikr.eve.io.data.inv.Category;
+import net.nikr.eve.io.data.inv.Dogma;
 import net.nikr.eve.io.data.inv.Group;
 import net.nikr.eve.io.data.inv.MetaGroup;
 import net.nikr.eve.io.data.inv.Type;
-import net.nikr.eve.io.data.inv.TypeAttribute;
+import net.nikr.eve.io.data.inv.DogmaAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
 import net.nikr.eve.io.yaml.YamlHelper.SdeFile;
 
 
 public class InvReader {
 	public Map<Integer, Type> loadTypes() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.TYPEIDS);
-		return YamlHelper.convert(reader.read(TypeMap.class, Type.class));
+		return YamlHelper.read(SdeFile.TYPEIDS, new TypeReference<TreeMap<Integer, Type>>(){});
 	}
 
 	public Map<Integer, Group> loadGroups() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.GROUPIDS);
-		return YamlHelper.convert(reader.read(GroupMap.class, Group.class));
+		return YamlHelper.read(SdeFile.GROUPIDS, new TypeReference<TreeMap<Integer, Group>>(){});
 	}
 
 	public Map<Integer, Category> loadCategories() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.CATEGORYIDS);
-		return YamlHelper.convert(reader.read(CategoryMap.class, Category.class));
+		return YamlHelper.read(SdeFile.CATEGORYIDS, new TypeReference<TreeMap<Integer, Category>>(){});
 	}
 
 	public Attributes loadAttributes() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.DGMTYPEATTRIBUTES);
-		List<TypeAttribute> list = reader.read(TypeAttributeList.class, TypeAttribute.class);
+		TreeMap<Integer, Dogma> map = YamlHelper.read(SdeFile.TYPEDOGMA, new TypeReference<TreeMap<Integer, Dogma>>(){});
 		Attributes attributes = new Attributes();
-		for (TypeAttribute value : list) {
-			if (value.getAttributeID() == 422) { //422 = tech level
-				attributes.getTechLevelAttributes().put(value.getTypeID(), value);
-			}
-			if (value.getAttributeID() == 633) { //633 = meta level
-				attributes.getMetaLevelAttributes().put(value.getTypeID(), value);
-			}
-			if (value.getAttributeID() == 1692) { //1692 = meta group
-				attributes.getMetaGroupAttributes().put(value.getTypeID(), value);
+		for (Map.Entry<Integer, Dogma> entry : map.entrySet()) {
+			int typeID = entry.getKey();
+			Dogma dogma = entry.getValue();
+			for (DogmaAttribute attribute : dogma.getDogmaAttributes()) {
+				if (attribute.getAttributeID() == 422) { //422 = tech level
+					attributes.getTechLevelAttributes().put(typeID, attribute);
+				}
+				if (attribute.getAttributeID() == 633) { //633 = meta level
+					attributes.getMetaLevelAttributes().put(typeID, attribute);
+				}
+				if (attribute.getAttributeID() == 1692) { //1692 = meta group
+					attributes.getMetaGroupAttributes().put(typeID, attribute);
+				}
 			}
 		}
 		return attributes;
 	}
 
 	public Map<Integer, MetaGroup> loadMetaGroups() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.METAGROUPS);
-		return YamlHelper.convert(reader.read(MetaGroupMap.class, MetaGroup.class));
+		return YamlHelper.read(SdeFile.METAGROUPS, new TypeReference<TreeMap<Integer, MetaGroup>>(){});
 	}
 
 	public Map<Integer, TypeMaterialList> loadTypeMaterials() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.INVTYPEMATERIALS);
-		reader.getConfig().setPropertyElementType(TypeMaterialList.class, "materials", TypeMaterial.class);
-		return YamlHelper.convert(reader.read(TypeMaterialMap.class, TypeMaterialList.class));
+		return YamlHelper.read(SdeFile.INVTYPEMATERIALS, new TypeReference<TreeMap<Integer, TypeMaterialList>>(){});
 	}
 
 	public Map<Integer, Blueprint> loadBlueprints() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.BLUEPRINTS);
-		reader.getConfig().setPropertyElementType(Blueprint.class, "activities", BlueprintActivity.class);
-		reader.getConfig().setPropertyElementType(BlueprintActivity.class, "materials", BlueprintMaterial.class);
-		reader.getConfig().setPropertyElementType(BlueprintActivity.class, "products", BlueprintMaterial.class);
-		reader.getConfig().setPropertyElementType(BlueprintActivity.class, "skills", BlueprintSkill.class);
-		return YamlHelper.convert(reader.read(BlueprintMap.class, Blueprint.class));
+		return YamlHelper.read(SdeFile.BLUEPRINTS, new TypeReference<TreeMap<Integer, Blueprint>>(){});
 	}
 
-	public static class TypeMap extends TreeMap<String, Type> {}
-	public static class GroupMap extends TreeMap<String, Group> { }
-	public static class CategoryMap extends TreeMap<String, Category> { }
-	public static class TypeAttributeList extends ArrayList<TypeAttribute> { }
-	public static class MetaGroupMap extends TreeMap<String, MetaGroup> { }
-	public static class TypeMaterialMap extends TreeMap<String, TypeMaterialList> { }
 	public static class TypeMaterialList {
-		private List<TypeMaterial> materials = new ArrayList<TypeMaterial>();
+		private List<TypeMaterial> materials;
 
 		public List<TypeMaterial> getMaterials() {
 			return materials;
 		}
 	}
-	public static class BlueprintMap extends TreeMap<String, Blueprint> { }
 
 	public static class Attributes {
-		private final Map<Integer, TypeAttribute> metaLevelAttributes = new HashMap<>();
-		private final Map<Integer, TypeAttribute> metaGroupAttributes = new HashMap<>();
-		private final Map<Integer, TypeAttribute> techLevelAttributes = new HashMap<>();
+		private final Map<Integer, DogmaAttribute> metaLevelAttributes = new HashMap<>();
+		private final Map<Integer, DogmaAttribute> metaGroupAttributes = new HashMap<>();
+		private final Map<Integer, DogmaAttribute> techLevelAttributes = new HashMap<>();
 
-		public Map<Integer, TypeAttribute> getMetaLevelAttributes() {
+		public Map<Integer, DogmaAttribute> getMetaLevelAttributes() {
 			return metaLevelAttributes;
 		}
 
-		public Map<Integer, TypeAttribute> getMetaGroupAttributes() {
+		public Map<Integer, DogmaAttribute> getMetaGroupAttributes() {
 			return metaGroupAttributes;
 		}
 
-		public Map<Integer, TypeAttribute> getTechLevelAttributes() {
+		public Map<Integer, DogmaAttribute> getTechLevelAttributes() {
 			return techLevelAttributes;
 		}
 	}

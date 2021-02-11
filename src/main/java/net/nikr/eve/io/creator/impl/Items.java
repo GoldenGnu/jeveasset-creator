@@ -48,7 +48,7 @@ import net.nikr.eve.io.data.inv.Category;
 import net.nikr.eve.io.data.inv.Group;
 import net.nikr.eve.io.data.inv.MetaGroup;
 import net.nikr.eve.io.data.inv.Type;
-import net.nikr.eve.io.data.inv.TypeAttribute;
+import net.nikr.eve.io.data.inv.DogmaAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
@@ -133,9 +133,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Map<Integer, Category> categories = reader.loadCategories();
 			LOG.info("		Attributes...");
 			InvReader.Attributes attributes = reader.loadAttributes();
-			Map<Integer, TypeAttribute> metaLevelAttributes = attributes.getMetaLevelAttributes();
-			Map<Integer, TypeAttribute> metaGroupAttributes = attributes.getMetaGroupAttributes();
-			Map<Integer, TypeAttribute> techLevelAttributes = attributes.getTechLevelAttributes();
+			Map<Integer, DogmaAttribute> metaLevelAttributes = attributes.getMetaLevelAttributes();
+			Map<Integer, DogmaAttribute> metaGroupAttributes = attributes.getMetaGroupAttributes();
+			Map<Integer, DogmaAttribute> techLevelAttributes = attributes.getTechLevelAttributes();
 			LOG.info("		Meta Groups...");
 			Map<Integer, MetaGroup> metaGroups = reader.loadMetaGroups();
 			LOG.info("		Materials...");
@@ -157,18 +157,18 @@ public class Items extends AbstractXmlWriter implements Creator{
 				Type type = entry.getValue();
 				Group group = groupIDs.get(type.getGroupID());
 				Category category = categories.get(group.getCategoryID());
-				if (((category.isPublished() && !category.getName().equals("Celestial"))
+				if (((category.isPublished() && !category.getEnglishName().equals("Celestial"))
 						|| type.isPublished()
 						|| group.isPublished()
 						|| typeID == 27 //Office
 						|| typeID == 3468 //Plastic wrapper
 						|| typeID == 60 //Asset Safety Wrap
 						|| type.getGroupID() == 186 //Wrecks
-						) && !category.getName().equals("Infantry")) {
+						) && !category.getEnglishName().equals("Infantry")) {
 					node.setAttributeNS(null, "id", String.valueOf(typeID));
 					final String typeName;
-					if (type.getName() != null) {
-						typeName = type.getName();
+					if (type.getEnglishName() != null) {
+						typeName = type.getEnglishName();
 					} else {
 						missingNames.add(typeID);
 						continue;
@@ -194,8 +194,8 @@ public class Items extends AbstractXmlWriter implements Creator{
 						spacedItems.add(typeName);
 					}
 					node.setAttributeNS(null, "name", typeNameFixed);
-					node.setAttributeNS(null, "group", group.getName());
-					node.setAttributeNS(null, "category", category.getName());
+					node.setAttributeNS(null, "group", group.getEnglishName());
+					node.setAttributeNS(null, "category", category.getEnglishName());
 					node.setAttributeNS(null, "price", intFormat.format(type.getBasePrice()));
 					node.setAttributeNS(null, "volume", String.valueOf(type.getVolume()));
 			//Packaged Volume
@@ -209,13 +209,13 @@ public class Items extends AbstractXmlWriter implements Creator{
 					}
 			//Meta level
 					int metaLevel = 0;
-					TypeAttribute metaLevelAttribute = metaLevelAttributes.get(typeID);
+					DogmaAttribute metaLevelAttribute = metaLevelAttributes.get(typeID);
 					if (metaLevelAttribute != null) {
 						metaLevel = get(metaLevelAttribute);
 					}
 					node.setAttributeNS(null, "meta", String.valueOf(metaLevel));
 			//Tech Level
-					TypeAttribute techLevelAttribute  = techLevelAttributes.get(typeID);
+					DogmaAttribute techLevelAttribute  = techLevelAttributes.get(typeID);
 					final String techLevel;
 					MetaGroup metaGroup = null;
 					//From meta type
@@ -224,7 +224,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 						metaGroup = metaGroups.get(metaGroupID);
 					}
 					//From meta group attribute
-					TypeAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
+					DogmaAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
 					if (metaGroup == null && metaGroupAttribute != null) {
 						metaGroup = metaGroups.get(get(metaGroupAttribute));
 					}
@@ -248,7 +248,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 						techLevel = "Tech I";
 					}
 					node.setAttributeNS(null, "tech", techLevel);
-					node.setAttributeNS(null, "pi", category.getName().equals("Planetary Commodities") || category.getName().equals("Planetary Resources") ? "true" : "false");
+					node.setAttributeNS(null, "pi", category.getEnglishName().equals("Planetary Commodities") || category.getEnglishName().equals("Planetary Resources") ? "true" : "false");
 					node.setAttributeNS(null, "portion", String.valueOf(type.getPortionSize()));
 			//Product ID
 					int productTypeID = 0;
@@ -348,11 +348,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 		}
 	}
 
-	private int get(TypeAttribute typeAttribute) {
-		if (typeAttribute.getValueFloat() != null) {
-			return Math.round(typeAttribute.getValueFloat());
-		} else if (typeAttribute.getValueInt() != null) {
-			return typeAttribute.getValueInt();
+	private int get(DogmaAttribute typeAttribute) {
+		if (typeAttribute.getValue() != null) {
+			return typeAttribute.getValue().intValue();
 		} else {
 			return 0;
 		}
@@ -505,7 +503,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			}
 			Group group = groupIDs.get(entry.getValue().getGroupID());
 			Category category = categories.get(group.getCategoryID());
-			if (category.getName().equals("Ship") || category.getName().equals("Module") || category.getName().equals("Celestial")) {
+			if (category.getEnglishName().equals("Ship") || category.getEnglishName().equals("Module") || category.getEnglishName().equals("Celestial")) {
 				updates.add(new UpdateVolume(entry.getKey()));
 			}
 		}

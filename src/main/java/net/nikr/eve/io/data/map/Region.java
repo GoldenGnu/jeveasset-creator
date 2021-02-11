@@ -21,22 +21,19 @@
 
 package net.nikr.eve.io.data.map;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Region {
 
-	private List<Float> center;
-	private int descriptionID;
-	private int factionID;
-	private List<Float> max;
-	private List<Float> min;
-	private int nameID;
-	private int nebula;
 	private int regionID;
-	private int wormholeClassID;
 
 	public int getRegionID() {
 		return regionID;
 	}
+
+	public void setRegionID(int regionID) {
+		this.regionID = regionID;
+	}
+
 }

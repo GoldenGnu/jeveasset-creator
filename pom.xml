@@ -4,7 +4,7 @@
 	<groupId>net.nikr</groupId>
 	<artifactId>jeveassets-creator</artifactId>
 	<packaging>jar</packaging>
-	<version>1.7.0</version>
+	<version>1.8.0</version>
 	<name>jeveassets-creator</name>
 	<url>http://maven.apache.org</url>
 	<build>
@@ -358,12 +358,17 @@
 		<dependency>
 			<groupId>net.troja.eve</groupId>
 			<artifactId>eve-esi</artifactId>
-			<version>4.0.0</version>
+			<version>4.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.esotericsoftware.yamlbeans</groupId>
-			<artifactId>yamlbeans</artifactId>
-			<version>1.09</version>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-yaml</artifactId>
+			<version>2.11.4</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.11.4</version>
 		</dependency>
 		<dependency>
 			<!-- slf4j -->

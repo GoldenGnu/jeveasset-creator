@@ -20,14 +20,17 @@
  */
 package net.nikr.eve.io.data.inv;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class MetaGroup {
 
-	public Map<String, String> descriptionID;
-	public Integer iconID;
-	public String iconSuffix;
-	public Map<String, String> nameID;
+	private Map<String, String> nameID;
+
+	public Map<String, String> getNameID() {
+		return nameID;
+	}
 
 	public String getMetaGroupName() {
 		return nameID.get("en");

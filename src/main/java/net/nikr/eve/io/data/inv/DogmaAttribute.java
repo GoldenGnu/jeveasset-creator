@@ -22,25 +22,17 @@
 package net.nikr.eve.io.data.inv;
 
 
-public class TypeAttribute {
+public class DogmaAttribute {
 	private int attributeID;
-	private int typeID;
-	private Integer valueInt;
-	private Float valueFloat;
+	private Float value;
+
+	public DogmaAttribute() { }
 
 	public int getAttributeID() {
 		return attributeID;
 	}
 
-	public int getTypeID() {
-		return typeID;
-	}
-
-	public Integer getValueInt() {
-		return valueInt;
-	}
-
-	public Float getValueFloat() {
-		return valueFloat;
+	public Float getValue() {
+		return value;
 	}
 }

@@ -28,15 +28,19 @@ public class Location implements Comparable<Location> {
 	private final String stationName;
 	private final int systemID;
 	private final String systemName;
+	private final int constellationID;
+	private final String constellationName;
 	private final int regionID;
 	private final String regionName;
 	private final float security;
 
-	public Location(int stationID, String stationName, int systemID, String systemName, int regionID, String regionName, float security) {
+	public Location(int stationID, String stationName, int systemID, String systemName, int constellationID, String constellationName, int regionID, String regionName, float security) {
 		this.stationID = stationID;
 		this.stationName = stationName;
 		this.systemID = systemID;
 		this.systemName = systemName;
+		this.constellationID = constellationID;
+		this.constellationName = constellationName;
 		this.regionID = regionID;
 		this.regionName = regionName;
 		this.security = security;
@@ -65,6 +69,14 @@ public class Location implements Comparable<Location> {
 
 	public String getSystemName() {
 		return systemName;
+	}
+
+	public int getConstellationID() {
+		return constellationID;
+	}
+
+	public String getConstellationName() {
+		return constellationName;
 	}
 
 	public int getRegionID() {

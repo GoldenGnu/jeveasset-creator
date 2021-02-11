@@ -102,40 +102,34 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			Map<Integer, Name> names = nameReader.loadNames();
 			LOG.info("	YAML: Processing...");
 			Set<Location> locations = new TreeSet<>();
-			Map<Integer, LocationID> systemToLocation = new HashMap<>();
+			Map<Integer, Location> systemToLocation = new HashMap<>();
 			for (LocationID locationID : locationsIDs) {
 				int stationID = locationID.getStationID();
 				int systemID = locationID.getSystemID();
+				int constellationID = locationID.getConstellationID();
 				int regionID = locationID.getRegionID();
-				String stationName;
-				String systemName;
 				String regionName;
-				if (locationID.getRegionID() >= 12000000 && locationID.getRegionID() < 13000000) {
-					stationName = ""; //Abyssal Stations doesn't exist
-					systemName = "Abyssal System #" + systemID;
-					regionName = "Abyssal Region #" + regionID;
+				String stationName = names.get(stationID).getItemName();
+				String systemName = names.get(systemID).getItemName();
+				String constellationName = names.get(constellationID).getItemName();
+				Name regions = names.get(regionID);
+				if (regions != null) {
+					regionName = names.get(regionID).getItemName();
+				} else if (regionID == 10000070){
+					regionName = "Pochven";
 				} else {
-					stationName = names.get(stationID).getItemName();
-					systemName = names.get(systemID).getItemName();
-					Name regions = names.get(regionID);
-					if (regions != null) {
-						regionName = names.get(regionID).getItemName();
-					} else if (regionID == 10000070){
-						regionName = "Pochven";
-					} else {
-						regionName = "Unknown Region #" + regionID;
-					}
+					regionName = "Unknown Region #" + regionID;
 				}
 				float security = locationID.getSecurity();
 				if (stationID != 0) { //Station
-					Location stationLocation = new Location(stationID, stationName, systemID, systemName, regionID, regionName, security);
+					Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID, constellationName, regionID, regionName, security);
 					locations.add(stationLocation);
 				} else if (systemID != 0) { //System
-					systemToLocation.put(systemID, locationID);
-					Location systemLocation = new Location(0, "", systemID, systemName, regionID, regionName, security);
+					Location systemLocation = new Location(0, "", systemID, systemName, constellationID, constellationName, regionID, regionName, security);
+					systemToLocation.put(systemID, systemLocation);
 					locations.add(systemLocation);
 				} else if (regionID != 0) { //Region
-					Location regionLocation = new Location(0, "", 0, "", regionID, regionName, 0);
+					Location regionLocation = new Location(0, "", 0, "", 0, "", regionID, regionName, 0);
 					locations.add(regionLocation);
 				}
 			}
@@ -154,11 +148,13 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				int stationID = fixedLocationID;
 				int systemID = conqurableStation.getSystemID();
 				int regionID = systemToLocation.get(conqurableStation.getSystemID()).getRegionID();
+				int constellationID = systemToLocation.get(conqurableStation.getSystemID()).getConstellationID();
+				String constellationName = systemToLocation.get(conqurableStation.getSystemID()).getConstellationName();
 				float security = systemToLocation.get(conqurableStation.getSystemID()).getSecurity();
 				String stationName = "Conquerable Station #" + fixedLocationID;
 				String systemName = names.get(systemID).getItemName();
 				String regionName = names.get(regionID).getItemName();
-				Location stationLocation = new Location(stationID, stationName, systemID, systemName, regionID, regionName, security);
+				Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID, constellationName, regionID, regionName, security);
 				locations.add(stationLocation);
 			}
 			systemToLocation.clear();

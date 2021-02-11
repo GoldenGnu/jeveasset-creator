@@ -21,14 +21,12 @@
 
 package net.nikr.eve.io.data.map;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Stargate {
 
 	private int destination;
-	private List<Double> position;
-	private int typeID;
 
 	public int getDestination() {
 		return destination;

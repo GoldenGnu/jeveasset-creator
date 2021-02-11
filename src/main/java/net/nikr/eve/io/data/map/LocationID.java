@@ -25,12 +25,14 @@ package net.nikr.eve.io.data.map;
 public class LocationID {
 	private int stationID = 0;
 	private int systemID = 0;
+	private int constellationID = 0;
 	private int regionID = 0;
 	private float security = 0f;
 
-	public LocationID(int stationID, int systemID, int regionID, float security) {
+	public LocationID(int stationID, int systemID, int constellationID, int regionID, float security) {
 		this.stationID = stationID;
 		this.systemID = systemID;
+		this.constellationID = constellationID;
 		this.regionID = regionID;
 		this.security = security;
 	}
@@ -41,6 +43,10 @@ public class LocationID {
 
 	public int getSystemID() {
 		return systemID;
+	}
+
+	public int getConstellationID() {
+		return constellationID;
 	}
 
 	public int getRegionID() {

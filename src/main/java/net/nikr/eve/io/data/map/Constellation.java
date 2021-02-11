@@ -18,35 +18,20 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-
 package net.nikr.eve.io.data.map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public class Station {
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class Constellation {
 	private int constellationID;
-	private int corporationID;
-	private int dockingCostPerVolume;
-	private int maxShipVolumeDockable;
-	private int officeRentalCost;
-	private int operationID;
-	private int regionID;
-	private float reprocessingEfficiency;
-	private int reprocessingHangarFlag;
-	private float reprocessingStationsTake;
-	private float security;
-	private int solarSystemID;
-	private int stationID;
-	private String  stationName;
-	private int stationTypeID;
-	private float x;
-	private float y;
-	private float z;
 
-	public int getStationID() {
-		return stationID;
+	public int getConstellationID() {
+		return constellationID;
 	}
 
-	public String getStationName() {
-		return stationName;
+	public void setConstellationID(int constellationID) {
+		this.constellationID = constellationID;
 	}
+
 }

@@ -21,11 +21,10 @@
 
 package net.nikr.eve.io.yaml;
 
-import com.esotericsoftware.yamlbeans.YamlReader;
+import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import net.nikr.eve.io.data.Name;
 import net.nikr.eve.io.yaml.YamlHelper.SdeFile;
@@ -33,14 +32,11 @@ import net.nikr.eve.io.yaml.YamlHelper.SdeFile;
 
 public class NameReader {
 	public Map<Integer, Name> loadNames() throws IOException {
-		YamlReader reader = YamlHelper.getReader(SdeFile.INVNAMES);
-		List<Name> list = reader.read(NameList.class, Name.class);
-		Map<Integer, Name> map = new HashMap<Integer, Name>();
+		ArrayList<Name> list = YamlHelper.read(SdeFile.INVNAMES, new TypeReference<ArrayList<Name>>(){});
+		Map<Integer, Name> map = new HashMap<>();
 		for (Name name : list) {
 			map.put(name.getItemID(), name);
 		}
 		return map;
 	}
-
-	public static class NameList extends ArrayList<Name> { }
 }

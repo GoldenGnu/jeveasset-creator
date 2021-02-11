@@ -42,17 +42,14 @@ import java.util.concurrent.Future;
 import net.nikr.eve.io.data.map.Jump;
 import net.nikr.eve.io.data.map.SolarSystem;
 import net.nikr.eve.io.data.map.Stargate;
-import org.slf4j.LoggerFactory;
 
 
 public class JumpsReader extends SolarSystemReader {
 
-	private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(JumpReader.class);
-
 	public Set<Jump> loadJumps() throws IOException {
 		Map<Integer, Integer> destinationLookup = Collections.synchronizedMap(new HashMap<>());
-		Set<Jump> destinationJumps = Collections.synchronizedSet(new TreeSet<Jump>());
-		List<JumpReader> jumpReaders = Collections.synchronizedList(new ArrayList<JumpReader>());
+		Set<Jump> destinationJumps = Collections.synchronizedSet(new TreeSet<>());
+		List<JumpReader> jumpReaders = Collections.synchronizedList(new ArrayList<>());
 		loadJumps(jumpReaders, destinationLookup, destinationJumps, Paths.get(YamlHelper.getFile(YamlHelper.SdeFile.UNIVERSE)));
 		List<Future<Object>> futures = startReturn(jumpReaders);
 		for (Future<Object> reader : futures) {
@@ -62,7 +59,7 @@ public class JumpsReader extends SolarSystemReader {
 				throw new RuntimeException();
 			}
 		}
-		Set<Jump> jumps = new TreeSet<Jump>();
+		Set<Jump> jumps = new TreeSet<>();
 		for (Jump destinationJump : destinationJumps) {
 			int from = destinationLookup.get(destinationJump.getFrom());
 			int to = destinationLookup.get(destinationJump.getTo());
@@ -88,7 +85,7 @@ public class JumpsReader extends SolarSystemReader {
 	private void loadJumps(Map<Integer, Integer> destinationLookup, Set<Jump> destinationJumps, String fullFilename) throws IOException {
 		SolarSystem system = loadSolarSystem(fullFilename);
 		int systemID = system.getSolarSystemID();
-		for (Map.Entry<String, Stargate> entry : system.stargates.entrySet()) {
+		for (Map.Entry<String, Stargate> entry : system.getStargates().entrySet()) {
 			int destinationFrom = Integer.valueOf(entry.getKey());
 			int destinationTo = entry.getValue().getDestination();
 			destinationLookup.put(destinationFrom, systemID);

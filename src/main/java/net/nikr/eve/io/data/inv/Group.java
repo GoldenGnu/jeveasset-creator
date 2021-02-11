@@ -21,22 +21,17 @@
 
 package net.nikr.eve.io.data.inv;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Group {
 
-	private Map<String, String> name; //invGroups.groupName
-	private boolean published; //invGroups.published
+	private Map<String, String> name;
+	private boolean published;
 	private int categoryID;
-	//Unused
-	private boolean anchorable;
-	private boolean anchored;	
-	private boolean fittableNonSingleton;
-	private boolean useBasePrice;
-	private int iconID;
 
-	public String getName() {
+	public String getEnglishName() {
 		return name.get("en");
 	}
 
@@ -48,11 +43,12 @@ public class Group {
 		return categoryID;
 	}
 
-	public Group() {
+	public Map<String, String> getName() {
+		return name;
 	}
 
 	@Override
 	public String toString() {
-		return getName();
+		return getEnglishName();
 	}
 }

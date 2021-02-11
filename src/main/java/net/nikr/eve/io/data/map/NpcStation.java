@@ -21,18 +21,9 @@
 
 package net.nikr.eve.io.data.map;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class NpcStation {
-	private int graphicID;
-	private boolean isConquerable;
-	private int operationID;
-	private int ownerID;
-	private List<Double> position;
-	private float reprocessingEfficiency;
-	private int reprocessingHangarFlag;
-	private float reprocessingStationsTake;
-	private int typeID;
-	private boolean useOperationName;
+
 }

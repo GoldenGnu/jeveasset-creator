@@ -21,50 +21,29 @@
 
 package net.nikr.eve.io.data.map;
 
-import java.util.HashMap;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.Map;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class SolarSystem {
-
-	private boolean border;
-	private List<Double> center;
-	private boolean corridor;
-	private List<Integer> disallowedAnchorCategories;
-	private boolean fringe;
-	private boolean hub;
-	private boolean international;
-	private float luminosity;
-	private List<Double> max;
-	private List<Double> min;
-	public Map<String, Planet> planets = new HashMap<String, Planet>();
-	private float radius;
-	private boolean regional;
+	private Map<String, Planet> planets;
 	private float security;
-	private String securityClass;
 	private int solarSystemID;
-	private int solarSystemNameID;
-	public Star star;
-	public Star secondarySun;
-	public Map<String, Stargate> stargates;
-	private int sunTypeID;
-	private int wormholeClassID;
-	private int descriptionID;
-	private int factionID;
-	//
-	private String visualEffect;
-	private List<Integer> disallowedAnchorGroups;
+	private Map<String, Stargate> stargates;
 
-	public int getSolarSystemID() {
-		return solarSystemID;
+	public Map<String, Planet> getPlanets() {
+		return planets;
 	}
 
 	public float getSecurity() {
 		return security;
 	}
 
-	public Map<String, Planet> getPlanets() {
-		return planets;
+	public int getSolarSystemID() {
+		return solarSystemID;
+	}
+
+	public Map<String, Stargate> getStargates() {
+		return stargates;
 	}
 }

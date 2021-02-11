@@ -21,30 +21,21 @@
 
 package net.nikr.eve.io.data.map;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Planet {
 
-	private int celestialIndex;
-	private Map<String, String> planetAttributes;
-	private List<Double> position;
-	private int radius;
-	private Map<String, String> statistics;
-	private int typeID;
-	public Map<String, Planet> moons = new HashMap<String, Planet>();
-	public Map<String, NpcStation> npcStations = new HashMap<String, NpcStation>();
-	public Map<String, AsteroidBelt> asteroidBelts;
-	private int moonNameID;
-	private int planetNameID;
-
-	public Map<String, NpcStation> getNpcStations() {
-		return npcStations;
-	}
+	private Map<String, Planet> moons = new HashMap<>();
+	private Map<String, NpcStation> npcStations = new HashMap<>();
 
 	public Map<String, Planet> getMoons() {
 		return moons;
+	}
+
+	public Map<String, NpcStation> getNpcStations() {
+		return npcStations;
 	}
 }

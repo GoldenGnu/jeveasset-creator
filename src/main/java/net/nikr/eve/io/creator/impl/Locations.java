@@ -55,6 +55,8 @@ public class Locations extends AbstractXmlWriter implements Creator {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
 
+	private static final boolean INCLUDE_CONSTELLATIONS = false;
+	
 	private final DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
 	
 	@Override
@@ -168,6 +170,10 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "s", location.getStationName());
 				node.setAttributeNS(null, "syi", String.valueOf(location.getSystemID()));
 				node.setAttributeNS(null, "sy", location.getSystemName());
+				if (INCLUDE_CONSTELLATIONS) {
+					node.setAttributeNS(null, "ci", String.valueOf(location.getConstellationID()));
+					node.setAttributeNS(null, "c", location.getConstellationName());
+				}
 				node.setAttributeNS(null, "ri", String.valueOf(location.getRegionID()));
 				node.setAttributeNS(null, "r", location.getRegionName());
 				node.setAttributeNS(null, "se", roundSecurity(location.getSecurity()));

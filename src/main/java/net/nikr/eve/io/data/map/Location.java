@@ -48,6 +48,8 @@ public class Location implements Comparable<Location> {
 			locationID = stationID;
 		} else if (systemID != 0) {
 			locationID = systemID;
+		} else if (constellationID != 0) {
+			locationID = constellationID;
 		} else if (regionID != 0) {
 			locationID = regionID;
 		} else {

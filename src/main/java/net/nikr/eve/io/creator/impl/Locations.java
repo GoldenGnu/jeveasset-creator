@@ -130,6 +130,9 @@ public class Locations extends AbstractXmlWriter implements Creator {
 					Location systemLocation = new Location(0, "", systemID, systemName, constellationID, constellationName, regionID, regionName, security);
 					systemToLocation.put(systemID, systemLocation);
 					locations.add(systemLocation);
+				} else if (constellationID != 0) { //Constellations
+					Location constellationLocation = new Location(0, "", 0, "", constellationID, constellationName, regionID, regionName, 0);
+					locations.add(constellationLocation);
 				} else if (regionID != 0) { //Region
 					Location regionLocation = new Location(0, "", 0, "", 0, "", regionID, regionName, 0);
 					locations.add(regionLocation);

@@ -55,8 +55,6 @@ public class Locations extends AbstractXmlWriter implements Creator {
 	
 	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
 
-	private static final boolean INCLUDE_CONSTELLATIONS = false;
-	
 	private final DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
 	
 	@Override
@@ -130,7 +128,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 					Location systemLocation = new Location(0, "", systemID, systemName, constellationID, constellationName, regionID, regionName, security);
 					systemToLocation.put(systemID, systemLocation);
 					locations.add(systemLocation);
-				} else if (constellationID != 0 && INCLUDE_CONSTELLATIONS) { //Constellations
+				} else if (constellationID != 0) { //Constellations
 					Location constellationLocation = new Location(0, "", 0, "", constellationID, constellationName, regionID, regionName, 0);
 					locations.add(constellationLocation);
 				} else if (regionID != 0) { //Region
@@ -173,10 +171,8 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				node.setAttributeNS(null, "s", location.getStationName());
 				node.setAttributeNS(null, "syi", String.valueOf(location.getSystemID()));
 				node.setAttributeNS(null, "sy", location.getSystemName());
-				if (INCLUDE_CONSTELLATIONS) {
-					node.setAttributeNS(null, "ci", String.valueOf(location.getConstellationID()));
-					node.setAttributeNS(null, "c", location.getConstellationName());
-				}
+				node.setAttributeNS(null, "ci", String.valueOf(location.getConstellationID()));
+				node.setAttributeNS(null, "c", location.getConstellationName());
 				node.setAttributeNS(null, "ri", String.valueOf(location.getRegionID()));
 				node.setAttributeNS(null, "r", location.getRegionName());
 				node.setAttributeNS(null, "se", roundSecurity(location.getSecurity()));

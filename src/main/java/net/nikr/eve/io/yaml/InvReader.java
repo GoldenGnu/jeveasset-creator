@@ -58,12 +58,6 @@ public class InvReader {
 			int typeID = entry.getKey();
 			Dogma dogma = entry.getValue();
 			for (DogmaAttribute attribute : dogma.getDogmaAttributes()) {
-				if (attribute.getAttributeID() == 422) { //422 = tech level
-					attributes.getTechLevelAttributes().put(typeID, attribute);
-				}
-				if (attribute.getAttributeID() == 633) { //633 = meta level
-					attributes.getMetaLevelAttributes().put(typeID, attribute);
-				}
 				if (attribute.getAttributeID() == 1692) { //1692 = meta group
 					attributes.getMetaGroupAttributes().put(typeID, attribute);
 				}
@@ -93,20 +87,10 @@ public class InvReader {
 	}
 
 	public static class Attributes {
-		private final Map<Integer, DogmaAttribute> metaLevelAttributes = new HashMap<>();
 		private final Map<Integer, DogmaAttribute> metaGroupAttributes = new HashMap<>();
-		private final Map<Integer, DogmaAttribute> techLevelAttributes = new HashMap<>();
-
-		public Map<Integer, DogmaAttribute> getMetaLevelAttributes() {
-			return metaLevelAttributes;
-		}
 
 		public Map<Integer, DogmaAttribute> getMetaGroupAttributes() {
 			return metaGroupAttributes;
-		}
-
-		public Map<Integer, DogmaAttribute> getTechLevelAttributes() {
-			return techLevelAttributes;
 		}
 	}
 }

@@ -133,9 +133,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Map<Integer, Category> categories = reader.loadCategories();
 			LOG.info("		Attributes...");
 			InvReader.Attributes attributes = reader.loadAttributes();
-			Map<Integer, DogmaAttribute> metaLevelAttributes = attributes.getMetaLevelAttributes();
 			Map<Integer, DogmaAttribute> metaGroupAttributes = attributes.getMetaGroupAttributes();
-			Map<Integer, DogmaAttribute> techLevelAttributes = attributes.getTechLevelAttributes();
 			LOG.info("		Meta Groups...");
 			Map<Integer, MetaGroup> metaGroups = reader.loadMetaGroups();
 			LOG.info("		Materials...");
@@ -207,15 +205,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 					if (type.getCapacity() > 0) {
 						node.setAttributeNS(null, "capacity", String.valueOf(type.getCapacity()));
 					}
-			//Meta level
-					int metaLevel = 0;
-					DogmaAttribute metaLevelAttribute = metaLevelAttributes.get(typeID);
-					if (metaLevelAttribute != null) {
-						metaLevel = get(metaLevelAttribute);
-					}
-					node.setAttributeNS(null, "meta", String.valueOf(metaLevel));
 			//Tech Level
-					DogmaAttribute techLevelAttribute  = techLevelAttributes.get(typeID);
 					final String techLevel;
 					MetaGroup metaGroup = null;
 					//From meta type
@@ -226,7 +216,8 @@ public class Items extends AbstractXmlWriter implements Creator{
 					//From meta group attribute
 					DogmaAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
 					if (metaGroup == null && metaGroupAttribute != null) {
-						metaGroup = metaGroups.get(get(metaGroupAttribute));
+						metaGroupID = get(metaGroupAttribute);
+						metaGroup = metaGroups.get(metaGroupID);
 					}
 					if (metaGroup != null) {
 						if (metaGroup.getMetaGroupName().contains("Structure")) {
@@ -234,20 +225,21 @@ public class Items extends AbstractXmlWriter implements Creator{
 						} else {
 							techLevel = metaGroup.getMetaGroupName();
 						}
-					} else if (techLevelAttribute != null) {
-						switch (get(techLevelAttribute)) {
-							case 1: techLevel = "Tech I"; break;
-							case 2: techLevel = "Tech II"; break;
-							case 3: techLevel = "Tech III"; break;
-							default: 
-								techLevel = "Tech I";
-								techLevelItems.add(typeName + ":" + get(techLevelAttribute));
-								break;
-						}
 					} else {
 						techLevel = "Tech I";
 					}
 					node.setAttributeNS(null, "tech", techLevel);
+			//Meta level
+					int metaLevel = 0;
+					if (metaGroupID != null) {
+						switch (metaGroupID) {
+							case 52: metaLevel = 4; break; //Structure Faction
+							case 53: metaLevel = 2; break; //Structure Tech II
+							case 54: metaLevel = 1; break; //Structure Tech I
+							default: metaLevel = metaGroupID;
+						}
+					}
+					node.setAttributeNS(null, "meta", String.valueOf(metaLevel));
 					node.setAttributeNS(null, "pi", category.getEnglishName().equals("Planetary Commodities") || category.getEnglishName().equals("Planetary Resources") ? "true" : "false");
 					node.setAttributeNS(null, "portion", String.valueOf(type.getPortionSize()));
 			//Product ID

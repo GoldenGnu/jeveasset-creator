@@ -51,19 +51,18 @@ public class InvReader {
 		return YamlHelper.read(SdeFile.CATEGORYIDS, new TypeReference<TreeMap<Integer, Category>>(){});
 	}
 
-	public Attributes loadAttributes() throws IOException {
+	public Map<Integer, DogmaAttribute> loadAttributes() throws IOException {
 		TreeMap<Integer, Dogma> map = YamlHelper.read(SdeFile.TYPEDOGMA, new TypeReference<TreeMap<Integer, Dogma>>(){});
-		Attributes attributes = new Attributes();
+		Map<Integer, DogmaAttribute> metaGroupAttributes = new HashMap<>();
 		for (Map.Entry<Integer, Dogma> entry : map.entrySet()) {
-			int typeID = entry.getKey();
-			Dogma dogma = entry.getValue();
-			for (DogmaAttribute attribute : dogma.getDogmaAttributes()) {
+			for (DogmaAttribute attribute : entry.getValue().getDogmaAttributes()) {
 				if (attribute.getAttributeID() == 1692) { //1692 = meta group
-					attributes.getMetaGroupAttributes().put(typeID, attribute);
+					metaGroupAttributes.put(entry.getKey(), attribute);
+					break;
 				}
 			}
 		}
-		return attributes;
+		return metaGroupAttributes;
 	}
 
 	public Map<Integer, MetaGroup> loadMetaGroups() throws IOException {
@@ -83,14 +82,6 @@ public class InvReader {
 
 		public List<TypeMaterial> getMaterials() {
 			return materials;
-		}
-	}
-
-	public static class Attributes {
-		private final Map<Integer, DogmaAttribute> metaGroupAttributes = new HashMap<>();
-
-		public Map<Integer, DogmaAttribute> getMetaGroupAttributes() {
-			return metaGroupAttributes;
 		}
 	}
 }

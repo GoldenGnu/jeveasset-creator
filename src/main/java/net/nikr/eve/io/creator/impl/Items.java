@@ -78,6 +78,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private static final ApiClient CLIENT = new ApiClientBuilder().userAgent("jEveAssets XML Builder").build();
 	private static final UniverseApi UNIVERSE_API = new UniverseApi(CLIENT);
 	private static final MarketApi MARKET_API = new MarketApi(CLIENT);
+	private static final int EXPECTED_META_GROUPS_SIZE = 13; //On Change: Check if jEveAssets EsiItemsGetter needs to be updated!
 
 	private static final String DATASOURCE = "tranquility";
 
@@ -132,8 +133,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			LOG.info("		Categories...");
 			Map<Integer, Category> categories = reader.loadCategories();
 			LOG.info("		Attributes...");
-			InvReader.Attributes attributes = reader.loadAttributes();
-			Map<Integer, DogmaAttribute> metaGroupAttributes = attributes.getMetaGroupAttributes();
+			Map<Integer, DogmaAttribute> metaGroupAttributes = reader.loadAttributes();
 			LOG.info("		Meta Groups...");
 			Map<Integer, MetaGroup> metaGroups = reader.loadMetaGroups();
 			LOG.info("		Materials...");
@@ -149,6 +149,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Map<Integer, Float> volume = getVolume(typeIDs, types, categories, groupIDs);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
+			if (metaGroups.size() != EXPECTED_META_GROUPS_SIZE) {
+				throw new RuntimeException("metaGroups size is: " + metaGroups.size() + " expected: " + EXPECTED_META_GROUPS_SIZE + " :: jEveAssets EsiItemsGetter likely needs to be updated!");
+			}
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
 				Element node = xmldoc.createElementNS(null, "row");
 				Integer typeID = entry.getKey();
@@ -208,12 +211,12 @@ public class Items extends AbstractXmlWriter implements Creator{
 			//Tech Level
 					final String techLevel;
 					MetaGroup metaGroup = null;
-					//From meta type
+					//Get meta group from type
 					Integer metaGroupID =  type.getMetaGroupID();
 					if (metaGroup == null && metaGroupID != null) {
 						metaGroup = metaGroups.get(metaGroupID);
 					}
-					//From meta group attribute
+					//Get meta group from attributes
 					DogmaAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
 					if (metaGroup == null && metaGroupAttribute != null) {
 						metaGroupID = get(metaGroupAttribute);
@@ -229,7 +232,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 						techLevel = "Tech I";
 					}
 					node.setAttributeNS(null, "tech", techLevel);
-			//Meta level
+			//Meta level (~ Meta group ID)
 					int metaLevel = 0;
 					if (metaGroupID != null) {
 						switch (metaGroupID) {

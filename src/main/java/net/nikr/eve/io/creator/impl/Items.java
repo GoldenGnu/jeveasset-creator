@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -48,11 +49,11 @@ import net.nikr.eve.io.data.inv.Category;
 import net.nikr.eve.io.data.inv.Group;
 import net.nikr.eve.io.data.inv.MetaGroup;
 import net.nikr.eve.io.data.inv.Type;
-import net.nikr.eve.io.data.inv.DogmaAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.InvReader;
+import net.nikr.eve.io.yaml.InvReader.Attributes;
 import net.nikr.eve.io.yaml.InvReader.TypeMaterialList;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiClient;
@@ -133,7 +134,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			LOG.info("		Categories...");
 			Map<Integer, Category> categories = reader.loadCategories();
 			LOG.info("		Attributes...");
-			Map<Integer, DogmaAttribute> metaGroupAttributes = reader.loadAttributes();
+			Attributes attributes = reader.loadDogma();
 			LOG.info("		Meta Groups...");
 			Map<Integer, MetaGroup> metaGroups = reader.loadMetaGroups();
 			LOG.info("		Materials...");
@@ -217,31 +218,19 @@ public class Items extends AbstractXmlWriter implements Creator{
 						metaGroup = metaGroups.get(metaGroupID);
 					}
 					//Get meta group from attributes
-					DogmaAttribute metaGroupAttribute = metaGroupAttributes.get(typeID);
-					if (metaGroup == null && metaGroupAttribute != null) {
-						metaGroupID = get(metaGroupAttribute);
+					metaGroupID = attributes.getMetaGroupAttributes().get(typeID);
+					if (metaGroup == null && metaGroupID != null) {
 						metaGroup = metaGroups.get(metaGroupID);
 					}
 					if (metaGroup != null) {
-						if (metaGroup.getMetaGroupName().contains("Structure")) {
-							techLevel = metaGroup.getMetaGroupName().replace("Structure", "").trim();
-						} else {
-							techLevel = metaGroup.getMetaGroupName();
-						}
+						techLevel = metaGroup.getMetaGroupName().replace("Structure", "").trim();
 					} else {
 						techLevel = "Tech I";
 					}
 					node.setAttributeNS(null, "tech", techLevel);
-			//Meta level (~ Meta group ID)
-					int metaLevel = 0;
-					if (metaGroupID != null) {
-						switch (metaGroupID) {
-							case 52: metaLevel = 4; break; //Structure Faction
-							case 53: metaLevel = 2; break; //Structure Tech II
-							case 54: metaLevel = 1; break; //Structure Tech I
-							default: metaLevel = metaGroupID;
-						}
-					}
+			//Meta Level
+					//Ref: https://www.eveonline.com/news/view/deciphering-tiericide
+					int metaLevel = attributes.getMetaLevelAttributes().getOrDefault(typeID, 0);
 					node.setAttributeNS(null, "meta", String.valueOf(metaLevel));
 					node.setAttributeNS(null, "pi", category.getEnglishName().equals("Planetary Commodities") || category.getEnglishName().equals("Planetary Resources") ? "true" : "false");
 					node.setAttributeNS(null, "portion", String.valueOf(type.getPortionSize()));
@@ -340,14 +329,6 @@ public class Items extends AbstractXmlWriter implements Creator{
 		} catch (IOException ex) {
 			LOG.error(ex.getMessage(), ex);
 			return false;
-		}
-	}
-
-	private int get(DogmaAttribute typeAttribute) {
-		if (typeAttribute.getValue() != null) {
-			return typeAttribute.getValue().intValue();
-		} else {
-			return 0;
 		}
 	}
 
@@ -564,10 +545,19 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private static class TypeData {
 		private final int typeID;
 		private final TypeResponse response;
+		private final Float packagedVolume;
+		private final Float volume;
 
 		public TypeData(int typeID, TypeResponse response) {
 			this.typeID = typeID;
 			this.response = response;
+			if (response != null) {
+				packagedVolume = response.getPackagedVolume();
+				volume = response.getVolume();
+			} else {
+				packagedVolume = null;
+				volume = null;
+			}
 		}
 
 		public int getTypeID() {
@@ -576,17 +566,20 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 		private boolean haveData() {
 			return response != null
-					&& response.getPackagedVolume() != null
+					&& packagedVolume != null
 					&& response.getVolume() != null
-					&& !response.getVolume().equals(response.getPackagedVolume());
-					
+					&& !Objects.equals(packagedVolume, volume);
 		}
 
 		private Float getPackagedVolume() {
-			if (response != null) {
-				return response.getPackagedVolume();
+			return getOrDefault(packagedVolume, 0f);
+		}
+
+		private Float getOrDefault(Float f, Float defaultValue) {
+			if (f != null) {
+				return f;
 			} else {
-				return 0f;
+				return defaultValue;
 			}
 		}
 	}

@@ -51,18 +51,22 @@ public class InvReader {
 		return YamlHelper.read(SdeFile.CATEGORYIDS, new TypeReference<TreeMap<Integer, Category>>(){});
 	}
 
-	public Map<Integer, DogmaAttribute> loadAttributes() throws IOException {
+	public Attributes loadDogma() throws IOException {
 		TreeMap<Integer, Dogma> map = YamlHelper.read(SdeFile.TYPEDOGMA, new TypeReference<TreeMap<Integer, Dogma>>(){});
-		Map<Integer, DogmaAttribute> metaGroupAttributes = new HashMap<>();
+		Attributes attributes = new Attributes();
 		for (Map.Entry<Integer, Dogma> entry : map.entrySet()) {
-			for (DogmaAttribute attribute : entry.getValue().getDogmaAttributes()) {
+			int typeID = entry.getKey();
+			Dogma dogma = entry.getValue();
+			for (DogmaAttribute attribute : dogma.getDogmaAttributes()) {
 				if (attribute.getAttributeID() == 1692) { //1692 = meta group
-					metaGroupAttributes.put(entry.getKey(), attribute);
-					break;
+					attributes.getMetaGroupAttributes().put(typeID, attribute.getValue().intValue());
+				}
+				if (attribute.getAttributeID() == 633) { //633 = meta level
+					attributes.getMetaLevelAttributes().put(typeID, attribute.getValue().intValue());
 				}
 			}
 		}
-		return metaGroupAttributes;
+		return attributes;
 	}
 
 	public Map<Integer, MetaGroup> loadMetaGroups() throws IOException {
@@ -82,6 +86,19 @@ public class InvReader {
 
 		public List<TypeMaterial> getMaterials() {
 			return materials;
+		}
+	}
+
+	public static class Attributes {
+		private final Map<Integer, Integer> metaGroupAttributes = new HashMap<>();
+		private final Map<Integer, Integer> metaLevelAttributes = new HashMap<>();
+
+		public Map<Integer, Integer> getMetaGroupAttributes() {
+			return metaGroupAttributes;
+		}
+
+		public Map<Integer, Integer> getMetaLevelAttributes() {
+			return metaLevelAttributes;
 		}
 	}
 }

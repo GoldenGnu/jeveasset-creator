@@ -148,6 +148,8 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Set<Integer> types = getTypes();
 			LOG.info("		Packaged Volume...");
 			Map<Integer, Float> volume = getVolume(typeIDs, types, categories, groupIDs);
+			LOG.info("		Proving Filaments...");
+			updateProvingFilaments(typeIDs, types, groupIDs);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			if (metaGroups.size() != EXPECTED_META_GROUPS_SIZE) {
@@ -470,7 +472,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 	}
 
 	private Map<Integer, Float> getVolume(Map<Integer, Type> typeIDs, Set<Integer> types, Map<Integer, Category> categories, Map<Integer, Group> groupIDs) {
-		List<UpdateVolume> updates = new ArrayList<>();
+		List<UpdateType> updates = new ArrayList<>();
 		Set<String> skipped = new HashSet<>();
 		for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
 			if (!types.contains(entry.getKey())) {
@@ -480,7 +482,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Group group = groupIDs.get(entry.getValue().getGroupID());
 			Category category = categories.get(group.getCategoryID());
 			if (category.getEnglishName().equals("Ship") || category.getEnglishName().equals("Module") || category.getEnglishName().equals("Celestial")) {
-				updates.add(new UpdateVolume(entry.getKey()));
+				updates.add(new UpdateType(entry.getKey()));
 			}
 		}
 		List<Future<TypeData>> futures = startReturn(updates);
@@ -488,7 +490,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 		for (Future<TypeData> future : futures) {
 			try {
 				TypeData typeData = future.get();
-				if (typeData.haveData()) {
+				if (typeData.havePackagedVolume()) {
 					volume.put(typeData.getTypeID(), typeData.getPackagedVolume());
 				}
 			} catch (InterruptedException | ExecutionException ex) {
@@ -499,12 +501,42 @@ public class Items extends AbstractXmlWriter implements Creator{
 		return volume;
 	}
 
-	private static class UpdateVolume implements Callable<TypeData> {
+	private Map<Integer, Float> updateProvingFilaments(Map<Integer, Type> typeIDs, Set<Integer> types, Map<Integer, Group> groupIDs) {
+		List<UpdateType> updates = new ArrayList<>();
+		Set<String> skipped = new HashSet<>();
+		for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
+			if (!types.contains(entry.getKey())) {
+				skipped.add(entry.getKey().toString());
+				continue;
+			}
+			Type type = entry.getValue();
+			Group group = groupIDs.get(type.getGroupID());
+			if (group.getEnglishName().equals("Abyssal Proving Filaments") && type.getEnglishName().contains("Event")) {
+				updates.add(new UpdateType(entry.getKey()));
+			}
+		}
+		List<Future<TypeData>> futures = startReturn(updates);
+		Map<Integer, Float> volume = new HashMap<>();
+		for (Future<TypeData> future : futures) {
+			try {
+				TypeData typeData = future.get();
+				if (typeData.haveName()) {
+					typeIDs.get(typeData.getTypeID()).setEnglishName(typeData.getName());
+				}
+			} catch (InterruptedException | ExecutionException ex) {
+				throw new RuntimeException(ex.getMessage(), ex);
+			}
+		}
+		LOG.warn("			Skipped: " + String.join(",", skipped));
+		return volume;
+	}
+
+	private static class UpdateType implements Callable<TypeData> {
 
 		private final int typeID;
 		private int retries = 0;
 
-		public UpdateVolume(int typeID) {
+		public UpdateType(int typeID) {
 			this.typeID = typeID;
 		}
 		
@@ -545,6 +577,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private static class TypeData {
 		private final int typeID;
 		private final TypeResponse response;
+		private final String name;
 		private final Float packagedVolume;
 		private final Float volume;
 
@@ -554,9 +587,11 @@ public class Items extends AbstractXmlWriter implements Creator{
 			if (response != null) {
 				packagedVolume = response.getPackagedVolume();
 				volume = response.getVolume();
+				name = response.getName();
 			} else {
 				packagedVolume = null;
 				volume = null;
+				name = null;
 			}
 		}
 
@@ -564,11 +599,20 @@ public class Items extends AbstractXmlWriter implements Creator{
 			return typeID;
 		}
 
-		private boolean haveData() {
+		private boolean havePackagedVolume() {
 			return response != null
 					&& packagedVolume != null
-					&& response.getVolume() != null
+					&& volume != null
 					&& !Objects.equals(packagedVolume, volume);
+		}
+
+		private boolean haveName() {
+			return response != null
+					&& name != null;
+		}
+
+		public String getName() {
+			return name;
 		}
 
 		private Float getPackagedVolume() {

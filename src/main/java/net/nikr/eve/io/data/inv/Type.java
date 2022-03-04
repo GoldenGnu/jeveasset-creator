@@ -77,6 +77,10 @@ public class Type {
 		return name.get("en");
 	}
 
+	public void setEnglishName(String englishName) {
+		name.put("en", englishName);
+	}
+
 	@Override
 	public String toString() {
 		return getEnglishName();

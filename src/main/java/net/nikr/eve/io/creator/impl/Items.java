@@ -122,7 +122,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 		NumberFormat intFormat = new DecimalFormat("0");
 		try {
 			Set<Integer> missingNames = new HashSet<>();
-			Set<String> spacedItems = new HashSet<>();
+			Map<String, String> spacedItems = new HashMap<>();
 			Set<String> techLevelItems = new HashSet<>();
 			Set<String> productsItems = new HashSet<>();
 			LOG.info("	YAML: Loading...");
@@ -149,7 +149,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			LOG.info("		Packaged Volume...");
 			Map<Integer, Float> volume = getVolume(typeIDs, types, categories, groupIDs);
 			LOG.info("		Proving Filaments...");
-			updateProvingFilaments(typeIDs, types, groupIDs);
+			updateProvingFilaments(typeIDs, types, groupIDs, categories);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			if (metaGroups.size() != EXPECTED_META_GROUPS_SIZE) {
@@ -177,7 +177,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 						missingNames.add(typeID);
 						continue;
 					}
-					//Normalize Names 
+					//Normalize Names
 					String typeNameFixed = typeName
 							.replaceAll(" +", " ") //Replace 2 or more spaces
 							.replace("\t", " ") //Tab
@@ -195,7 +195,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 							.replace("—", "-") //Em dash
 							.trim();
 					if (!typeNameFixed.equals(typeName)) {
-						spacedItems.add(typeName);
+						spacedItems.put(typeName, typeNameFixed);
 					}
 					node.setAttributeNS(null, "name", typeNameFixed);
 					node.setAttributeNS(null, "group", group.getEnglishName());
@@ -306,8 +306,8 @@ public class Items extends AbstractXmlWriter implements Creator{
 				}
 			}
 			LOG.info("		Items contains too much space:");
-			for (String name : spacedItems) {
-				LOG.info("			" + name);
+			for (Map.Entry<String, String> entry : spacedItems.entrySet()) {
+				LOG.info("			|" + entry.getKey().replace(" ", "•").replace("	", "→") + "|" + entry.getValue() + "|"); //¶→●•∙·
 			}
 			LOG.info("		Items with \"strange\" tech levels:");
 			for (String name : techLevelItems) {
@@ -440,7 +440,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 		public UpdateTypes(int page) {
 			this.page = page;
 		}
-		
+
 		@Override
 		public List<Integer> call() throws Exception {
 			return update().getData();
@@ -501,7 +501,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 		return volume;
 	}
 
-	private Map<Integer, Float> updateProvingFilaments(Map<Integer, Type> typeIDs, Set<Integer> types, Map<Integer, Group> groupIDs) {
+	private Map<Integer, Float> updateProvingFilaments(Map<Integer, Type> typeIDs, Set<Integer> types, Map<Integer, Group> groupIDs, Map<Integer, Category> categories) {
 		List<UpdateType> updates = new ArrayList<>();
 		Set<String> skipped = new HashSet<>();
 		for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
@@ -511,7 +511,10 @@ public class Items extends AbstractXmlWriter implements Creator{
 			}
 			Type type = entry.getValue();
 			Group group = groupIDs.get(type.getGroupID());
-			if (group.getEnglishName().equals("Abyssal Proving Filaments") && type.getEnglishName().contains("Event")) {
+			Category category = categories.get(group.getCategoryID());
+			if ((group.getEnglishName().equalsIgnoreCase("Abyssal Proving Filaments") && type.getEnglishName().contains("Event"))
+					|| (category.getEnglishName().equalsIgnoreCase("Apparel") && type.getEnglishName().contains(".png"))
+					) {
 				updates.add(new UpdateType(entry.getKey()));
 			}
 		}
@@ -539,7 +542,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 		public UpdateType(int typeID) {
 			this.typeID = typeID;
 		}
-		
+
 		@Override
 		public TypeData call() throws Exception {
 			TypeResponse response = update();
@@ -633,8 +636,14 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Integer limit = getHeaderInteger(responseHeaders, "x-esi-error-limit-remain");
 			if (limit != null) {
 				if (errorLimit != null) {
+					if (limit < errorLimit) {
+						LOG.warn("Error limit: " + limit);
+					}
 					errorLimit = Math.min(errorLimit, limit);
 				} else {
+					if (limit < 100) {
+						LOG.warn("Error limit: " + limit);
+					}
 					errorLimit = limit;
 				}
 			}
@@ -659,8 +668,6 @@ public class Items extends AbstractXmlWriter implements Creator{
 			} catch (InterruptedException ex) {
 				//No problem
 			}
-		} else if (errorLimit != null && errorLimit < 100) { //At least one error
-			LOG.warn("Error limit: " + errorLimit);
 		}
 	}
 

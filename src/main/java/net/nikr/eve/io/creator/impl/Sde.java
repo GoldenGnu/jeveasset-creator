@@ -87,6 +87,7 @@ public class Sde implements Creator {
 		}
 		//SDE outdated -> browse
 		if (!Settings.isAuto() && !validateSDE(sde, downloadMD5)) {
+			LOG.info("	Select SDE:");
 			sde = Program.run(new OpenZip());
 			if (sde == null) {
 				return false;
@@ -95,7 +96,11 @@ public class Sde implements Creator {
 				if (!Program.run(new ConfirmDialog("The selected SDE is outdated.\r\nUse anyway?", "SDE outdated"))) {
 					return false;
 				}
+				LOG.info("		-!- Outdated SDE select");
 			}
+			//Delete unzipped sde folder, as it needs to be updated
+			LOG.info("		Deleting unzipped SDE...");
+			deleteDirectory(Program.getUserFile("sde"));
 		}
 		try {
 			if (!Program.getUserFile("sde").exists()) {

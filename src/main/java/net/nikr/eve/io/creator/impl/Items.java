@@ -512,7 +512,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Type type = entry.getValue();
 			Group group = groupIDs.get(type.getGroupID());
 			Category category = categories.get(group.getCategoryID());
-			if ((group.getEnglishName().equalsIgnoreCase("Abyssal Proving Filaments") && type.getEnglishName().contains("Event"))
+			if (group.getEnglishName().equalsIgnoreCase("Abyssal Proving Filaments")
 					|| (category.getEnglishName().equalsIgnoreCase("Apparel") && type.getEnglishName().contains(".png"))
 					) {
 				updates.add(new UpdateType(entry.getKey()));

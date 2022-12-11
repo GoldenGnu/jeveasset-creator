@@ -68,8 +68,8 @@
 						<configuration>
 							<target>
 								<copy todir="${project.build.directory}">
-									<fileset dir="" includes="connection.xml"/>
 									<fileset dir="tools" includes="list.php"/>
+									<fileset dir="tools" includes=".htaccess"/>
 									<fileset dir="" includes="conquerable_stations.xml"/>
 								</copy>
 							</target>
@@ -217,7 +217,7 @@
 						</goals>
 						<configuration>
 							<fromDir>${project.build.directory}</fromDir>
-							<includes>installer.jar,*.dat,*.md5,data/*,*.php</includes>
+							<includes>installer.jar,*.dat,*.md5,data/*,*.php,.htaccess</includes>
 							<serverId>eve-nikr-net</serverId>
 							<url>sftp://${upload.url}</url>
 							<toDir>${upload.data.file}</toDir>

@@ -27,10 +27,10 @@ import java.util.List;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.flag.Flag;
-import net.nikr.eve.util.Duration;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.FlagsReader;
+import net.nikr.eve.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -39,7 +39,7 @@ import org.w3c.dom.Element;
 
 
 public class Flags extends AbstractXmlWriter implements Creator {
-	
+
 	private final static Logger LOG = LoggerFactory.getLogger(Flags.class);
 
 	@Override
@@ -82,13 +82,13 @@ public class Flags extends AbstractXmlWriter implements Creator {
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			for (Flag flag : flags) {
-				Element node = xmldoc.createElementNS(null, "row");
+				Element node = xmldoc.createElement("row");
 				int flagID = flag.getFlagID();
 				String flagName = flag.getFlagName();
 				String flagText = flag.getFlagText();
-				node.setAttributeNS(null, "flagid", String.valueOf(flagID));
-				node.setAttributeNS(null, "flagname", flagName);
-				node.setAttributeNS(null, "flagtext", flagText);
+				node.setAttribute("flagid", String.valueOf(flagID));
+				node.setAttribute("flagname", flagName);
+				node.setAttribute("flagtext", flagText);
 				parentNode.appendChild(node);
 			}
 			return true;

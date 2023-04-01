@@ -33,16 +33,16 @@ import java.util.Set;
 import java.util.TreeSet;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.eve.io.data.map.Location;
-import net.nikr.eve.io.data.map.LocationID;
 import net.nikr.eve.io.data.Name;
 import net.nikr.eve.io.data.map.ConquerableStation;
-import net.nikr.eve.util.Duration;
-import net.nikr.eve.io.yaml.LocationsReader;
-import net.nikr.eve.io.yaml.NameReader;
+import net.nikr.eve.io.data.map.Location;
+import net.nikr.eve.io.data.map.LocationID;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.ConquerableStationsReader;
 import net.nikr.eve.io.xml.XmlException;
+import net.nikr.eve.io.yaml.LocationsReader;
+import net.nikr.eve.io.yaml.NameReader;
+import net.nikr.eve.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -52,11 +52,11 @@ import org.w3c.dom.Element;
 
 
 public class Locations extends AbstractXmlWriter implements Creator {
-	
+
 	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
 
 	private final DecimalFormat securityformater = new DecimalFormat("0.0", new DecimalFormatSymbols(new Locale("en")));
-	
+
 	@Override
 	public boolean create() {
 		Duration duration = new Duration();
@@ -166,16 +166,16 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			locationsIDs.clear();
 			LOG.info("	XML: Creating...");
 			for (Location location : locations) {
-				Element node = xmldoc.createElementNS(null, "row");
-				node.setAttributeNS(null, "si", String.valueOf(location.getStationID()));
-				node.setAttributeNS(null, "s", location.getStationName());
-				node.setAttributeNS(null, "syi", String.valueOf(location.getSystemID()));
-				node.setAttributeNS(null, "sy", location.getSystemName());
-				node.setAttributeNS(null, "ci", String.valueOf(location.getConstellationID()));
-				node.setAttributeNS(null, "c", location.getConstellationName());
-				node.setAttributeNS(null, "ri", String.valueOf(location.getRegionID()));
-				node.setAttributeNS(null, "r", location.getRegionName());
-				node.setAttributeNS(null, "se", roundSecurity(location.getSecurity()));
+				Element node = xmldoc.createElement("row");
+				node.setAttribute("si", String.valueOf(location.getStationID()));
+				node.setAttribute("s", location.getStationName());
+				node.setAttribute("syi", String.valueOf(location.getSystemID()));
+				node.setAttribute("sy", location.getSystemName());
+				node.setAttribute("ci", String.valueOf(location.getConstellationID()));
+				node.setAttribute("c", location.getConstellationName());
+				node.setAttribute("ri", String.valueOf(location.getRegionID()));
+				node.setAttribute("r", location.getRegionName());
+				node.setAttribute("se", roundSecurity(location.getSecurity()));
 				parentNode.appendChild(node);
 			}
 			return true;

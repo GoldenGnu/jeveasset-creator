@@ -27,10 +27,10 @@ import java.util.Set;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.map.Jump;
-import net.nikr.eve.util.Duration;
-import net.nikr.eve.io.yaml.JumpsReader;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
+import net.nikr.eve.io.yaml.JumpsReader;
+import net.nikr.eve.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -38,7 +38,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 public class Jumps extends AbstractXmlWriter implements Creator {
-	
+
 	private final static Logger LOG = LoggerFactory.getLogger(Jumps.class);
 
 	@Override
@@ -81,11 +81,11 @@ public class Jumps extends AbstractXmlWriter implements Creator {
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
 			for (Jump jump : jumps) {
-				Element node = xmldoc.createElementNS(null, "row");
+				Element node = xmldoc.createElement("row");
 				long from = jump.getFrom();
 				long to = jump.getTo();
-				node.setAttributeNS(null, "from", String.valueOf(from));
-				node.setAttributeNS(null, "to", String.valueOf(to));
+				node.setAttribute("from", String.valueOf(from));
+				node.setAttribute("to", String.valueOf(to));
 				parentNode.appendChild(node);
 			}
 			return true;

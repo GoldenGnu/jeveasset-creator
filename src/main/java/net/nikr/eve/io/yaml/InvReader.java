@@ -30,10 +30,11 @@ import java.util.TreeMap;
 import net.nikr.eve.io.data.inv.Blueprint;
 import net.nikr.eve.io.data.inv.Category;
 import net.nikr.eve.io.data.inv.Dogma;
+import net.nikr.eve.io.data.inv.DogmaAttribute;
+import net.nikr.eve.io.data.inv.DogmeEffect;
 import net.nikr.eve.io.data.inv.Group;
 import net.nikr.eve.io.data.inv.MetaGroup;
 import net.nikr.eve.io.data.inv.Type;
-import net.nikr.eve.io.data.inv.DogmaAttribute;
 import net.nikr.eve.io.data.inv.TypeMaterial;
 import net.nikr.eve.io.yaml.YamlHelper.SdeFile;
 
@@ -65,6 +66,26 @@ public class InvReader {
 					attributes.getMetaLevelAttributes().put(typeID, attribute.getValue().intValue());
 				}
 			}
+			for (DogmeEffect attribute : dogma.getDogmaEffects()) {
+				if (attribute.isIsDefault()) {
+					continue;
+				}
+				if (attribute.getEffectID() == 11) { //11 = Requires a low power slot
+					attributes.getSlots().put(typeID, "Low");
+				}
+				if (attribute.getEffectID() == 12) { //12 = Requires a high power slot
+					attributes.getSlots().put(typeID, "High");
+				}
+				if (attribute.getEffectID() == 13) { //13 = Requires a medium power slot
+					attributes.getSlots().put(typeID, "Medium");
+				}
+				if (attribute.getEffectID() == 2663) { //2663 = Must be installed into an open rig slot
+					attributes.getSlots().put(typeID, "Rig");
+				}
+				if (attribute.getEffectID() == 3772) { //3772 = Must be installed into an available subsystem slot on a Tech III ship.
+					attributes.getSlots().put(typeID, "Subsystem");
+				}
+			}
 		}
 		return attributes;
 	}
@@ -92,6 +113,7 @@ public class InvReader {
 	public static class Attributes {
 		private final Map<Integer, Integer> metaGroupAttributes = new HashMap<>();
 		private final Map<Integer, Integer> metaLevelAttributes = new HashMap<>();
+		private final Map<Integer, String>  slots = new HashMap<>();
 
 		public Map<Integer, Integer> getMetaGroupAttributes() {
 			return metaGroupAttributes;
@@ -99,6 +121,10 @@ public class InvReader {
 
 		public Map<Integer, Integer> getMetaLevelAttributes() {
 			return metaLevelAttributes;
+		}
+
+		public Map<Integer, String> getSlots() {
+			return slots;
 		}
 	}
 }

@@ -156,7 +156,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 				throw new RuntimeException("metaGroups size is: " + metaGroups.size() + " expected: " + EXPECTED_META_GROUPS_SIZE + " :: jEveAssets EsiItemsGetter likely needs to be updated!");
 			}
 			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
-				Element node = xmldoc.createElementNS(null, "row");
+				Element node = xmldoc.createElement("row");
 				Integer typeID = entry.getKey();
 				Type type = entry.getValue();
 				Group group = groupIDs.get(type.getGroupID());
@@ -169,7 +169,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 						|| typeID == 60 //Asset Safety Wrap
 						|| type.getGroupID() == 186 //Wrecks
 						) && !category.getEnglishName().equals("Infantry")) {
-					node.setAttributeNS(null, "id", String.valueOf(typeID));
+					node.setAttribute("id", String.valueOf(typeID));
 					final String typeName;
 					if (type.getEnglishName() != null) {
 						typeName = type.getEnglishName();
@@ -197,19 +197,19 @@ public class Items extends AbstractXmlWriter implements Creator{
 					if (!typeNameFixed.equals(typeName)) {
 						spacedItems.put(typeName, typeNameFixed);
 					}
-					node.setAttributeNS(null, "name", typeNameFixed);
-					node.setAttributeNS(null, "group", group.getEnglishName());
-					node.setAttributeNS(null, "category", category.getEnglishName());
-					node.setAttributeNS(null, "price", intFormat.format(type.getBasePrice()));
-					node.setAttributeNS(null, "volume", String.valueOf(type.getVolume()));
+					node.setAttribute("name", typeNameFixed);
+					node.setAttribute("group", group.getEnglishName());
+					node.setAttribute("category", category.getEnglishName());
+					node.setAttribute("price", intFormat.format(type.getBasePrice()));
+					node.setAttribute("volume", String.valueOf(type.getVolume()));
 			//Packaged Volume
 					Float packagedVolume = volume.get(typeID);
 					if (packagedVolume != null) {
-						node.setAttributeNS(null, "packagedvolume", String.valueOf(packagedVolume));
+						node.setAttribute("packagedvolume", String.valueOf(packagedVolume));
 					}
 			//Capacity
 					if (type.getCapacity() > 0) {
-						node.setAttributeNS(null, "capacity", String.valueOf(type.getCapacity()));
+						node.setAttribute("capacity", String.valueOf(type.getCapacity()));
 					}
 			//Tech Level
 					final String techLevel;
@@ -229,13 +229,16 @@ public class Items extends AbstractXmlWriter implements Creator{
 					} else {
 						techLevel = "Tech I";
 					}
-					node.setAttributeNS(null, "tech", techLevel);
+					node.setAttribute("tech", techLevel);
+					//Slot
+					String slot = attributes.getSlots().getOrDefault(typeID, "None");
+					//node.setAttribute("slot", slot);
 			//Meta Level
 					//Ref: https://www.eveonline.com/news/view/deciphering-tiericide
 					int metaLevel = attributes.getMetaLevelAttributes().getOrDefault(typeID, 0);
-					node.setAttributeNS(null, "meta", String.valueOf(metaLevel));
-					node.setAttributeNS(null, "pi", category.getEnglishName().equals("Planetary Commodities") || category.getEnglishName().equals("Planetary Resources") ? "true" : "false");
-					node.setAttributeNS(null, "portion", String.valueOf(type.getPortionSize()));
+					node.setAttribute("meta", String.valueOf(metaLevel));
+					node.setAttribute("pi", category.getEnglishName().equals("Planetary Commodities") || category.getEnglishName().equals("Planetary Resources") ? "true" : "false");
+					node.setAttribute("portion", String.valueOf(type.getPortionSize()));
 			//Product ID
 					int productTypeID = 0;
 					int productQuantity = 0;
@@ -253,9 +256,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 							}
 							if (manufacturing.materials != null) {
 								for (BlueprintMaterial material : manufacturing.materials) {
-									Element materialNode = xmldoc.createElementNS(null, "mfg");
-									materialNode.setAttributeNS(null, "id", String.valueOf(material.getTypeID()));
-									materialNode.setAttributeNS(null, "q", String.valueOf(material.getQuantity()));
+									Element materialNode = xmldoc.createElement("mfg");
+									materialNode.setAttribute("id", String.valueOf(material.getTypeID()));
+									materialNode.setAttribute("q", String.valueOf(material.getQuantity()));
 									node.appendChild(materialNode);
 								}
 							}
@@ -269,20 +272,20 @@ public class Items extends AbstractXmlWriter implements Creator{
 							}
 							if (reaction.materials != null) {
 								for (BlueprintMaterial material : reaction.materials) {
-									Element materialNode = xmldoc.createElementNS(null, "rxn");
-									materialNode.setAttributeNS(null, "id", String.valueOf(material.getTypeID()));
-									materialNode.setAttributeNS(null, "q", String.valueOf(material.getQuantity()));
+									Element materialNode = xmldoc.createElement("rxn");
+									materialNode.setAttribute("id", String.valueOf(material.getTypeID()));
+									materialNode.setAttribute("q", String.valueOf(material.getQuantity()));
 									node.appendChild(materialNode);
 								}
 							}
 						}
 					}
-					node.setAttributeNS(null, "product", String.valueOf(productTypeID));
+					node.setAttribute("product", String.valueOf(productTypeID));
 					if (productQuantity > 1) {
-						node.setAttributeNS(null, "productquantity", String.valueOf(productQuantity));
+						node.setAttribute("productquantity", String.valueOf(productQuantity));
 					}
 					boolean bMarketGroup = marketGroupsTypeIDs.contains(typeID);
-					node.setAttributeNS(null, "marketgroup", String.valueOf(bMarketGroup));
+					node.setAttribute("marketgroup", String.valueOf(bMarketGroup));
 					parentNode.appendChild(node);
 					TypeMaterialList materialList = typeMaterials.get(typeID);
 					if (materialList != null) {
@@ -294,10 +297,10 @@ public class Items extends AbstractXmlWriter implements Creator{
 							}
 						});
 						for (TypeMaterial material : materials) {
-							Element materialNode = xmldoc.createElementNS(null, "material");
-							materialNode.setAttributeNS(null, "id", String.valueOf(material.getMaterialTypeID()));
-							materialNode.setAttributeNS(null, "quantity", String.valueOf(material.getQuantity()));
-							materialNode.setAttributeNS(null, "portionsize", String.valueOf(type.getPortionSize()));
+							Element materialNode = xmldoc.createElement("material");
+							materialNode.setAttribute("id", String.valueOf(material.getMaterialTypeID()));
+							materialNode.setAttribute("quantity", String.valueOf(material.getQuantity()));
+							materialNode.setAttribute("portionsize", String.valueOf(type.getPortionSize()));
 							if (type.getMarketGroupID() != 0){
 								node.appendChild(materialNode);
 							}

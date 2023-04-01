@@ -20,19 +20,16 @@
  */
 package net.nikr.eve.io.data.inv;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.List;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Dogma {
-	private List<DogmaAttribute> dogmaAttributes;
-	private List<DogmeEffect> dogmaEffects;
+public class DogmeEffect {
+	private int effectID;
+	private boolean isDefault;
 
-	public List<DogmaAttribute> getDogmaAttributes() {
-		return dogmaAttributes;
+	public int getEffectID() {
+		return effectID;
 	}
 
-	public List<DogmeEffect> getDogmaEffects() {
-		return dogmaEffects;
+	public boolean isIsDefault() {
+		return isDefault;
 	}
 }

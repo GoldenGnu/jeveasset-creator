@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2023 Contributors (see credits.txt)
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -21,11 +21,11 @@
 
 package net.nikr.eve.io.creator;
 
-import net.nikr.eve.io.creator.impl.OnlineOutdated;
 import net.nikr.eve.io.creator.impl.Flags;
 import net.nikr.eve.io.creator.impl.Items;
 import net.nikr.eve.io.creator.impl.Jumps;
 import net.nikr.eve.io.creator.impl.Locations;
+import net.nikr.eve.io.creator.impl.OnlineOutdated;
 import net.nikr.eve.io.creator.impl.Sde;
 import net.nikr.eve.io.creator.impl.Version;
 

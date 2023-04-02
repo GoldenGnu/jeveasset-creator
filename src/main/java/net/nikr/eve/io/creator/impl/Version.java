@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2023 Contributors (see credits.txt)
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -39,8 +39,8 @@ import javax.swing.JOptionPane;
 import net.nikr.eve.Main;
 import net.nikr.eve.Program;
 import net.nikr.eve.Program.Worker;
-import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.Settings;
+import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,7 +61,7 @@ public class Version extends AbstractXmlWriter implements Creator {
 			LOG.info("	Asking user...");
 			version = Program.run(new VersionGetter());
 			LOG.info("	Set to: " + version);
-			
+
 		}
 		if (version == null) {
 			return false;
@@ -172,7 +172,7 @@ public class Version extends AbstractXmlWriter implements Creator {
 		@Override
 		public void run() {
 			Main.initLookAndFeel();
-			
+
 			version = (String) JOptionPane.showInputDialog(window, "Enter version: YYYY-MM-DD[a-z]", "Version", JOptionPane.QUESTION_MESSAGE, null, null, getVersion());
 		}
 

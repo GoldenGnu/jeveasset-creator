@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2023 Contributors (see credits.txt)
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -21,9 +21,9 @@
 package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
+import net.nikr.eve.Settings;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.creator.CreatorType;
-import net.nikr.eve.Settings;
 import net.nikr.eve.util.MD5;
 import org.slf4j.LoggerFactory;
 
@@ -74,5 +74,5 @@ public class OnlineOutdated implements Creator {
 	public File getFile() {
 		return null;
 	}
-	
+
 }

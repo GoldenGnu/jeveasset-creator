@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2023 Contributors (see credits.txt)
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -262,7 +262,7 @@ public class Sde implements Creator {
 			this.msg = msg;
 			this.title = title;
 		}
-		
+
 		private boolean ok = false;
 
 		@Override

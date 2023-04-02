@@ -1,5 +1,5 @@
 /*
- * Copyright 2009-2016, Niklas Kyster Rasmussen, Flaming Candle
+ * Copyright 2009-2023 Contributors (see credits.txt)
  *
  * This file is part of XML Creator for jEveAssets
  *
@@ -58,10 +58,10 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 	private final JCheckBox jAll;
 	private final ProgressBar jProgressBar;
 	List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
-	
+
 	public MainFrame(){
 		setLayout(new BorderLayout(1, 4));
-		
+
 		//Main Panel
 		jPanel = new JPanel();
 		jPanel.setLayout(new GridLayout(CreatorType.values().length+1, 2, 5, 5));
@@ -94,7 +94,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 			} else {
 				cs.getCheckBox().setEnabled(false);
 			}
-			
+
 			horizontalGroup.addComponent(cs.getCheckBox());
 			verticalGroup.addComponent(cs.getCheckBox(), 30, 30, 30);
 		}
@@ -131,7 +131,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		this.pack();
 	}
-	
+
 	@Override
 	public void windowOpened(WindowEvent e) {}
 

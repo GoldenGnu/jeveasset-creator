@@ -40,17 +40,16 @@ import net.nikr.eve.Settings;
 public class YamlHelper {
 
 	public static enum SdeFile {
-		TYPEIDS("fsd", "typeIDs.yaml")
-		, GROUPIDS("fsd", "groupIDs.yaml")
-		, CATEGORYIDS("fsd", "categoryIDs.yaml")
-		, TYPEDOGMA("fsd", "typeDogma.yaml")
-		, METAGROUPS("fsd", "metaGroups.yaml")
-		, INVTYPEMATERIALS("fsd", "typeMaterials.yaml")
-		, BLUEPRINTS("fsd", "blueprints.yaml")
-		, INVNAMES("bsd", "invNames.yaml")
-		, INVFLAGS("bsd", "invFlags.yaml")
-		, UNIVERSE("fsd" + File.separator + "universe", "")
-		;
+		TYPEIDS("fsd", "typeIDs.yaml"),
+		GROUPIDS("fsd", "groupIDs.yaml"),
+		CATEGORYIDS("fsd", "categoryIDs.yaml"),
+		TYPEDOGMA("fsd", "typeDogma.yaml"),
+		METAGROUPS("fsd", "metaGroups.yaml"),
+		INVTYPEMATERIALS("fsd", "typeMaterials.yaml"),
+		BLUEPRINTS("fsd", "blueprints.yaml"),
+		INVNAMES("bsd", "invNames.yaml"),
+		INVFLAGS("bsd", "invFlags.yaml"),
+		UNIVERSE("fsd" + File.separator + "universe", "");
 
 		private final String dir;
 		private final String filename;
@@ -64,7 +63,7 @@ public class YamlHelper {
 			return dir + File.separator + filename;
 		}
 	}
-	
+
 	public static String sde = null;
 
 	public static String getFile(SdeFile sdeFile) throws IOException {

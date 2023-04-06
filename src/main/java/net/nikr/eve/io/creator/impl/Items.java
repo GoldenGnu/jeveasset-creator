@@ -230,9 +230,16 @@ public class Items extends AbstractXmlWriter implements Creator{
 						techLevel = "Tech I";
 					}
 					node.setAttribute("tech", techLevel);
-					//Slot
-					String slot = attributes.getSlots().getOrDefault(typeID, "None");
-					//node.setAttribute("slot", slot);
+			//Slot
+					String slot = attributes.getSlots().get(typeID);
+					if (slot != null) {
+						//node.setAttribute("slot", slot);
+					}
+			//Charge Size
+					Integer chargesSize = attributes.getChargesSize().get(typeID);
+					if (chargesSize != null) {
+						//node.setAttribute("charges", String.valueOf(chargesSize));
+					}
 			//Meta Level
 					//Ref: https://www.eveonline.com/news/view/deciphering-tiericide
 					int metaLevel = attributes.getMetaLevelAttributes().getOrDefault(typeID, 0);

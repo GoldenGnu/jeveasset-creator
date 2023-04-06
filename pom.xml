@@ -271,6 +271,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>2.22.2</version>
 				<configuration>
+					<trimStackTrace>false</trimStackTrace>
 					<excludes>
 						<exclude>${skip.test.1}</exclude>
 						<exclude>${skip.test.2}</exclude>
@@ -347,7 +348,7 @@
 		<dependency>
 			<groupId>net.troja.eve</groupId>
 			<artifactId>eve-esi</artifactId>
-			<version>4.5.0</version>
+			<version>4.8.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>

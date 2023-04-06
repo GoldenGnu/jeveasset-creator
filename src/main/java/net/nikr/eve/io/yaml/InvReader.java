@@ -65,6 +65,9 @@ public class InvReader {
 				if (attribute.getAttributeID() == 633) { //633 = meta level
 					attributes.getMetaLevelAttributes().put(typeID, attribute.getValue().intValue());
 				}
+				if (attribute.getAttributeID() == 128) { //128 = The size of the charges that can fit in the turret/whatever.
+					attributes.getChargesSize().put(typeID, attribute.getValue().intValue());
+				}
 			}
 			for (DogmeEffect attribute : dogma.getDogmaEffects()) {
 				if (attribute.isIsDefault()) {
@@ -113,6 +116,7 @@ public class InvReader {
 	public static class Attributes {
 		private final Map<Integer, Integer> metaGroupAttributes = new HashMap<>();
 		private final Map<Integer, Integer> metaLevelAttributes = new HashMap<>();
+		private final Map<Integer, Integer> chargesSize = new HashMap<>();
 		private final Map<Integer, String>  slots = new HashMap<>();
 
 		public Map<Integer, Integer> getMetaGroupAttributes() {
@@ -121,6 +125,10 @@ public class InvReader {
 
 		public Map<Integer, Integer> getMetaLevelAttributes() {
 			return metaLevelAttributes;
+		}
+
+		public Map<Integer, Integer> getChargesSize() {
+			return chargesSize;
 		}
 
 		public Map<Integer, String> getSlots() {

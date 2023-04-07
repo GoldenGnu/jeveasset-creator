@@ -233,12 +233,12 @@ public class Items extends AbstractXmlWriter implements Creator{
 			//Slot
 					String slot = attributes.getSlots().get(typeID);
 					if (slot != null) {
-						//node.setAttribute("slot", slot);
+						node.setAttribute("slot", slot);
 					}
 			//Charge Size
 					Integer chargesSize = attributes.getChargesSize().get(typeID);
 					if (chargesSize != null) {
-						//node.setAttribute("charges", String.valueOf(chargesSize));
+						node.setAttribute("charges", String.valueOf(chargesSize));
 					}
 			//Meta Level
 					//Ref: https://www.eveonline.com/news/view/deciphering-tiericide

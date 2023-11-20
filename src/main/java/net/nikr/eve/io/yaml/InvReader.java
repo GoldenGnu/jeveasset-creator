@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import net.nikr.eve.io.data.inv.Blueprint;
 import net.nikr.eve.io.data.inv.Category;
-import net.nikr.eve.io.data.inv.Dogma;
+import net.nikr.eve.io.data.inv.DogmaTypes;
 import net.nikr.eve.io.data.inv.DogmaAttribute;
 import net.nikr.eve.io.data.inv.DogmeEffect;
 import net.nikr.eve.io.data.inv.Group;
@@ -53,11 +53,11 @@ public class InvReader {
 	}
 
 	public Attributes loadDogma() throws IOException {
-		TreeMap<Integer, Dogma> map = YamlHelper.read(SdeFile.TYPEDOGMA, new TypeReference<TreeMap<Integer, Dogma>>(){});
+		TreeMap<Integer, DogmaTypes> map = YamlHelper.read(SdeFile.TYPEDOGMA, new TypeReference<TreeMap<Integer, DogmaTypes>>(){});
 		Attributes attributes = new Attributes();
-		for (Map.Entry<Integer, Dogma> entry : map.entrySet()) {
+		for (Map.Entry<Integer, DogmaTypes> entry : map.entrySet()) {
 			int typeID = entry.getKey();
-			Dogma dogma = entry.getValue();
+			DogmaTypes dogma = entry.getValue();
 			for (DogmaAttribute attribute : dogma.getDogmaAttributes()) {
 				if (attribute.getAttributeID() == 1692) { //1692 = meta group
 					attributes.getMetaGroupAttributes().put(typeID, attribute.getValue().intValue());

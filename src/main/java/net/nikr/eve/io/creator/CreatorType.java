@@ -21,6 +21,7 @@
 
 package net.nikr.eve.io.creator;
 
+import net.nikr.eve.io.creator.impl.Dogma;
 import net.nikr.eve.io.creator.impl.Flags;
 import net.nikr.eve.io.creator.impl.Items;
 import net.nikr.eve.io.creator.impl.Jumps;
@@ -40,6 +41,7 @@ public enum CreatorType {
 	, ITEMS_YAML(new Items())
 	, JUMPS_YAML(new Jumps())
 	, FLAGS_YAML(new Flags())
+	//, DOGMA_HOBOLEAKS(new Dogma())
 	, ONLINE_OUTDATED(new OnlineOutdated())
 	;
 

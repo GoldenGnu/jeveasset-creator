@@ -40,6 +40,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
 import net.nikr.eve.Program;
+import net.nikr.eve.Settings;
 import net.nikr.eve.io.DataWriter;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.creator.CreatorType;
@@ -56,8 +57,9 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 	private final JPanel jPanel;
 	private final JButton jRun;
 	private final JCheckBox jAll;
+	private final JCheckBox jAuto;
 	private final ProgressBar jProgressBar;
-	List<CreatorSection> creatorSections = new ArrayList<CreatorSection>();
+	List<CreatorSection> creatorSections = new ArrayList<>();
 
 	public MainFrame(){
 		setLayout(new BorderLayout(1, 4));
@@ -78,8 +80,22 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 		jAll.setActionCommand(CHECK_ALL);
 		jAll.addActionListener(this);
 
-		horizontalGroup.addComponent(jAll);
-		verticalGroup.addComponent(jAll, 30, 30, 30);
+		jAuto = new JCheckBox("Auto");
+		jAuto.setSelected(true);
+
+		horizontalGroup
+				.addGroup(layout.createSequentialGroup()
+					.addComponent(jAll)
+					.addGap(0, 0, Integer.MAX_VALUE)
+					.addComponent(jAuto)
+				);
+				
+				
+		verticalGroup
+				.addGroup(layout.createParallelGroup()
+					.addComponent(jAll, 30, 30, 30)
+					.addComponent(jAuto, 30, 30, 30)
+				);
 
 		JSeparator jSeparator1 = new JSeparator(JSeparator.HORIZONTAL);
 		horizontalGroup.addComponent(jSeparator1);
@@ -156,8 +172,9 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (ACTION_RUN.equals(e.getActionCommand())){
-			List<Creator> creatorList = new ArrayList<Creator>();
-			List<CreatorSection> sections = new ArrayList<CreatorSection>();
+			Settings.setAuto(jAuto.isSelected());
+			List<Creator> creatorList = new ArrayList<>();
+			List<CreatorSection> sections = new ArrayList<>();
 			for (CreatorSection cs : creatorSections) {
 				if (cs.isSelected()) {
 					creatorList.add(cs.getCreator());
@@ -167,8 +184,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 			DataWriter dataWriter = new DataWriter(this, creatorList, sections);
 			dataWriter.addProgressMonitor(jProgressBar);
 			dataWriter.start();
-		}
-		if (CHECK.equals(e.getActionCommand())){
+		} else if (CHECK.equals(e.getActionCommand())){
 			boolean selected = true;
 			for (CreatorSection cs : creatorSections) {
 				if (cs.getType() != CreatorType.SDE) {
@@ -179,8 +195,7 @@ public class MainFrame extends JFrame implements WindowListener, ActionListener	
 				}
 			}
 			jAll.setSelected(selected);
-		}
-		if (CHECK_ALL.equals(e.getActionCommand())){
+		} else if (CHECK_ALL.equals(e.getActionCommand())){
 			for (CreatorSection cs : creatorSections) {
 				if (cs.getType() != CreatorType.SDE) {
 					cs.getCheckBox().setSelected(jAll.isSelected());

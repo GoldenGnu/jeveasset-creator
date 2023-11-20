@@ -44,6 +44,7 @@ public class YamlHelper {
 		GROUPIDS("fsd", "groupIDs.yaml"),
 		CATEGORYIDS("fsd", "categoryIDs.yaml"),
 		TYPEDOGMA("fsd", "typeDogma.yaml"),
+		DOGMAATTRIBUTES("fsd", "dogmaAttributes.yaml"),
 		METAGROUPS("fsd", "metaGroups.yaml"),
 		INVTYPEMATERIALS("fsd", "typeMaterials.yaml"),
 		BLUEPRINTS("fsd", "blueprints.yaml"),

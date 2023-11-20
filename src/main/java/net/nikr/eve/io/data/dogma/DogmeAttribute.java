@@ -18,21 +18,27 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package net.nikr.eve.io.data.inv;
+package net.nikr.eve.io.data.dogma;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import java.util.List;
+import java.util.Map;
 
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class Dogma {
-	private List<DogmaAttribute> dogmaAttributes;
-	private List<DogmeEffect> dogmaEffects;
 
-	public List<DogmaAttribute> getDogmaAttributes() {
-		return dogmaAttributes;
-	}
-
-	public List<DogmeEffect> getDogmaEffects() {
-		return dogmaEffects;
-	}
+public class DogmeAttribute {
+	public int attributeID;
+	public int categoryID;
+	public int dataType;
+	public float defaultValue;
+	public String description;
+	public Map<String, String> displayNameID;
+	public boolean highIsGood;
+	public int iconID;
+	public String name;
+	public boolean published;
+	public boolean stackable;
+	public Map<String, String> tooltipDescriptionID;
+	public Map<String, String> tooltipTitleID;
+	public int unitID;
+	public int chargeRechargeTimeID;
+	public int maxAttributeID;
+	public boolean displayWhenZero;
 }

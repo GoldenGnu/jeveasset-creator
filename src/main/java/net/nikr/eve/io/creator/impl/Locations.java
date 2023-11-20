@@ -25,7 +25,10 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -37,12 +40,19 @@ import net.nikr.eve.io.data.Name;
 import net.nikr.eve.io.data.map.ConquerableStation;
 import net.nikr.eve.io.data.map.Location;
 import net.nikr.eve.io.data.map.LocationID;
+import net.nikr.eve.io.esi.EsiUpdater;
+import static net.nikr.eve.io.esi.EsiUpdater.DATASOURCE;
+import static net.nikr.eve.io.esi.EsiUpdater.UNIVERSE_API;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.ConquerableStationsReader;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.LocationsReader;
 import net.nikr.eve.io.yaml.NameReader;
 import net.nikr.eve.util.Duration;
+import net.troja.eve.esi.ApiException;
+import net.troja.eve.esi.ApiResponse;
+import net.troja.eve.esi.model.StationResponse;
+import net.troja.eve.esi.model.SystemResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -136,6 +146,11 @@ public class Locations extends AbstractXmlWriter implements Creator {
 					locations.add(regionLocation);
 				}
 			}
+			LOG.info("	ESI: Loading...");
+			LOG.info("		Locations...");
+			Map<Integer, Location> specialSystemUpdates = new HashMap<>();
+			specialSystemUpdates.put(30100000, systemToLocation.get(30100000));
+			locations.addAll(updateSpecialSystems(specialSystemUpdates));
 			LOG.info("	XML: Loading...");
 			List<ConquerableStation> conquerableStations = ConquerableStationsReader.load();
 			LOG.info("	XML: Prcessing...");
@@ -183,6 +198,44 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			LOG.error(ex.getMessage(), ex);
 		}
 		return false;
+	}
+
+	public static List<Location> updateSpecialSystems(Map<Integer, Location> systems) {
+		//Systems
+		System.out.println("updateing "  + systems.size() + " systems");
+		List<EsiUpdater.Update<SystemResponse>> systemUpdates = new ArrayList<>();
+		for (Integer systemID : systems.keySet()) {
+			systemUpdates.add(new EsiUpdater.Update<SystemResponse>() {
+				@Override
+				public ApiResponse<SystemResponse> update() throws ApiException {
+					return UNIVERSE_API.getUniverseSystemsSystemIdWithHttpInfo(systemID, null, DATASOURCE, null, null);
+				}
+			});
+		}
+		List<SystemResponse> systemResponses = EsiUpdater.update(systemUpdates);
+		Set<Integer> stationIDs = new HashSet<>();
+		for (SystemResponse response : systemResponses) {
+			stationIDs.addAll(response.getStations());
+		}
+		System.out.println("updateing "  + stationIDs.size() + " stations");
+		//Stations
+		List<EsiUpdater.Update<StationResponse>> stationUpdates = new ArrayList<>();
+		for (Integer stationID : stationIDs) {
+			stationUpdates.add(new EsiUpdater.Update<StationResponse>() {
+				@Override
+				public ApiResponse<StationResponse> update() throws ApiException {
+					return UNIVERSE_API.getUniverseStationsStationIdWithHttpInfo(stationID, DATASOURCE, null);
+				}
+			});
+		}
+		List<StationResponse> stationResponses = EsiUpdater.update(stationUpdates);
+		List<Location> locations = new ArrayList<>();
+		for (StationResponse response : stationResponses) {
+			Location system = systems.get(response.getSystemId());
+			Location location = new Location(response.getStationId(), response.getName(), system.getSystemID(), system.getSystemName(), system.getConstellationID(), system.getConstellationName(), system.getRegionID(), system.getRegionName(), system.getSecurity());
+			locations.add(location);
+		}
+		return locations;
 	}
 
 	private String roundSecurity(double number) {

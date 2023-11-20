@@ -202,7 +202,6 @@ public class Locations extends AbstractXmlWriter implements Creator {
 
 	public static List<Location> updateSpecialSystems(Map<Integer, Location> systems) {
 		//Systems
-		System.out.println("updateing "  + systems.size() + " systems");
 		List<EsiUpdater.Update<SystemResponse>> systemUpdates = new ArrayList<>();
 		for (Integer systemID : systems.keySet()) {
 			systemUpdates.add(new EsiUpdater.Update<SystemResponse>() {
@@ -217,7 +216,6 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		for (SystemResponse response : systemResponses) {
 			stationIDs.addAll(response.getStations());
 		}
-		System.out.println("updateing "  + stationIDs.size() + " stations");
 		//Stations
 		List<EsiUpdater.Update<StationResponse>> stationUpdates = new ArrayList<>();
 		for (Integer stationID : stationIDs) {

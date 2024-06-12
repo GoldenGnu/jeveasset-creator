@@ -26,6 +26,11 @@ import net.nikr.eve.io.data.map.SolarSystem;
 
 
 public class SolarSystemReader {
+
+	protected static final String SYSTEM = "solarsystem.yaml";
+	protected static final String CONSTELLATION = "constellation.yaml";
+	protected static final String REGION = "region.yaml";
+
 	protected SolarSystem loadSolarSystem(String fullFilename) throws IOException {
 		return YamlHelper.read(fullFilename, SolarSystem.class);
 	}

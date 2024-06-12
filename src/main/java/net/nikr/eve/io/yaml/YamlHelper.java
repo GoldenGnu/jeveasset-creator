@@ -40,9 +40,9 @@ import net.nikr.eve.Settings;
 public class YamlHelper {
 
 	public static enum SdeFile {
-		TYPEIDS("fsd", "typeIDs.yaml"),
-		GROUPIDS("fsd", "groupIDs.yaml"),
-		CATEGORYIDS("fsd", "categoryIDs.yaml"),
+		TYPEIDS("fsd", "types.yaml"),
+		GROUPIDS("fsd", "groups.yaml"),
+		CATEGORYIDS("fsd", "categories.yaml"),
 		TYPEDOGMA("fsd", "typeDogma.yaml"),
 		DOGMAATTRIBUTES("fsd", "dogmaAttributes.yaml"),
 		METAGROUPS("fsd", "metaGroups.yaml"),
@@ -50,7 +50,7 @@ public class YamlHelper {
 		BLUEPRINTS("fsd", "blueprints.yaml"),
 		INVNAMES("bsd", "invNames.yaml"),
 		INVFLAGS("bsd", "invFlags.yaml"),
-		UNIVERSE("fsd" + File.separator + "universe", "");
+		UNIVERSE("universe", "");
 
 		private final String dir;
 		private final String filename;

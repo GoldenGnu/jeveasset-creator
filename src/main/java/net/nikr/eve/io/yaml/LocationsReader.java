@@ -68,15 +68,15 @@ public class LocationsReader extends SolarSystemReader{
 			if (path.toFile().isDirectory()) {
 				directories.add(path); //Process subdirectories last (To make sure regionID is set)
 			} else {
-				if (path.getFileName().toString().equals("region.staticdata")) {
+				if (path.getFileName().toString().equals(REGION)) {
 					regionID = loadRegion(path.toAbsolutePath().toString());
 					locations.add(new LocationID(0, 0, 0, regionID, 0));
 				}
-				if (path.getFileName().toString().equals("constellation.staticdata")) {
+				if (path.getFileName().toString().equals(CONSTELLATION)) {
 					constellationID = loadConstellation(path.toAbsolutePath().toString());
 					locations.add(new LocationID(0, 0, constellationID, regionID, 0));
 				}
-				if (path.getFileName().toString().equals("solarsystem.staticdata")) {
+				if (path.getFileName().toString().equals(SYSTEM)) {
 					SystemReader reader = new SystemReader(locations, constellationID, regionID, path.toAbsolutePath().toString());
 					systemReaders.add(reader);
 				}
@@ -96,12 +96,12 @@ public class LocationsReader extends SolarSystemReader{
 		//Stations
 		for (Planet planet : system.getPlanets().values()) {
 			for (String station : planet.getNpcStations().keySet()) {
-				int stationID = Integer.valueOf(station);
+				int stationID = Integer.parseInt(station);
 				locationIDs.add(new LocationID(stationID, systemID, constellationID, regionID, security));
 			}
 			for (Planet moon : planet.getMoons().values()) {
 				for (String station : moon.getNpcStations().keySet()) {
-					int stationID = Integer.valueOf(station);
+					int stationID = Integer.parseInt(station);
 					locationIDs.add(new LocationID(stationID, systemID, constellationID, regionID, security));
 				}
 			}

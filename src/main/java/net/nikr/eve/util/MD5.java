@@ -80,6 +80,24 @@ public class MD5 {
 		}
 	}
 
+	public static String download(String md5, String file) {
+		try {
+			URL url = new URL(md5);
+			try (BufferedReader in = new BufferedReader(new InputStreamReader(url.openStream()))) {
+				String inputLine;
+				while ((inputLine = in.readLine()) != null) {
+					String line = inputLine.toLowerCase();
+					if (line.endsWith(file)) {
+						return line.replace(file, "").trim();
+					}
+				}
+			}
+		} catch (IOException ex) {
+			
+		}
+		return null;
+	}
+
 	public static String download(String md5) {
 		try {
 			StringBuilder builder = new StringBuilder();
@@ -88,7 +106,7 @@ public class MD5 {
 				String inputLine;
 				while ((inputLine = in.readLine()) != null) {
 					builder.append(inputLine);
-				}
+}
 				return builder.toString().toLowerCase();
 			}
 		} catch (IOException ex) {

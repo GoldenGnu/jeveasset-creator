@@ -74,7 +74,7 @@ public class JumpsReader extends SolarSystemReader {
 			if (path.toFile().isDirectory()) {
 				loadJumps(jumpReaders, destinationLookup, destinationJumps, path);
 			} else {
-				if (path.getFileName().toString().equals("solarsystem.staticdata")) {
+				if (path.getFileName().toString().equals(SYSTEM)) {
 					JumpReader reader = new JumpReader(destinationLookup, destinationJumps, path.toAbsolutePath().toString());
 					jumpReaders.add(reader);
 				}
@@ -86,7 +86,7 @@ public class JumpsReader extends SolarSystemReader {
 		SolarSystem system = loadSolarSystem(fullFilename);
 		int systemID = system.getSolarSystemID();
 		for (Map.Entry<String, Stargate> entry : system.getStargates().entrySet()) {
-			int destinationFrom = Integer.valueOf(entry.getKey());
+			int destinationFrom = Integer.parseInt(entry.getKey());
 			int destinationTo = entry.getValue().getDestination();
 			destinationLookup.put(destinationFrom, systemID);
 			destinationJumps.add(new Jump(destinationFrom, destinationTo));

@@ -57,7 +57,7 @@ public class Sde implements Creator {
 		duration.start();
 		LOG.info("SDE:");
 		LOG.info("	Downloading MD5...");
-		String downloadMD5 = MD5.download(URL_MD5);
+		String downloadMD5 = MD5.download(URL_MD5, SDE);
 		if (downloadMD5 == null) {
 			LOG.error("	-!- Failed to download md5");
 			return false;
@@ -173,7 +173,7 @@ public class Sde implements Creator {
 
 	private boolean unzip(File zipFile) {
 		// create output directory if it doesn't exist
-		File destDir = Program.getUserFile("");
+		File destDir = Program.getUserFile("sde");
 		if (destDir == null) {
 			return false;
 		}

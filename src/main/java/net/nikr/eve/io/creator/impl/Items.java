@@ -408,7 +408,8 @@ public class Items extends AbstractXmlWriter implements Creator{
 			Group group = groupIDs.get(type.getGroupID());
 			Category category = categories.get(group.getCategoryID());
 			if (group.getEnglishName().equalsIgnoreCase("Abyssal Proving Filaments")
-					|| (category.getEnglishName().equalsIgnoreCase("Apparel") && type.getEnglishName().contains(".png"))
+					|| (category.getEnglishName().equalsIgnoreCase("Apparel") && type.getEnglishName().contains(".png")
+					|| type.getEnglishName().contains("Pattern"))
 					) {
 				updates.add(new UpdateType(entry.getKey()));
 			}

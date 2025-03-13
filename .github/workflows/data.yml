@@ -13,7 +13,7 @@ jobs:
       release: nope
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Cache Maven
       uses: actions/cache@v2
       with:
@@ -22,14 +22,14 @@ jobs:
         restore-keys: |
           maven-
     - name: Cache SDE
-      uses: actions/cache@v2
+      uses: actions/cache@v4
       with:
         path: ~/.jeveassets-creator-cache
         key: sde-${{ github.run_number }}
         restore-keys: |
           sde-
     - name: JDK
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v2
       with:
         java-version: 8
     - name: Check if data release is current

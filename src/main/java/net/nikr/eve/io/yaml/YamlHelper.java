@@ -50,6 +50,9 @@ public class YamlHelper {
 		BLUEPRINTS("fsd", "blueprints.yaml"),
 		INVNAMES("bsd", "invNames.yaml"),
 		INVFLAGS("bsd", "invFlags.yaml"),
+		AGENTS("fsd", "agents.yaml"),
+		NPCCORPORATIONS("fsd", "npcCorporations.yaml"),
+		FACTIONS("fsd", "factions.yaml"),
 		UNIVERSE("universe", "");
 
 		private final String dir;

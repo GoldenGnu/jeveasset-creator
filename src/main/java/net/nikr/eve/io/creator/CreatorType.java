@@ -21,11 +21,12 @@
 
 package net.nikr.eve.io.creator;
 
-import net.nikr.eve.io.creator.impl.Dogma;
+import net.nikr.eve.io.creator.impl.Agents;
 import net.nikr.eve.io.creator.impl.Flags;
 import net.nikr.eve.io.creator.impl.Items;
 import net.nikr.eve.io.creator.impl.Jumps;
 import net.nikr.eve.io.creator.impl.Locations;
+import net.nikr.eve.io.creator.impl.NpcCorporations;
 import net.nikr.eve.io.creator.impl.OnlineOutdated;
 import net.nikr.eve.io.creator.impl.Sde;
 import net.nikr.eve.io.creator.impl.Version;
@@ -41,6 +42,8 @@ public enum CreatorType {
 	, ITEMS_YAML(new Items())
 	, JUMPS_YAML(new Jumps())
 	, FLAGS_YAML(new Flags())
+	, AGENTS_YAML(new Agents())
+	, NPC_CORPORATIONS_YAML(new NpcCorporations())
 	//, DOGMA_HOBOLEAKS(new Dogma())
 	, ONLINE_OUTDATED(new OnlineOutdated())
 	;

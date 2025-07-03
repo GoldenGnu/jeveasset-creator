@@ -22,9 +22,9 @@ package net.nikr.eve.io.esi;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,12 +41,9 @@ import net.troja.eve.esi.ApiResponse;
 import net.troja.eve.esi.HeaderUtil;
 import net.troja.eve.esi.api.MarketApi;
 import net.troja.eve.esi.api.UniverseApi;
-import net.troja.eve.esi.model.ConstellationResponse;
-import net.troja.eve.esi.model.RegionResponse;
-import net.troja.eve.esi.model.StargateResponse;
-import net.troja.eve.esi.model.SystemResponse;
 import net.troja.eve.esi.model.TypeDogmaAttribute;
 import net.troja.eve.esi.model.TypeResponse;
+import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -278,6 +275,25 @@ public class EsiUpdater {
 		@Override
 		public ApiResponse<TypeResponse> update() throws ApiException {
 			return UNIVERSE_API.getUniverseTypesTypeIdWithHttpInfo(typeID, null, DATASOURCE, null, null);
+		}
+	}
+
+	public static class UpdateName implements UpdateValue<List<UniverseNamesResponse>, Integer> {
+
+		private final int id;
+
+		public UpdateName(int id) {
+			this.id = id;
+		}
+
+		@Override
+		public Integer getValue() {
+			return id;
+		}
+
+		@Override
+		public ApiResponse<List<UniverseNamesResponse>> update() throws ApiException {
+			return UNIVERSE_API.postUniverseNamesWithHttpInfo(Collections.singletonList(id), DATASOURCE);
 		}
 	}
 

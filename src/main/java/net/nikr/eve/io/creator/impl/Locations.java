@@ -117,18 +117,10 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				int systemID = locationID.getSystemID();
 				int constellationID = locationID.getConstellationID();
 				int regionID = locationID.getRegionID();
-				String regionName;
-				String stationName = names.get(stationID).getItemName();
-				String systemName = names.get(systemID).getItemName();
-				String constellationName = names.get(constellationID).getItemName();
-				Name regions = names.get(regionID);
-				if (regions != null) {
-					regionName = names.get(regionID).getItemName();
-				} else if (regionID == 10000070){
-					regionName = "Pochven";
-				} else {
-					regionName = "Unknown Region #" + regionID;
-				}
+				String regionName = getName(names, regionID);
+				String stationName = getName(names, stationID);
+				String systemName = getName(names, systemID);
+				String constellationName = getName(names, constellationID);
 				float security = locationID.getSecurity();
 				if (stationID != 0) { //Station
 					Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID, constellationName, regionID, regionName, security);
@@ -197,6 +189,23 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			LOG.error(ex.getMessage(), ex);
 		}
 		return false;
+	}
+
+	private String getName(Map<Integer, Name> names, int ID) {
+		Name name = names.get(ID);
+		if (name != null) {
+			return name.getItemName();
+		} else if (ID == 10000070){
+			return "Pochven";
+		} else if (ID == 19000001){
+			return "Global PLEX Market Region";
+		} else if (ID == 26000001){
+			return "Global PLEX Market Constellation";
+		} else if (ID == 36000001){
+			return "Global PLEX Market System";
+		} else {
+			return "Unknown #" + ID;
+		}
 	}
 
 	public static List<Location> updateSpecialSystems(Map<Integer, Location> systems) {

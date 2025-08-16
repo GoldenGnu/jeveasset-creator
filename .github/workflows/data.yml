@@ -31,7 +31,7 @@ jobs:
     - name: JDK
       uses: actions/setup-java@v2
       with:
-        distribution: 'oracle'
+        distribution: 'temurin'
         java-version: 8
     - name: Check if data release is current
       run: mvn -B package --file pom.xml -P BUILD-check-if-require-update

@@ -3,8 +3,8 @@ name: SDE Update Checker
 on:
   push:
   schedule:
-    # Daily @ 8:44
-    - cron:  '44 8 * * *'
+    # Daily @ 6:44
+    - cron:  '44 6 * * *'
 
 jobs:
   build:

@@ -39,32 +39,35 @@ import net.nikr.eve.Settings;
 
 public class YamlHelper {
 
-	public static enum SdeFile {
-		TYPEIDS("fsd", "types.yaml"),
-		GROUPIDS("fsd", "groups.yaml"),
-		CATEGORYIDS("fsd", "categories.yaml"),
-		TYPEDOGMA("fsd", "typeDogma.yaml"),
-		DOGMAATTRIBUTES("fsd", "dogmaAttributes.yaml"),
-		METAGROUPS("fsd", "metaGroups.yaml"),
-		INVTYPEMATERIALS("fsd", "typeMaterials.yaml"),
-		BLUEPRINTS("fsd", "blueprints.yaml"),
-		INVNAMES("bsd", "invNames.yaml"),
-		INVFLAGS("bsd", "invFlags.yaml"),
-		AGENTS("fsd", "agents.yaml"),
-		NPCCORPORATIONS("fsd", "npcCorporations.yaml"),
-		FACTIONS("fsd", "factions.yaml"),
-		UNIVERSE("universe", "");
+	public static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
+	public static final ObjectMapper JSON = new ObjectMapper();
 
-		private final String dir;
+	public static enum SdeFile {
+		TYPEIDS("types.yaml"),
+		GROUPIDS("groups.yaml"),
+		CATEGORYIDS("categories.yaml"),
+		TYPEDOGMA("typeDogma.yaml"),
+		DOGMAATTRIBUTES("dogmaAttributes.yaml"),
+		METAGROUPS("metaGroups.yaml"),
+		INVTYPEMATERIALS("typeMaterials.yaml"),
+		BLUEPRINTS("blueprints.yaml"),
+		AGENTS("npcCharacters.yaml"),
+		NPCCORPORATIONS("npcCorporations.yaml"),
+		FACTIONS("factions.yaml"),
+		REGIONS("mapRegions.yaml"),
+		CONSTELLATIONS("mapConstellations.yaml"),
+		SYSTEMS("mapSolarSystems.yaml"),
+		UNIVERSE("mapSolarSystems.yaml"),
+		INVNAMES("invNames.yaml");
+
 		private final String filename;
 
-		private SdeFile(String dir, String filename) {
-			this.dir = dir;
+		private SdeFile(String filename) {
 			this.filename = filename;
 		}
 
 		public String getString() {
-			return dir + File.separator + filename;
+			return filename;
 		}
 	}
 
@@ -79,8 +82,15 @@ public class YamlHelper {
 	}
 
 	public static <T, C extends Class<T>> T read(String filename, C c) throws IOException {
-		ObjectMapper om = new ObjectMapper(new YAMLFactory());
-		return om.readValue(new File(filename), c);
+		return read(new File(filename), c);
+	}
+
+	public static <T, C extends Class<T>> T read(File file, C c) throws IOException {
+		return read(YAML, file, c);
+	}
+
+	public static <T, C extends Class<T>> T read(ObjectMapper om, File file, C c) throws IOException {
+		return om.readValue(file, c);
 	}
 
 	public static <T> T read(SdeFile sdeFile, TypeReference<T> t) throws IOException {
@@ -88,8 +98,15 @@ public class YamlHelper {
 	}
 
 	public static <T> T read(String filename, TypeReference<T> t) throws IOException {
-		ObjectMapper om = new ObjectMapper(new YAMLFactory());
-		return om.readValue(new File(filename), t);
+		return read(new File(filename), t);
+	}
+
+	public static <T> T read(File file, TypeReference<T> t) throws IOException {
+		return read(YAML, file, t);
+	}
+
+	public static <T> T read(ObjectMapper om, File file, TypeReference<T> t) throws IOException {
+		return om.readValue(file, t);
 	}
 
 	private static String getSde(String sdeFile) {

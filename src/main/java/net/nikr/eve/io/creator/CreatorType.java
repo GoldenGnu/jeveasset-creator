@@ -38,10 +38,10 @@ import net.nikr.eve.io.creator.impl.Version;
 public enum CreatorType {
 	SDE(new Sde())
 	, VERSION(new Version())
-	, LOCATIONS_YAML(new Locations())
+	//, LOCATIONS_YAML(new Locations())
 	, ITEMS_YAML(new Items())
-	, JUMPS_YAML(new Jumps())
-	, FLAGS_YAML(new Flags())
+	//, JUMPS_YAML(new Jumps())
+	//, FLAGS_YAML(new Flags())
 	, AGENTS_YAML(new Agents())
 	, NPC_CORPORATIONS_YAML(new NpcCorporations())
 	//, DOGMA_HOBOLEAKS(new Dogma())

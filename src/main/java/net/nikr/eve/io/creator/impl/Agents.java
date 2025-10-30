@@ -30,12 +30,12 @@ import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.Name;
 import net.nikr.eve.io.data.agents.Agent;
+import net.nikr.eve.io.data.agents.NpcCharacter;
 import net.nikr.eve.io.esi.EsiUpdater;
 import net.nikr.eve.io.esi.EsiUpdater.UpdateName;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.AgentReader;
-import net.nikr.eve.io.yaml.NameReader;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
@@ -87,24 +87,29 @@ public class Agents extends AbstractXmlWriter implements Creator {
 			
 			LOG.info("		Agents...");
 			AgentReader agentsReader = new AgentReader();
-			Map<Integer, Agent> agents = agentsReader.loadAgents();
-			NameReader nameReader = new NameReader();
-			Map<Integer, Name> names = nameReader.loadNames();
+			Map<Integer, NpcCharacter> agents = agentsReader.loadAgents();
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
-			for (Map.Entry<Integer, Agent> entry : agents.entrySet()) {
+			for (Map.Entry<Integer, NpcCharacter> entry : agents.entrySet()) {
 				Element node = xmldoc.createElement("row");
 				int agentID = entry.getKey();
-				Agent agent = entry.getValue();
-				int corporationID = agent.getCorporationID();
-				String agentName = getName(names, agentID);
-				node.setAttribute("agent", agentName);
+				NpcCharacter npcCharacter = entry.getValue();
+				Agent agent = npcCharacter.getAgent();
+				if (agent == null) {
+					continue;
+				}
+				if (npcCharacter.getEnglishName() == null) {
+					System.out.println("OH NO!");
+					continue;
+				}
+				int corporationID = npcCharacter.getCorporationID();
+				node.setAttribute("agent", npcCharacter.getEnglishName());
 				node.setAttribute("agentid", String.valueOf(agentID));
 				node.setAttribute("corporationid", String.valueOf(corporationID));
 				node.setAttribute("level", String.valueOf(agent.getLevel()));
 				node.setAttribute("divisionid", String.valueOf(agent.getDivisionID()));
 				node.setAttribute("agenttypeid", String.valueOf(agent.getAgentTypeID()));
-				node.setAttribute("locationid", String.valueOf(agent.getLocationID()));
+				node.setAttribute("locationid", String.valueOf(npcCharacter.getLocationID()));
 				node.setAttribute("locator", String.valueOf(agent.isIsLocator()));
 				parentNode.appendChild(node);
 			}

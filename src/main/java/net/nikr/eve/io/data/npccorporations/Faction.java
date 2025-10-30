@@ -26,13 +26,13 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Faction {
 
-	private Map<String, String> nameID;
+	private Map<String, String> name;
 
 	public String getEnglishName() {
-		return nameID.get("en");
+		return name.get("en");
 	}
 
-	public Map<String, String> getNameID() {
-		return nameID;
+	public Map<String, String> getName() {
+		return name;
 	}
 }

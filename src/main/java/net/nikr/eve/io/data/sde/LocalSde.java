@@ -18,17 +18,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package net.nikr.eve.io.yaml;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import net.nikr.eve.io.data.flag.Flag;
+package net.nikr.eve.io.data.sde;
 
 
-public class FlagsReader {
-	public List<Flag> loadFlags() throws IOException {
-		return YamlHelper.read(YamlHelper.SdeFile.INVFLAGS, new TypeReference<ArrayList<Flag>>(){});
+public class LocalSde {
+	private LocalSdeVersion sde;
+
+	public LocalSdeVersion getSde() {
+		return sde;
 	}
 }

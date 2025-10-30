@@ -29,7 +29,6 @@ import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.flag.Flag;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
-import net.nikr.eve.io.yaml.FlagsReader;
 import net.nikr.eve.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +74,8 @@ public class Flags extends AbstractXmlWriter implements Creator {
 	}
 
 	private boolean createFlags(Document xmldoc) throws XmlException {
+		return false;
+		/*
 		try {
 			LOG.info("	YAML: Loading...");
 			FlagsReader reader = new FlagsReader();
@@ -96,5 +97,6 @@ public class Flags extends AbstractXmlWriter implements Creator {
 			LOG.error(ex.getMessage(), ex);
 		}
 		return false;
+		*/
 	}
 }

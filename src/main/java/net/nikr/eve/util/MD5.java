@@ -22,15 +22,12 @@ package net.nikr.eve.util;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import javax.xml.bind.DatatypeConverter;
 
 /**
@@ -44,36 +41,6 @@ public class MD5 {
 			md.update(Files.readAllBytes(file.toPath()));
 			return DatatypeConverter.printHexBinary(md.digest()).toLowerCase();
 		} catch (IOException ex) {
-			return null;
-		} catch (NoSuchAlgorithmException ex) {
-			return null;
-		}
-	}
-
-	public static String zip(File zipFile) {
-		FileInputStream fis;
-		try {
-			fis = new FileInputStream(zipFile);
-			MessageDigest md = MessageDigest.getInstance("MD5");
-			try (ZipInputStream zis = new ZipInputStream(fis)) {
-				ZipEntry ze = zis.getNextEntry();
-				while (ze != null) {
-					int len;
-					byte[] buffer = new byte[1024];
-					while ((len = zis.read(buffer)) > 0) {
-						md.update(buffer, 0, len);
-					}
-					//close this ZipEntry
-					zis.closeEntry();
-					ze = zis.getNextEntry();
-				}
-				//close last ZipEntry
-				zis.closeEntry();
-			}
-			fis.close();
-
-			return DatatypeConverter.printHexBinary(md.digest()).toLowerCase();
-		} catch (IOException e) {
 			return null;
 		} catch (NoSuchAlgorithmException ex) {
 			return null;

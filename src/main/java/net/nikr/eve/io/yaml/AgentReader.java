@@ -23,14 +23,14 @@ package net.nikr.eve.io.yaml;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
 import java.util.Map;
-import net.nikr.eve.io.data.agents.Agent;
+import net.nikr.eve.io.data.agents.NpcCharacter;
 import net.nikr.eve.io.data.npccorporations.Faction;
 import net.nikr.eve.io.data.npccorporations.NpcCorporation;
 
 
 public class AgentReader {
-	public Map<Integer, Agent> loadAgents() throws IOException {
-		return YamlHelper.read(YamlHelper.SdeFile.AGENTS, new TypeReference<Map<Integer, Agent>>(){});
+	public Map<Integer, NpcCharacter> loadAgents() throws IOException {
+		return YamlHelper.read(YamlHelper.SdeFile.AGENTS, new TypeReference<Map<Integer, NpcCharacter>>(){});
 	}
 
 	public Map<Integer, NpcCorporation> loadNpcCorporations() throws IOException {

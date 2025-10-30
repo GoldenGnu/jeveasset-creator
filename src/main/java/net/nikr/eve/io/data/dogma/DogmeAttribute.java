@@ -29,14 +29,14 @@ public class DogmeAttribute {
 	public int dataType;
 	public float defaultValue;
 	public String description;
-	public Map<String, String> displayNameID;
+	public Map<String, String> displayName;
 	public boolean highIsGood;
 	public int iconID;
 	public String name;
 	public boolean published;
 	public boolean stackable;
-	public Map<String, String> tooltipDescriptionID;
-	public Map<String, String> tooltipTitleID;
+	public Map<String, String> tooltipDescription;
+	public Map<String, String> tooltipTitle;
 	public int unitID;
 	public int chargeRechargeTimeID;
 	public int maxAttributeID;

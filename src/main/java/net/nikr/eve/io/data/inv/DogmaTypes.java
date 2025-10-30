@@ -21,6 +21,7 @@
 package net.nikr.eve.io.data.inv;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Collections;
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -33,6 +34,6 @@ public class DogmaTypes {
 	}
 
 	public List<DogmeEffect> getDogmaEffects() {
-		return dogmaEffects;
+		return dogmaEffects == null ? Collections.emptyList() : dogmaEffects;
 	}
 }

@@ -26,13 +26,13 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class MetaGroup {
 
-	private Map<String, String> nameID;
+	private Map<String, String> name;
 
-	public Map<String, String> getNameID() {
-		return nameID;
+	public Map<String, String> getName() {
+		return name;
 	}
 
 	public String getMetaGroupName() {
-		return nameID.get("en");
+		return name.get("en");
 	}
 }

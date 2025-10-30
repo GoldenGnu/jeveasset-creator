@@ -18,29 +18,29 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  *
  */
-package net.nikr.eve.io.data.agents;
+package net.nikr.eve.io.data.sde;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 
-public class Agent {
-	
-	private int agentTypeID;
-	private int divisionID;
-	private boolean isLocator;
-	private int level;
-	
-	public int getAgentTypeID() {
-		return agentTypeID;
+public class LocalSdeVersion {
+
+	private Integer buildNumber;
+	private String releaseDate;
+
+	public Integer getBuildNumber() {
+		return buildNumber;
 	}
 
-	public int getDivisionID() {
-		return divisionID;
+	public void setBuildNumber(Integer buildNumber) {
+		this.buildNumber = buildNumber;
 	}
 
-	public boolean isIsLocator() {
-		return isLocator;
+	public String getReleaseDate() {
+		return releaseDate;
 	}
 
-	public int getLevel() {
-		return level;
+	public void setReleaseDate(String releaseDate) {
+		this.releaseDate = releaseDate;
 	}
 }

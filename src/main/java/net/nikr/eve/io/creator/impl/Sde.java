@@ -38,6 +38,9 @@ import net.nikr.eve.Program;
 import net.nikr.eve.Program.Worker;
 import net.nikr.eve.Settings;
 import net.nikr.eve.io.creator.Creator;
+import net.nikr.eve.io.data.sde.LocalSde;
+import net.nikr.eve.io.data.sde.OnlineSdeVersion;
+import net.nikr.eve.io.yaml.YamlHelper;
 import net.nikr.eve.util.Duration;
 import net.nikr.eve.util.MD5;
 import org.slf4j.LoggerFactory;
@@ -47,9 +50,10 @@ public class Sde implements Creator {
 
 	private final static org.slf4j.Logger LOG = LoggerFactory.getLogger(Sde.class);
 
-	private final static String URL_MD5 = "https://eve-static-data-export.s3-eu-west-1.amazonaws.com/tranquility/checksum";
-	private final static String URL_SDE = "https://eve-static-data-export.s3-eu-west-1.amazonaws.com/tranquility/sde.zip";
+	private final static String URL_ONLINE_VERSION = "https://developers.eveonline.com/static-data/tranquility/latest.jsonl";
+	private final static String URL_SDE = "https://developers.eveonline.com/static-data/eve-online-static-data-latest-yaml.zip";
 	private final static String SDE = "sde.zip";
+	private final static String SDE_LOCAL_VERSION = "sde" + File.separator + "_sde.yaml";
 
 	@Override
 	public boolean create() {
@@ -57,14 +61,15 @@ public class Sde implements Creator {
 		duration.start();
 		LOG.info("SDE:");
 		LOG.info("	Downloading MD5...");
-		String downloadMD5 = MD5.download(URL_MD5, SDE);
-		if (downloadMD5 == null) {
+		String json = MD5.download(URL_ONLINE_VERSION);
+		if (json == null) {
 			LOG.error("	-!- Failed to download md5");
 			return false;
 		}
 		File sde = Program.getUserFile(SDE);
+		File sdeLocalVersion = Program.getUserFile(SDE_LOCAL_VERSION);
 		//SDE outdated -> download
-		if (!validateSDE(sde, downloadMD5)) {
+		if (!validateSDE(sdeLocalVersion, json)) {
 			LOG.info("	SDE outdated:");
 			if (Settings.isAuto() || Program.run(new ConfirmDialog("Download the latest SDE to cache?", "SDE outdated"))) {
 				//Delete unzipped sde folder, as it needs to be updated after download
@@ -73,10 +78,6 @@ public class Sde implements Creator {
 				//Download sde
 				LOG.info("		Downloading SDE...");
 				sde = downloadSde();
-				if (!validateSDE(sde, downloadMD5)) {
-					LOG.error("		-!- Failed to download SDE");
-					return false;
-				}
 			}
 		} else { //SDE current
 			if (!Settings.isAuto() && !Program.run(new ConfirmDialog("Current SDE found in cache.\r\nUse it to generate the data files?", "SDE current"))) {
@@ -86,13 +87,13 @@ public class Sde implements Creator {
 			}
 		}
 		//SDE outdated -> browse
-		if (!Settings.isAuto() && !validateSDE(sde, downloadMD5)) {
+		if (!Settings.isAuto() && !validateSDE(sdeLocalVersion, json)) {
 			LOG.info("	Select SDE:");
 			sde = Program.run(new OpenZip());
 			if (sde == null) {
 				return false;
 			}
-			if (!validateSDE(sde, downloadMD5)) {
+			if (!validateSDE(sdeLocalVersion, json)) {
 				if (!Program.run(new ConfirmDialog("The selected SDE is outdated.\r\nUse anyway?", "SDE outdated"))) {
 					return false;
 				}
@@ -125,17 +126,32 @@ public class Sde implements Creator {
 		return null;
 	}
 
-	private boolean validateSDE(File sde, String matchMD5) {
+	private boolean validateSDE(File localSdeVersion, String json) {
 		LOG.info("	Validating SDE...");
-		if (sde == null || !sde.exists()) {
+		if (localSdeVersion == null || !localSdeVersion.exists()) {
+			LOG.error("	-!- sdeVersion is null or don't exist");
 			return false;
 		}
-		String fileMD5 = MD5.zip(sde);
-		if (fileMD5 == null) {
-			LOG.error("	-!- Failed to hash file");
+		LocalSde localSde;
+		try {
+			localSde = YamlHelper.read(localSdeVersion, LocalSde.class);
+		} catch (IOException ex) {
+			LOG.error("	-!- Failed to parse local version file:" + ex.getMessage(), ex);
 			return false;
 		}
-		return fileMD5.equals(matchMD5);
+		
+		if (json == null) {
+			LOG.error("	-!- json is null");
+			return false;
+		}
+		OnlineSdeVersion onlineVersion;
+		try {
+			onlineVersion = YamlHelper.JSON.readValue(json, OnlineSdeVersion.class);
+		} catch (IOException ex) {
+			LOG.error("	-!- Failed to parse file:" + ex.getMessage(), ex);
+			return false;
+		}
+		return localSde.getSde().getBuildNumber().equals(onlineVersion.getBuildNumber());
 	}
 
 	private File downloadSde() {

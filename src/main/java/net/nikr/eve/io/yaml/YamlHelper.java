@@ -53,12 +53,13 @@ public class YamlHelper {
 		BLUEPRINTS("blueprints.yaml"),
 		AGENTS("npcCharacters.yaml"),
 		NPCCORPORATIONS("npcCorporations.yaml"),
+		NPCSTATIONS("npcStations.yaml"),
 		FACTIONS("factions.yaml"),
 		REGIONS("mapRegions.yaml"),
 		CONSTELLATIONS("mapConstellations.yaml"),
 		SYSTEMS("mapSolarSystems.yaml"),
-		UNIVERSE("mapSolarSystems.yaml"),
-		INVNAMES("invNames.yaml");
+		STARGATES("mapStargates.yaml"),
+		UNIVERSE("mapSolarSystems.yaml");
 
 		private final String filename;
 

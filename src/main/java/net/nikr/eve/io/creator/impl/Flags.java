@@ -29,13 +29,13 @@ import net.nikr.eve.io.creator.Creator;
 import net.nikr.eve.io.data.flag.Flag;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
+import net.nikr.eve.io.yaml.FlagsReader;
 import net.nikr.eve.util.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
 
 public class Flags extends AbstractXmlWriter implements Creator {
 
@@ -50,13 +50,14 @@ public class Flags extends AbstractXmlWriter implements Creator {
 		try {
 			Document xmldoc = getXmlDocument("rows");
 			LOG.info("	XML: init...");
-			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
+			Comment comment = xmldoc
+					.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
 			xmldoc.getDocumentElement().appendChild(comment);
 			success = createFlags(xmldoc);
 			LOG.info("	XML: Saving...");
 			writeXmlFile(xmldoc, getFile());
 		} catch (XmlException ex) {
-			LOG.error("Flags not saved (XML): "+ex.getMessage(), ex);
+			LOG.error("Flags not saved (XML): " + ex.getMessage(), ex);
 		}
 		duration.end();
 		LOG.info("	Flags done in " + duration.getString());
@@ -74,8 +75,6 @@ public class Flags extends AbstractXmlWriter implements Creator {
 	}
 
 	private boolean createFlags(Document xmldoc) throws XmlException {
-		return false;
-		/*
 		try {
 			LOG.info("	YAML: Loading...");
 			FlagsReader reader = new FlagsReader();
@@ -97,6 +96,5 @@ public class Flags extends AbstractXmlWriter implements Creator {
 			LOG.error(ex.getMessage(), ex);
 		}
 		return false;
-		*/
 	}
 }

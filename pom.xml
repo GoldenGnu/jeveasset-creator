@@ -203,7 +203,7 @@
 							<displayCommandOutputs>true</displayCommandOutputs>
 							<serverId>eve-nikr-net</serverId>
 							<url>${upload.url}</url>
-							<commands> 
+							<commands>
 								<!-- remove data directory -->
 								<command>rm -rf ${upload.data.delete}</command>
 							</commands>
@@ -383,6 +383,16 @@
 			<artifactId>junit</artifactId>
 			<version>4.13</version>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.xml.bind</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.3.1</version>
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jaxb</groupId>
+			<artifactId>jaxb-runtime</artifactId>
+			<version>2.3.1</version>
 		</dependency>
 	</dependencies>
 	<properties>

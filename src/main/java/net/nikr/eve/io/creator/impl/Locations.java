@@ -58,8 +58,6 @@ import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-
-
 public class Locations extends AbstractXmlWriter implements Creator {
 
 	private final static Logger LOG = LoggerFactory.getLogger(Locations.class);
@@ -76,7 +74,8 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		try {
 			xmldoc = getXmlDocument("rows");
 			LOG.info("	XML: init...");
-			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
+			Comment comment = xmldoc
+					.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
 			xmldoc.getDocumentElement().appendChild(comment);
 			success = createLocations(xmldoc);
 			LOG.info("	XML: Saving...");
@@ -122,26 +121,36 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				String systemName = getName(names, systemID);
 				String constellationName = getName(names, constellationID);
 				float security = locationID.getSecurity();
-				if (stationID != 0) { //Station
-					Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID, constellationName, regionID, regionName, security);
+				if (stationID != 0) { // Station
+					Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID,
+							constellationName, regionID, regionName, security);
 					locations.add(stationLocation);
-				} else if (systemID != 0) { //System
-					Location systemLocation = new Location(0, "", systemID, systemName, constellationID, constellationName, regionID, regionName, security);
+				} else if (systemID != 0) { // System
+					Location systemLocation = new Location(0, "", systemID, systemName, constellationID, constellationName,
+							regionID, regionName, security);
 					systemToLocation.put(systemID, systemLocation);
 					locations.add(systemLocation);
-				} else if (constellationID != 0) { //Constellations
-					Location constellationLocation = new Location(0, "", 0, "", constellationID, constellationName, regionID, regionName, 0);
+				} else if (constellationID != 0) { // Constellations
+					Location constellationLocation = new Location(0, "", 0, "", constellationID, constellationName, regionID,
+							regionName, 0);
 					locations.add(constellationLocation);
-				} else if (regionID != 0) { //Region
+				} else if (regionID != 0) { // Region
 					Location regionLocation = new Location(0, "", 0, "", 0, "", regionID, regionName, 0);
 					locations.add(regionLocation);
 				}
 			}
 			LOG.info("	ESI: Loading...");
 			LOG.info("		Locations...");
+			// Special handling for system 30100000 (Zarzakh):
+			// Zarzakh exists in the SDE but has no planets/stations listed in the static data.
+			// Its stations must be fetched from ESI API
+			// to get current station data that isn't available in the SDE.
 			Map<Integer, Location> specialSystemUpdates = new HashMap<>();
-			specialSystemUpdates.put(30100000, systemToLocation.get(30100000));
-			locations.addAll(updateSpecialSystems(specialSystemUpdates));
+			Location system30100000 = systemToLocation.get(30100000);
+			if (system30100000 != null) {
+				specialSystemUpdates.put(30100000, system30100000);
+				locations.addAll(updateSpecialSystems(specialSystemUpdates));
+			}
 			LOG.info("	XML: Loading...");
 			List<ConquerableStation> conquerableStations = ConquerableStationsReader.load();
 			LOG.info("	XML: Prcessing...");
@@ -156,14 +165,24 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				}
 				int stationID = fixedLocationID;
 				int systemID = conqurableStation.getSystemID();
-				int regionID = systemToLocation.get(conqurableStation.getSystemID()).getRegionID();
-				int constellationID = systemToLocation.get(conqurableStation.getSystemID()).getConstellationID();
-				String constellationName = systemToLocation.get(conqurableStation.getSystemID()).getConstellationName();
-				float security = systemToLocation.get(conqurableStation.getSystemID()).getSecurity();
+				Location systemLocation = systemToLocation.get(systemID);
+				if (systemLocation == null) {
+					continue; // Skip conquerable stations in systems that don't exist in our data
+				}
+				int regionID = systemLocation.getRegionID();
+				int constellationID = systemLocation.getConstellationID();
+				String constellationName = systemLocation.getConstellationName();
+				float security = systemLocation.getSecurity();
 				String stationName = "Conquerable Station #" + fixedLocationID;
-				String systemName = names.get(systemID).getItemName();
-				String regionName = names.get(regionID).getItemName();
-				Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID, constellationName, regionID, regionName, security);
+				Name systemNameObj = names.get(systemID);
+				Name regionNameObj = names.get(regionID);
+				if (systemNameObj == null || regionNameObj == null) {
+					continue; // Skip if we don't have names for the system or region
+				}
+				String systemName = systemNameObj.getItemName();
+				String regionName = regionNameObj.getItemName();
+				Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID,
+						constellationName, regionID, regionName, security);
 				locations.add(stationLocation);
 			}
 			systemToLocation.clear();
@@ -195,13 +214,13 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		Name name = names.get(ID);
 		if (name != null) {
 			return name.getItemName();
-		} else if (ID == 10000070){
+		} else if (ID == 10000070) {
 			return "Pochven";
-		} else if (ID == 19000001){
+		} else if (ID == 19000001) {
 			return "Global PLEX Market Region";
-		} else if (ID == 26000001){
+		} else if (ID == 26000001) {
 			return "Global PLEX Market Constellation";
-		} else if (ID == 36000001){
+		} else if (ID == 36000001) {
 			return "Global PLEX Market System";
 		} else {
 			return "Unknown #" + ID;
@@ -209,7 +228,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 	}
 
 	public static List<Location> updateSpecialSystems(Map<Integer, Location> systems) {
-		//Systems
+		// Systems
 		List<EsiUpdater.Update<SystemResponse>> systemUpdates = new ArrayList<>();
 		for (Integer systemID : systems.keySet()) {
 			systemUpdates.add(new EsiUpdater.Update<SystemResponse>() {
@@ -224,7 +243,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		for (SystemResponse response : systemResponses) {
 			stationIDs.addAll(response.getStations());
 		}
-		//Stations
+		// Stations
 		List<EsiUpdater.Update<StationResponse>> stationUpdates = new ArrayList<>();
 		for (Integer stationID : stationIDs) {
 			stationUpdates.add(new EsiUpdater.Update<StationResponse>() {
@@ -238,20 +257,24 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		List<Location> locations = new ArrayList<>();
 		for (StationResponse response : stationResponses) {
 			Location system = systems.get(response.getSystemId());
-			Location location = new Location(response.getStationId(), response.getName(), system.getSystemID(), system.getSystemName(), system.getConstellationID(), system.getConstellationName(), system.getRegionID(), system.getRegionName(), system.getSecurity());
-			locations.add(location);
+			if (system != null) {
+				Location location = new Location(response.getStationId(), response.getName(), system.getSystemID(),
+						system.getSystemName(), system.getConstellationID(), system.getConstellationName(), system.getRegionID(),
+						system.getRegionName(), system.getSecurity());
+				locations.add(location);
+			}
 		}
 		return locations;
 	}
 
 	private String roundSecurity(double number) {
-		if (number < 0) { //0.0
+		if (number < 0) { // 0.0
 			number = 0;
-		} else if (number >= 0 && number <= 0.05) { //0.1
+		} else if (number >= 0 && number <= 0.05) { // 0.1
 			number = number * 10;
 			number = Math.ceil(number);
 			number = number / 10;
-		} else { //0.2 - 1.0
+		} else { // 0.2 - 1.0
 			number = number * 10;
 			number = Math.round(number);
 			number = number / 10;

@@ -26,9 +26,44 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Stargate {
 
-	private int destination;
+	private StargateDestination destination;
+	private Integer solarSystemID;
 
-	public int getDestination() {
+	public StargateDestination getDestination() {
 		return destination;
+	}
+
+	public void setDestination(StargateDestination destination) {
+		this.destination = destination;
+	}
+
+	public Integer getSolarSystemID() {
+		return solarSystemID;
+	}
+
+	public void setSolarSystemID(Integer solarSystemID) {
+		this.solarSystemID = solarSystemID;
+	}
+
+	@JsonIgnoreProperties(ignoreUnknown = true)
+	public static class StargateDestination {
+		private Integer solarSystemID;
+		private Integer stargateID;
+
+		public Integer getSolarSystemID() {
+			return solarSystemID;
+		}
+
+		public void setSolarSystemID(Integer solarSystemID) {
+			this.solarSystemID = solarSystemID;
+		}
+
+		public Integer getStargateID() {
+			return stargateID;
+		}
+
+		public void setStargateID(Integer stargateID) {
+			this.stargateID = stargateID;
+		}
 	}
 }

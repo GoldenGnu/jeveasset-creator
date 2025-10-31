@@ -22,11 +22,13 @@
 package net.nikr.eve.io.data.map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Region {
 
 	private int regionID;
+	private Map<String, String> name;
 
 	public int getRegionID() {
 		return regionID;
@@ -34,6 +36,14 @@ public class Region {
 
 	public void setRegionID(int regionID) {
 		this.regionID = regionID;
+	}
+
+	public Map<String, String> getName() {
+		return name;
+	}
+
+	public String getEnglishName() {
+		return name != null ? name.get("en") : null;
 	}
 
 }

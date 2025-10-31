@@ -40,4 +40,16 @@ public class Flag {
 	public String getFlagText() {
 		return flagText;
 	}
+
+	public void setFlagID(int flagID) {
+		this.flagID = flagID;
+	}
+
+	public void setFlagName(String flagName) {
+		this.flagName = flagName;
+	}
+
+	public void setFlagText(String flagText) {
+		this.flagText = flagText;
+	}
 }

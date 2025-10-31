@@ -392,7 +392,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 				volume.put(typeData.getTypeID(), typeData.getPackagedVolume());
 			}
 		}
-		LOG.warn("			Skipped: " + String.join(",", skipped));
+		if (!skipped.isEmpty()) {
+			LOG.warn("			Skipped: " + String.join(",", skipped));
+		}
 		return volume;
 	}
 
@@ -421,6 +423,8 @@ public class Items extends AbstractXmlWriter implements Creator{
 				typeIDs.get(typeData.getTypeID()).setEnglishName(typeData.getName());
 			}
 		}
-		LOG.warn("			Skipped: " + String.join(",", skipped));
+		if (!skipped.isEmpty()) {
+			LOG.warn("			Skipped: " + String.join(",", skipped));
+		}
 	}
 }

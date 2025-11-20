@@ -25,15 +25,11 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Constellation {
-	private int constellationID;
+	private int regionID;
 	private Map<String, String> name;
 
-	public int getConstellationID() {
-		return constellationID;
-	}
-
-	public void setConstellationID(int constellationID) {
-		this.constellationID = constellationID;
+	public int getRegionID() {
+		return regionID;
 	}
 
 	public Map<String, String> getName() {

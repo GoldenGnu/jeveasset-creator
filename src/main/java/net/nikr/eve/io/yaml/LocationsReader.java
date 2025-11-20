@@ -47,15 +47,13 @@ public class LocationsReader extends SolarSystemReader {
 		List<LocationID> locations = Collections.synchronizedList(new ArrayList<>());
 
 		Map<Integer, Region> regions = YamlHelper.read(YamlHelper.SdeFile.REGIONS, new TypeReference<Map<Integer, Region>>() {});
-		for (Region region : regions.values()) {
-			locations.add(new LocationID(0, 0, 0, region.getRegionID(), 0));
+		for (Map.Entry<Integer, Region> entry : regions.entrySet()) {
+			locations.add(new LocationID(0, 0, 0, entry.getKey(), 0));
 		}
 
 		Map<Integer, Constellation> constellations = YamlHelper.read(YamlHelper.SdeFile.CONSTELLATIONS, new TypeReference<Map<Integer, Constellation>>() {});
-		Map<Integer, Integer> constellationToRegion = buildConstellationToRegionMap();
-		for (Constellation constellation : constellations.values()) {
-			int regionID = constellationToRegion.getOrDefault(constellation.getConstellationID(), 0);
-			locations.add(new LocationID(0, 0, constellation.getConstellationID(), regionID, 0));
+		for (Map.Entry<Integer, Constellation> entry : constellations.entrySet()) {
+			locations.add(new LocationID(0, 0, entry.getKey(), entry.getValue().getRegionID(), 0));
 		}
 
 		Map<Integer, SolarSystem> systems = YamlHelper.read(YamlHelper.SdeFile.SYSTEMS, new TypeReference<Map<Integer, SolarSystem>>() {});
@@ -106,17 +104,6 @@ public class LocationsReader extends SolarSystemReader {
 		}
 
 		return locations;
-	}
-
-	private Map<Integer, Integer> buildConstellationToRegionMap() throws IOException {
-		Map<Integer, Integer> constellationToRegion = new HashMap<>();
-		Map<Integer, SolarSystem> systems = YamlHelper.read(YamlHelper.SdeFile.SYSTEMS,
-				new TypeReference<Map<Integer, SolarSystem>>() {
-				});
-		for (SolarSystem system : systems.values()) {
-			constellationToRegion.put(system.getConstellationID(), system.getRegionID());
-		}
-		return constellationToRegion;
 	}
 
 	private void loadSolarSystem(List<LocationID> locationIDs, int systemID, int constellationID, int regionID,

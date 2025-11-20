@@ -27,16 +27,7 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Region {
 
-	private int regionID;
 	private Map<String, String> name;
-
-	public int getRegionID() {
-		return regionID;
-	}
-
-	public void setRegionID(int regionID) {
-		this.regionID = regionID;
-	}
 
 	public Map<String, String> getName() {
 		return name;

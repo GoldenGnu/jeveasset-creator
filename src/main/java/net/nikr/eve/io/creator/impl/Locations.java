@@ -212,16 +212,16 @@ public class Locations extends AbstractXmlWriter implements Creator {
 
 	private String getName(Map<Integer, Name> names, int ID) {
 		Name name = names.get(ID);
-		if (name != null) {
-			return name.getItemName();
-		} else if (ID == 10000070) {
-			return "Pochven";
-		} else if (ID == 19000001) {
+		if (ID == 19000001) {
 			return "Global PLEX Market Region";
 		} else if (ID == 26000001) {
 			return "Global PLEX Market Constellation";
 		} else if (ID == 36000001) {
 			return "Global PLEX Market System";
+		} else if (name != null) {
+			return name.getItemName();
+		} else if (ID == 10000070) {
+			return "Pochven";
 		} else {
 			return "Unknown #" + ID;
 		}

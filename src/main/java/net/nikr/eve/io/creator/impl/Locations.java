@@ -25,9 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -35,23 +33,21 @@ import java.util.Set;
 import java.util.TreeSet;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.eve.io.data.Name;
 import net.nikr.eve.io.data.map.ConquerableStation;
+import net.nikr.eve.io.data.map.Constellation;
 import net.nikr.eve.io.data.map.Location;
-import net.nikr.eve.io.data.map.LocationID;
-import net.nikr.eve.io.esi.EsiUpdater;
+import net.nikr.eve.io.data.map.NpcStation;
+import net.nikr.eve.io.data.map.Region;
+import net.nikr.eve.io.data.map.SolarSystem;
 import static net.nikr.eve.io.esi.EsiUpdater.DATASOURCE;
 import static net.nikr.eve.io.esi.EsiUpdater.UNIVERSE_API;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.ConquerableStationsReader;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.LocationsReader;
-import net.nikr.eve.io.yaml.NameReader;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiException;
-import net.troja.eve.esi.ApiResponse;
 import net.troja.eve.esi.model.StationResponse;
-import net.troja.eve.esi.model.SystemResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -74,8 +70,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		try {
 			xmldoc = getXmlDocument("rows");
 			LOG.info("	XML: init...");
-			Comment comment = xmldoc
-					.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
+			Comment comment = xmldoc.createComment("Generated from Eve Online Toolkit. ©CCP hf. All rights reserved. Used with permission.");
 			xmldoc.getDocumentElement().appendChild(comment);
 			success = createLocations(xmldoc);
 			LOG.info("	XML: Saving...");
@@ -103,53 +98,75 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		try {
 			LOG.info("	YAML: Loading...");
 			LOG.info("		Map...");
-			LocationsReader locationsLoader = new LocationsReader();
-			List<LocationID> locationsIDs = locationsLoader.loadLocations();
-			LOG.info("		Names...");
-			NameReader nameReader = new NameReader();
-			Map<Integer, Name> names = nameReader.loadNames();
+			LocationsReader locationsReader = new LocationsReader();
+			Map<Integer, NpcStation> stations = locationsReader.loadStations();
+			Map<Integer, SolarSystem> systems = locationsReader.loadSystems();
+			Map<Integer, Constellation> constellations = locationsReader.loadConstellation();
+			Map<Integer, Region> regions = locationsReader.loadRegions();
+			LOG.info("	ESI: Loading...");
+			LOG.info("		Station Names...");
+			Map<Integer, String> stationNames = loadStationNames(stations);
 			LOG.info("	YAML: Processing...");
 			Set<Location> locations = new TreeSet<>();
 			Map<Integer, Location> systemToLocation = new HashMap<>();
-			for (LocationID locationID : locationsIDs) {
-				int stationID = locationID.getStationID();
-				int systemID = locationID.getSystemID();
-				int constellationID = locationID.getConstellationID();
-				int regionID = locationID.getRegionID();
-				String regionName = getName(names, regionID);
-				String stationName = getName(names, stationID);
-				String systemName = getName(names, systemID);
-				String constellationName = getName(names, constellationID);
-				float security = locationID.getSecurity();
-				if (stationID != 0) { // Station
-					Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID,
-							constellationName, regionID, regionName, security);
-					locations.add(stationLocation);
-				} else if (systemID != 0) { // System
-					Location systemLocation = new Location(0, "", systemID, systemName, constellationID, constellationName,
-							regionID, regionName, security);
-					systemToLocation.put(systemID, systemLocation);
-					locations.add(systemLocation);
-				} else if (constellationID != 0) { // Constellations
-					Location constellationLocation = new Location(0, "", 0, "", constellationID, constellationName, regionID,
-							regionName, 0);
-					locations.add(constellationLocation);
-				} else if (regionID != 0) { // Region
-					Location regionLocation = new Location(0, "", 0, "", 0, "", regionID, regionName, 0);
-					locations.add(regionLocation);
-				}
+			//Regions
+			for (Map.Entry<Integer, Region> entry : regions.entrySet()) {
+				int regionID = entry.getKey();
+				Region region = entry.getValue();
+				String regionName = getName(region.getEnglishName(), regionID);
+				locations.add(new Location(0, "", 0, "", 0, "", regionID, regionName, 0));
 			}
-			LOG.info("	ESI: Loading...");
-			LOG.info("		Locations...");
-			// Special handling for system 30100000 (Zarzakh):
-			// Zarzakh exists in the SDE but has no planets/stations listed in the static data.
-			// Its stations must be fetched from ESI API
-			// to get current station data that isn't available in the SDE.
-			Map<Integer, Location> specialSystemUpdates = new HashMap<>();
-			Location system30100000 = systemToLocation.get(30100000);
-			if (system30100000 != null) {
-				specialSystemUpdates.put(30100000, system30100000);
-				locations.addAll(updateSpecialSystems(specialSystemUpdates));
+			//Constellations
+			for (Map.Entry<Integer, Constellation> entry : constellations.entrySet()) {
+				int constellationID = entry.getKey();
+				Constellation constellation = entry.getValue();
+				String constellationName = getName(constellation.getEnglishName(), constellationID);
+
+				int regionID = constellation.getRegionID();
+				Region region = regions.get(regionID);
+				String regionName = getName(region.getEnglishName(), regionID);
+
+				locations.add(new Location(0, "", 0, "", constellationID, constellationName, regionID, regionName, 0));
+			}
+			//Systems
+			for (Map.Entry<Integer, SolarSystem> entry : systems.entrySet()) {
+				int systemID = entry.getKey();
+				SolarSystem system = entry.getValue();
+				String systemName = getName(system.getEnglishName(), systemID);
+				float security = system.getSecurityStatus();
+
+				int constellationID = system.getConstellationID();
+				Constellation constellation = constellations.get(constellationID);
+				String constellationName = getName(constellation.getEnglishName(), constellationID);
+
+				int regionID = system.getRegionID();
+				Region region = regions.get(regionID);
+				String regionName = getName(region.getEnglishName(), regionID);
+
+				Location systemLocation = new Location(0, "", systemID, systemName, constellationID, constellationName, regionID, regionName, security);
+				locations.add(systemLocation);
+				systemToLocation.put(systemID, systemLocation);
+			}
+			//Stations
+			for (Map.Entry<Integer, NpcStation> entry : stations.entrySet()) {
+				int stationID = entry.getKey();
+				NpcStation station = entry.getValue();
+				String stationName = stationNames.get(stationID);
+
+				int systemID = station.getSolarSystemID();
+				SolarSystem system = systems.get(systemID);
+				String systemName = getName(system.getEnglishName(), systemID);
+				float security = system.getSecurityStatus();
+
+				int constellationID = system.getConstellationID();
+				Constellation constellation = constellations.get(constellationID);
+				String constellationName = getName(constellation.getEnglishName(), constellationID);
+
+				int regionID = system.getRegionID();
+				Region region = regions.get(regionID);
+				String regionName = getName(region.getEnglishName(), regionID);
+
+				locations.add(new Location(stationID, stationName, systemID, systemName, constellationID, constellationName, regionID, regionName, security));
 			}
 			LOG.info("	XML: Loading...");
 			List<ConquerableStation> conquerableStations = ConquerableStationsReader.load();
@@ -174,21 +191,13 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				String constellationName = systemLocation.getConstellationName();
 				float security = systemLocation.getSecurity();
 				String stationName = "Conquerable Station #" + fixedLocationID;
-				Name systemNameObj = names.get(systemID);
-				Name regionNameObj = names.get(regionID);
-				if (systemNameObj == null || regionNameObj == null) {
-					continue; // Skip if we don't have names for the system or region
-				}
-				String systemName = systemNameObj.getItemName();
-				String regionName = regionNameObj.getItemName();
-				Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID,
-						constellationName, regionID, regionName, security);
+				String systemName = systemLocation.getSystemName();
+				String regionName = systemLocation.getRegionName();
+				Location stationLocation = new Location(stationID, stationName, systemID, systemName, constellationID, constellationName, regionID, regionName, security);
 				locations.add(stationLocation);
 			}
 			systemToLocation.clear();
 			conquerableStations.clear();
-			names.clear();
-			locationsIDs.clear();
 			LOG.info("	XML: Creating...");
 			for (Location location : locations) {
 				Element node = xmldoc.createElement("row");
@@ -210,61 +219,39 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		return false;
 	}
 
-	private String getName(Map<Integer, Name> names, int ID) {
-		Name name = names.get(ID);
-		if (ID == 19000001) {
+	private String getName(String name, int id) {
+		if (id == 19000001) {
 			return "Global PLEX Market Region";
-		} else if (ID == 26000001) {
+		} else if (id == 26000001) {
 			return "Global PLEX Market Constellation";
-		} else if (ID == 36000001) {
+		} else if (id == 36000001) {
 			return "Global PLEX Market System";
 		} else if (name != null) {
-			return name.getItemName();
-		} else if (ID == 10000070) {
+			return name;
+		} else if (id == 10000070) {
 			return "Pochven";
 		} else {
-			return "Unknown #" + ID;
+			return "Unknown #" + id;
 		}
 	}
 
-	public static List<Location> updateSpecialSystems(Map<Integer, Location> systems) {
-		// Systems
-		List<EsiUpdater.Update<SystemResponse>> systemUpdates = new ArrayList<>();
-		for (Integer systemID : systems.keySet()) {
-			systemUpdates.add(new EsiUpdater.Update<SystemResponse>() {
-				@Override
-				public ApiResponse<SystemResponse> update() throws ApiException {
-					return UNIVERSE_API.getUniverseSystemsSystemIdWithHttpInfo(systemID, null, DATASOURCE, null, null);
+	public Map<Integer, String> loadStationNames(Map<Integer, NpcStation> stations) throws XmlException {
+		LOG.info("Updating " + stations.size() + " station names from ESI");
+		Map<Integer, String> stationNames = new HashMap<>();
+		for (Map.Entry<Integer, NpcStation> entry : stations.entrySet()) {
+			Integer stationID = entry.getKey();
+			try {
+				// Direct ESI API call for live station data
+				StationResponse response = UNIVERSE_API.getUniverseStationsStationId(stationID, DATASOURCE, null);
+				if (response != null && response.getName() != null) {
+					stationNames.put(stationID, response.getName());
 				}
-			});
-		}
-		List<SystemResponse> systemResponses = EsiUpdater.update(systemUpdates);
-		Set<Integer> stationIDs = new HashSet<>();
-		for (SystemResponse response : systemResponses) {
-			stationIDs.addAll(response.getStations());
-		}
-		// Stations
-		List<EsiUpdater.Update<StationResponse>> stationUpdates = new ArrayList<>();
-		for (Integer stationID : stationIDs) {
-			stationUpdates.add(new EsiUpdater.Update<StationResponse>() {
-				@Override
-				public ApiResponse<StationResponse> update() throws ApiException {
-					return UNIVERSE_API.getUniverseStationsStationIdWithHttpInfo(stationID, DATASOURCE, null);
-				}
-			});
-		}
-		List<StationResponse> stationResponses = EsiUpdater.update(stationUpdates);
-		List<Location> locations = new ArrayList<>();
-		for (StationResponse response : stationResponses) {
-			Location system = systems.get(response.getSystemId());
-			if (system != null) {
-				Location location = new Location(response.getStationId(), response.getName(), system.getSystemID(),
-						system.getSystemName(), system.getConstellationID(), system.getConstellationName(), system.getRegionID(),
-						system.getRegionName(), system.getSecurity());
-				locations.add(location);
+			} catch (ApiException ex) {
+				throw new XmlException(ex.getResponseBody(), ex);
 			}
 		}
-		return locations;
+
+		return stationNames;
 	}
 
 	private String roundSecurity(double number) {

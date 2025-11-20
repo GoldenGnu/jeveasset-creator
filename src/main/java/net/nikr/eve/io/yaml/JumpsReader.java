@@ -23,19 +23,14 @@ package net.nikr.eve.io.yaml;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import net.nikr.eve.io.data.map.Jump;
 import net.nikr.eve.io.data.map.SolarSystem;
+import net.nikr.eve.io.data.map.Stargate;
 
 public class JumpsReader extends SolarSystemReader {
 
@@ -44,24 +39,20 @@ public class JumpsReader extends SolarSystemReader {
 		Set<Jump> destinationJumps = Collections.synchronizedSet(new TreeSet<>());
 
 		// Load stargates first to build stargate-to-system mapping
-		Map<Integer, net.nikr.eve.io.data.map.Stargate> stargates = YamlHelper.read(YamlHelper.SdeFile.STARGATES,
-				new TypeReference<Map<Integer, net.nikr.eve.io.data.map.Stargate>>() {
-				});
-		for (Map.Entry<Integer, net.nikr.eve.io.data.map.Stargate> entry : stargates.entrySet()) {
+		Map<Integer, Stargate> stargates = YamlHelper.read(YamlHelper.SdeFile.STARGATES, new TypeReference<Map<Integer, Stargate>>() {});
+		for (Map.Entry<Integer, Stargate> entry : stargates.entrySet()) {
 			int stargateID = entry.getKey();
-			net.nikr.eve.io.data.map.Stargate stargate = entry.getValue();
+			Stargate stargate = entry.getValue();
 			if (stargate.getSolarSystemID() != null) {
 				stargateToSystem.put(stargateID, stargate.getSolarSystemID());
 			}
 		}
-		Map<Integer, SolarSystem> systems = YamlHelper.read(YamlHelper.SdeFile.SYSTEMS,
-				new TypeReference<Map<Integer, SolarSystem>>() {
-				});
 
+		Map<Integer, SolarSystem> systems = YamlHelper.read(YamlHelper.SdeFile.SYSTEMS, new TypeReference<Map<Integer, SolarSystem>>() {});
 		for (SolarSystem system : systems.values()) {
 			if (system.getStargateIDs() != null) {
 				for (Integer stargateID : system.getStargateIDs()) {
-					net.nikr.eve.io.data.map.Stargate stargate = stargates.get(stargateID);
+					Stargate stargate = stargates.get(stargateID);
 					if (stargate != null && stargate.getDestination() != null) {
 						Integer destinationStargateID = stargate.getDestination().getStargateID();
 						if (destinationStargateID != null) {
@@ -81,14 +72,5 @@ public class JumpsReader extends SolarSystemReader {
 			}
 		}
 		return jumps;
-	}
-
-	public static <K> List<Future<K>> startReturn(Collection<? extends Callable<K>> updaters) {
-		ExecutorService executor = Executors.newFixedThreadPool(4);
-		try {
-			return executor.invokeAll(updaters);
-		} catch (InterruptedException ex) {
-			throw new RuntimeException(ex.getMessage(), ex);
-		}
 	}
 }

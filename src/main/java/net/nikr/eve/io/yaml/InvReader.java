@@ -21,8 +21,10 @@
 
 package net.nikr.eve.io.yaml;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,8 +107,9 @@ public class InvReader {
 		return YamlHelper.read(SdeFile.BLUEPRINTS, new TypeReference<TreeMap<Integer, Blueprint>>(){});
 	}
 
+	@JsonIgnoreProperties(ignoreUnknown = true)
 	public static class TypeMaterialList {
-		private List<TypeMaterial> materials;
+		private List<TypeMaterial> materials = new ArrayList<>();
 
 		public List<TypeMaterial> getMaterials() {
 			return materials;

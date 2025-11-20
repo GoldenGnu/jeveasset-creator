@@ -21,17 +21,23 @@
 package net.nikr.eve.io.data.map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Constellation {
-	private int constellationID;
+	private int regionID;
+	private Map<String, String> name;
 
-	public int getConstellationID() {
-		return constellationID;
+	public int getRegionID() {
+		return regionID;
 	}
 
-	public void setConstellationID(int constellationID) {
-		this.constellationID = constellationID;
+	public Map<String, String> getName() {
+		return name;
+	}
+
+	public String getEnglishName() {
+		return name != null ? name.get("en") : null;
 	}
 
 }

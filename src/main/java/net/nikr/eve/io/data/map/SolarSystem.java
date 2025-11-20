@@ -22,21 +22,26 @@
 package net.nikr.eve.io.data.map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.util.List;
 import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SolarSystem {
 	private Map<String, Planet> planets;
-	private float security;
+	private float securityStatus;
 	private int solarSystemID;
 	private Map<String, Stargate> stargates;
+	private List<Integer> stargateIDs;
+	private Map<String, String> name;
+	private int constellationID;
+	private int regionID;
 
 	public Map<String, Planet> getPlanets() {
 		return planets;
 	}
 
-	public float getSecurity() {
-		return security;
+	public float getSecurityStatus() {
+		return securityStatus;
 	}
 
 	public int getSolarSystemID() {
@@ -45,5 +50,29 @@ public class SolarSystem {
 
 	public Map<String, Stargate> getStargates() {
 		return stargates;
+	}
+
+	public List<Integer> getStargateIDs() {
+		return stargateIDs;
+	}
+
+	public void setStargateIDs(List<Integer> stargateIDs) {
+		this.stargateIDs = stargateIDs;
+	}
+
+	public Map<String, String> getName() {
+		return name;
+	}
+
+	public String getEnglishName() {
+		return name != null ? name.get("en") : null;
+	}
+
+	public int getConstellationID() {
+		return constellationID;
+	}
+
+	public int getRegionID() {
+		return regionID;
 	}
 }

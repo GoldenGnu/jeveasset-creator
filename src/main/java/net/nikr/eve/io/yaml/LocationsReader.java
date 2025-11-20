@@ -46,25 +46,19 @@ public class LocationsReader extends SolarSystemReader {
 	public List<LocationID> loadLocations() throws IOException {
 		List<LocationID> locations = Collections.synchronizedList(new ArrayList<>());
 
-		Map<Integer, Region> regions = YamlHelper.read(YamlHelper.SdeFile.REGIONS,
-				new TypeReference<Map<Integer, Region>>() {
-				});
+		Map<Integer, Region> regions = YamlHelper.read(YamlHelper.SdeFile.REGIONS, new TypeReference<Map<Integer, Region>>() {});
 		for (Region region : regions.values()) {
 			locations.add(new LocationID(0, 0, 0, region.getRegionID(), 0));
 		}
 
-		Map<Integer, Constellation> constellations = YamlHelper.read(YamlHelper.SdeFile.CONSTELLATIONS,
-				new TypeReference<Map<Integer, Constellation>>() {
-				});
+		Map<Integer, Constellation> constellations = YamlHelper.read(YamlHelper.SdeFile.CONSTELLATIONS, new TypeReference<Map<Integer, Constellation>>() {});
 		Map<Integer, Integer> constellationToRegion = buildConstellationToRegionMap();
 		for (Constellation constellation : constellations.values()) {
 			int regionID = constellationToRegion.getOrDefault(constellation.getConstellationID(), 0);
 			locations.add(new LocationID(0, 0, constellation.getConstellationID(), regionID, 0));
 		}
 
-		Map<Integer, SolarSystem> systems = YamlHelper.read(YamlHelper.SdeFile.SYSTEMS,
-				new TypeReference<Map<Integer, SolarSystem>>() {
-				});
+		Map<Integer, SolarSystem> systems = YamlHelper.read(YamlHelper.SdeFile.SYSTEMS, new TypeReference<Map<Integer, SolarSystem>>() {});
 		List<SystemReader> systemReaders = Collections.synchronizedList(new ArrayList<>());
 		for (Map.Entry<Integer, SolarSystem> entry : systems.entrySet()) {
 			int systemID = entry.getKey();
@@ -92,9 +86,7 @@ public class LocationsReader extends SolarSystemReader {
 			systemToRegion.put(systemID, system.getRegionID());
 		}
 
-		Map<Integer, NpcStation> npcStations = YamlHelper.read(YamlHelper.SdeFile.NPCSTATIONS,
-				new TypeReference<Map<Integer, NpcStation>>() {
-				});
+		Map<Integer, NpcStation> npcStations = YamlHelper.read(YamlHelper.SdeFile.NPCSTATIONS, new TypeReference<Map<Integer, NpcStation>>() {});
 		for (Map.Entry<Integer, NpcStation> entry : npcStations.entrySet()) {
 			int stationID = entry.getKey();
 			NpcStation station = entry.getValue();

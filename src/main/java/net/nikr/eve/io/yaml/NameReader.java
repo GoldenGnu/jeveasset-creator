@@ -85,19 +85,19 @@ public class NameReader {
 		for (Map.Entry<Integer, NpcStation> entry : stations.entrySet()) {
 			Integer stationID = entry.getKey();
 			try {
-                            // Direct ESI API call for live station data
-                            StationResponse response = UNIVERSE_API.getUniverseStationsStationId(stationID, DATASOURCE, null);
+				// Direct ESI API call for live station data
+				StationResponse response = UNIVERSE_API.getUniverseStationsStationId(stationID, DATASOURCE, null);
 
-                            if (response != null && response.getName() != null) {
-                                Name nameObj = new Name();
-                                nameObj.setItemID(stationID);
-                                nameObj.setItemName(response.getName());
-                                map.put(stationID, nameObj);
-                            }
+				if (response != null && response.getName() != null) {
+					Name nameObj = new Name();
+					nameObj.setItemID(stationID);
+					nameObj.setItemName(response.getName());
+					map.put(stationID, nameObj);
+				}
 
-                        } catch (ApiException e) {
-                            System.err.printf("Failed to fetch station %d: %s%n", stationID, e.getMessage());
-                        }
+			} catch (ApiException e) {
+				System.err.printf("Failed to fetch station %d: %s%n", stationID, e.getMessage());
+			}
 		}
 
 		return map;

@@ -74,7 +74,7 @@
 								</copy>
 								<copy todir="${project.build.directory}/data">
 									<fileset dir="data" includes="*.xml"/>
-									<fileset dir="data" includes=".md5"/>
+									<fileset dir="data" includes="*.md5"/>
 								</copy>
 							</target>
 						</configuration>

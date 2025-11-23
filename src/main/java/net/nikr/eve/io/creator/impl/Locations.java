@@ -236,7 +236,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 	}
 
 	public Map<Integer, String> loadStationNames(Map<Integer, NpcStation> stations) throws XmlException {
-		LOG.info("Updating " + stations.size() + " station names from ESI");
+		LOG.info(" 		-> Updating " + stations.size() + " station names from ESI");
 		Map<Integer, String> stationNames = new HashMap<>();
 		for (Map.Entry<Integer, NpcStation> entry : stations.entrySet()) {
 			Integer stationID = entry.getKey();

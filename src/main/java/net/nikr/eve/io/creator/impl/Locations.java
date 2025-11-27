@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -47,7 +48,8 @@ import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.LocationsReader;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiException;
-import net.troja.eve.esi.model.StationResponse;
+import net.troja.eve.esi.model.UniverseNamesResponse;
+import net.troja.eve.esi.model.UniverseNamesResponse.CategoryEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -236,21 +238,22 @@ public class Locations extends AbstractXmlWriter implements Creator {
 	}
 
 	public Map<Integer, String> loadStationNames(Map<Integer, NpcStation> stations) throws XmlException {
-		LOG.info(" 		-> Updating " + stations.size() + " station names from ESI");
 		Map<Integer, String> stationNames = new HashMap<>();
-		for (Map.Entry<Integer, NpcStation> entry : stations.entrySet()) {
-			Integer stationID = entry.getKey();
+		int partitionSize = 1000;
+		List<Integer> yourlist = new ArrayList<>(stations.keySet());
+		for (int i = 0; i < yourlist.size(); i += partitionSize) {
+			List<Integer> subList = yourlist.subList(i, Math.min(i + partitionSize, yourlist.size()));
 			try {
-				// Direct ESI API call for live station data
-				StationResponse response = UNIVERSE_API.getUniverseStationsStationId(stationID, DATASOURCE, null);
-				if (response != null && response.getName() != null) {
-					stationNames.put(stationID, response.getName());
+				List<UniverseNamesResponse> responses = UNIVERSE_API.postUniverseNames(subList, DATASOURCE);
+				for (UniverseNamesResponse response : responses) {
+					if (response.getCategory() == CategoryEnum.STATION) {
+						stationNames.put(response.getId(), response.getName());
+					}
 				}
 			} catch (ApiException ex) {
 				throw new XmlException(ex.getResponseBody(), ex);
 			}
 		}
-
 		return stationNames;
 	}
 

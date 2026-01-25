@@ -181,7 +181,18 @@ public class Items extends AbstractXmlWriter implements Creator{
 							.replace("‑", "-") //Non-breaking hyphen
 							.replace("‒", "-") //Figure dash
 							.replace("—", "-") //Em dash
+							.replace("\u00A0", " ") //Non-break space
 							.trim();
+					StringBuilder builder = new StringBuilder();
+					for (char c : typeNameFixed.toCharArray()) {
+						if (c > 127) {
+							builder.append(c);
+						}
+					}
+					String failed = builder.toString();
+					if (!failed.isEmpty()) {
+						System.out.println(typeNameFixed + ": " + failed);
+					}
 					if (!typeNameFixed.equals(typeName)) {
 						spacedItems.put(typeName, typeNameFixed);
 					}

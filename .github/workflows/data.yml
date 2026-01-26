@@ -39,7 +39,7 @@ jobs:
       if: failure()
       run: |
         echo "release=done" >> $GITHUB_ENV
-        mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}"
+        mvn -s settings.xml clean deploy -P BUILD-safe-deploy "-Dftp.user=${{ secrets.ftpuser }}" "-Dftp.pass=${{ secrets.ftppass }}" "-Dupload.url=${{ secrets.uploadurl }}"
     - name: Send discord notification for new release
       if: failure() && env.release == 'done'
       env:

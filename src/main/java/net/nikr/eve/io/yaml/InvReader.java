@@ -42,33 +42,33 @@ import net.nikr.eve.io.yaml.YamlHelper.SdeFile;
 
 
 public class InvReader {
-	public Map<Integer, Type> loadTypes() throws IOException {
-		return YamlHelper.read(SdeFile.TYPEIDS, new TypeReference<TreeMap<Integer, Type>>(){});
+	public Map<Long, Type> loadTypes() throws IOException {
+		return YamlHelper.read(SdeFile.TYPEIDS, new TypeReference<TreeMap<Long, Type>>(){});
 	}
 
-	public Map<Integer, Group> loadGroups() throws IOException {
-		return YamlHelper.read(SdeFile.GROUPIDS, new TypeReference<TreeMap<Integer, Group>>(){});
+	public Map<Long, Group> loadGroups() throws IOException {
+		return YamlHelper.read(SdeFile.GROUPIDS, new TypeReference<TreeMap<Long, Group>>(){});
 	}
 
-	public Map<Integer, Category> loadCategories() throws IOException {
-		return YamlHelper.read(SdeFile.CATEGORYIDS, new TypeReference<TreeMap<Integer, Category>>(){});
+	public Map<Long, Category> loadCategories() throws IOException {
+		return YamlHelper.read(SdeFile.CATEGORYIDS, new TypeReference<TreeMap<Long, Category>>(){});
 	}
 
 	public Attributes loadDogma() throws IOException {
-		TreeMap<Integer, DogmaTypes> map = YamlHelper.read(SdeFile.TYPEDOGMA, new TypeReference<TreeMap<Integer, DogmaTypes>>(){});
+		TreeMap<Long, DogmaTypes> map = YamlHelper.read(SdeFile.TYPEDOGMA, new TypeReference<TreeMap<Long, DogmaTypes>>(){});
 		Attributes attributes = new Attributes();
-		for (Map.Entry<Integer, DogmaTypes> entry : map.entrySet()) {
-			int typeID = entry.getKey();
+		for (Map.Entry<Long, DogmaTypes> entry : map.entrySet()) {
+			long typeID = entry.getKey();
 			DogmaTypes dogma = entry.getValue();
 			for (DogmaAttribute attribute : dogma.getDogmaAttributes()) {
 				if (attribute.getAttributeID() == 1692) { //1692 = meta group
-					attributes.getMetaGroupAttributes().put(typeID, attribute.getValue().intValue());
+					attributes.getMetaGroupAttributes().put(typeID, attribute.getValue().longValue());
 				}
 				if (attribute.getAttributeID() == 633) { //633 = meta level
-					attributes.getMetaLevelAttributes().put(typeID, attribute.getValue().intValue());
+					attributes.getMetaLevelAttributes().put(typeID, attribute.getValue().longValue());
 				}
 				if (attribute.getAttributeID() == 128) { //128 = The size of the charges that can fit in the turret/whatever.
-					attributes.getChargesSize().put(typeID, attribute.getValue().intValue());
+					attributes.getChargesSize().put(typeID, attribute.getValue().longValue());
 				}
 			}
 			for (DogmeEffect attribute : dogma.getDogmaEffects()) {
@@ -95,16 +95,16 @@ public class InvReader {
 		return attributes;
 	}
 
-	public Map<Integer, MetaGroup> loadMetaGroups() throws IOException {
-		return YamlHelper.read(SdeFile.METAGROUPS, new TypeReference<TreeMap<Integer, MetaGroup>>(){});
+	public Map<Long, MetaGroup> loadMetaGroups() throws IOException {
+		return YamlHelper.read(SdeFile.METAGROUPS, new TypeReference<TreeMap<Long, MetaGroup>>(){});
 	}
 
-	public Map<Integer, TypeMaterialList> loadTypeMaterials() throws IOException {
-		return YamlHelper.read(SdeFile.INVTYPEMATERIALS, new TypeReference<TreeMap<Integer, TypeMaterialList>>(){});
+	public Map<Long, TypeMaterialList> loadTypeMaterials() throws IOException {
+		return YamlHelper.read(SdeFile.INVTYPEMATERIALS, new TypeReference<TreeMap<Long, TypeMaterialList>>(){});
 	}
 
-	public Map<Integer, Blueprint> loadBlueprints() throws IOException {
-		return YamlHelper.read(SdeFile.BLUEPRINTS, new TypeReference<TreeMap<Integer, Blueprint>>(){});
+	public Map<Long, Blueprint> loadBlueprints() throws IOException {
+		return YamlHelper.read(SdeFile.BLUEPRINTS, new TypeReference<TreeMap<Long, Blueprint>>(){});
 	}
 
 	@JsonIgnoreProperties(ignoreUnknown = true)
@@ -117,24 +117,24 @@ public class InvReader {
 	}
 
 	public static class Attributes {
-		private final Map<Integer, Integer> metaGroupAttributes = new HashMap<>();
-		private final Map<Integer, Integer> metaLevelAttributes = new HashMap<>();
-		private final Map<Integer, Integer> chargesSize = new HashMap<>();
-		private final Map<Integer, String>  slots = new HashMap<>();
+		private final Map<Long, Long> metaGroupAttributes = new HashMap<>();
+		private final Map<Long, Long> metaLevelAttributes = new HashMap<>();
+		private final Map<Long, Long> chargesSize = new HashMap<>();
+		private final Map<Long, String>  slots = new HashMap<>();
 
-		public Map<Integer, Integer> getMetaGroupAttributes() {
+		public Map<Long, Long> getMetaGroupAttributes() {
 			return metaGroupAttributes;
 		}
 
-		public Map<Integer, Integer> getMetaLevelAttributes() {
+		public Map<Long, Long> getMetaLevelAttributes() {
 			return metaLevelAttributes;
 		}
 
-		public Map<Integer, Integer> getChargesSize() {
+		public Map<Long, Long> getChargesSize() {
 			return chargesSize;
 		}
 
-		public Map<Integer, String> getSlots() {
+		public Map<Long, String> getSlots() {
 			return slots;
 		}
 	}

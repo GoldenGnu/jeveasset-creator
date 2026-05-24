@@ -28,9 +28,9 @@ import java.util.Map;
 public class DogmaType {
 
 	public List<InputOutputMapping> inputOutputMapping;
-	public Map<Integer, AttributeIDs> attributeIDs;
+	public Map<Long, AttributeIDs> attributeIDs;
 
-	public Integer getTypeID() {
+	public Long getTypeID() {
 		if (inputOutputMapping.size() > 1) {
 			throw new RuntimeException("inputOutputMapping size is great than 1 :-/");
 		}
@@ -39,13 +39,13 @@ public class DogmaType {
 
 	public List<Attribute> getAttributes() {
 		List<Attribute> attributes = new ArrayList<>();
-		for (Map.Entry<Integer, AttributeIDs> entry : attributeIDs.entrySet()) {
+		for (Map.Entry<Long, AttributeIDs> entry : attributeIDs.entrySet()) {
 			attributes.add(new Attribute(entry));
 		}
 		return attributes;
 	}
 
-	public ArrayList<Integer> getApplicableTypes() {
+	public ArrayList<Long> getApplicableTypes() {
 		if (inputOutputMapping.size() > 1) {
 			throw new RuntimeException("inputOutputMapping size is great than 1 :-/");
 		}
@@ -53,23 +53,23 @@ public class DogmaType {
 	}
 
 	public static class Attribute {
-		public int attributeID;
+		public long attributeID;
 		public double max;
 		public double min;
 
-		public Attribute(int attributeID, double max, double min) {
+		public Attribute(long attributeID, double max, double min) {
 			this.attributeID = attributeID;
 			this.max = max;
 			this.min = min;
 		}
 
-		public Attribute(Map.Entry<Integer, AttributeIDs> entry) {
+		public Attribute(Map.Entry<Long, AttributeIDs> entry) {
 			this.attributeID = entry.getKey();
 			this.max = entry.getValue().max;
 			this.min = entry.getValue().min;
 		}
 
-		public int getAttributeID() {
+		public long getAttributeID() {
 			return attributeID;
 		}
 
@@ -90,7 +90,7 @@ public class DogmaType {
 
 	public static class InputOutputMapping {
 
-		public int resultingType;
-		public ArrayList<Integer> applicableTypes;
+		public long resultingType;
+		public ArrayList<Long> applicableTypes;
 	}
 }

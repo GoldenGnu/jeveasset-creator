@@ -31,19 +31,19 @@ import net.nikr.eve.io.data.map.SolarSystem;
 
 public class LocationsReader extends SolarSystemReader {
 
-	public Map<Integer, Region> loadRegions() throws IOException {
-		return YamlHelper.read(YamlHelper.SdeFile.REGIONS, new TypeReference<Map<Integer, Region>>() {});
+	public Map<Long, Region> loadRegions() throws IOException {
+		return YamlHelper.read(YamlHelper.SdeFile.REGIONS, new TypeReference<Map<Long, Region>>() {});
 	}
 
-	public Map<Integer, Constellation> loadConstellation() throws IOException {
-		return YamlHelper.read(YamlHelper.SdeFile.CONSTELLATIONS, new TypeReference<Map<Integer, Constellation>>() {});
+	public Map<Long, Constellation> loadConstellation() throws IOException {
+		return YamlHelper.read(YamlHelper.SdeFile.CONSTELLATIONS, new TypeReference<Map<Long, Constellation>>() {});
 	}
 
-	public Map<Integer, SolarSystem> loadSystems() throws IOException {
-		return YamlHelper.read(YamlHelper.SdeFile.SYSTEMS, new TypeReference<Map<Integer, SolarSystem>>() {});
+	public Map<Long, SolarSystem> loadSystems() throws IOException {
+		return YamlHelper.read(YamlHelper.SdeFile.SYSTEMS, new TypeReference<Map<Long, SolarSystem>>() {});
 	}
 
-	public Map<Integer, NpcStation> loadStations() throws IOException {
-		return YamlHelper.read(YamlHelper.SdeFile.NPCSTATIONS, new TypeReference<Map<Integer, NpcStation>>() {});
+	public Map<Long, NpcStation> loadStations() throws IOException {
+		return YamlHelper.read(YamlHelper.SdeFile.NPCSTATIONS, new TypeReference<Map<Long, NpcStation>>() {});
 	}
 }

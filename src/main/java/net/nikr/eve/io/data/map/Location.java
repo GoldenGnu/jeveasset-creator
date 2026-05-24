@@ -23,18 +23,18 @@ package net.nikr.eve.io.data.map;
 
 
 public class Location implements Comparable<Location> {
-	private final int locationID;
-	private final int stationID;
+	private final long locationID;
+	private final long stationID;
 	private final String stationName;
-	private final int systemID;
+	private final long systemID;
 	private final String systemName;
-	private final int constellationID;
+	private final long constellationID;
 	private final String constellationName;
-	private final int regionID;
+	private final long regionID;
 	private final String regionName;
-	private final float security;
+	private final double security;
 
-	public Location(int stationID, String stationName, int systemID, String systemName, int constellationID, String constellationName, int regionID, String regionName, float security) {
+	public Location(long stationID, String stationName, long systemID, String systemName, long constellationID, String constellationName, long regionID, String regionName, double security) {
 		this.stationID = stationID;
 		this.stationName = stationName;
 		this.systemID = systemID;
@@ -57,7 +57,7 @@ public class Location implements Comparable<Location> {
 		}
 	}
 
-	public int getStationID() {
+	public long getStationID() {
 		return stationID;
 	}
 
@@ -65,7 +65,7 @@ public class Location implements Comparable<Location> {
 		return stationName;
 	}
 
-	public int getSystemID() {
+	public long getSystemID() {
 		return systemID;
 	}
 
@@ -73,7 +73,7 @@ public class Location implements Comparable<Location> {
 		return systemName;
 	}
 
-	public int getConstellationID() {
+	public long getConstellationID() {
 		return constellationID;
 	}
 
@@ -81,7 +81,7 @@ public class Location implements Comparable<Location> {
 		return constellationName;
 	}
 
-	public int getRegionID() {
+	public long getRegionID() {
 		return regionID;
 	}
 
@@ -89,23 +89,23 @@ public class Location implements Comparable<Location> {
 		return regionName;
 	}
 
-	public float getSecurity() {
+	public double getSecurity() {
 		return security;
 	}
 
-	public int getLocationID() {
+	public long getLocationID() {
 		return locationID;
 	}
 
 	@Override
 	public int compareTo(Location o) {
-		return Integer.compare(locationID, o.locationID);
+		return Long.compare(locationID, o.locationID);
 	}
 
 	@Override
 	public int hashCode() {
-		int hash = 5;
-		hash = 97 * hash + this.locationID;
+		int hash = 3;
+		hash = 37 * hash + (int) (this.locationID ^ (this.locationID >>> 32));
 		return hash;
 	}
 
@@ -121,9 +121,6 @@ public class Location implements Comparable<Location> {
 			return false;
 		}
 		final Location other = (Location) obj;
-		if (this.locationID != other.locationID) {
-			return false;
-		}
-		return true;
+		return this.locationID == other.locationID;
 	}
 }

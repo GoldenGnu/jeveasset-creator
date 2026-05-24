@@ -25,22 +25,22 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NpcStation {
-	private Integer typeID;
-	private Integer solarSystemID;
+	private Long typeID;
+	private Long solarSystemID;
 
-	public Integer getTypeID() {
+	public Long getTypeID() {
 		return typeID;
 	}
 
-	public void setTypeID(Integer typeID) {
+	public void setTypeID(Long typeID) {
 		this.typeID = typeID;
 	}
 
-	public Integer getSolarSystemID() {
+	public Long getSolarSystemID() {
 		return solarSystemID;
 	}
 
-	public void setSolarSystemID(Integer solarSystemID) {
+	public void setSolarSystemID(Long solarSystemID) {
 		this.solarSystemID = solarSystemID;
 	}
 }

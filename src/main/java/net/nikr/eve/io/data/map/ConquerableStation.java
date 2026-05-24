@@ -22,25 +22,25 @@ package net.nikr.eve.io.data.map;
 
 
 public class ConquerableStation implements Comparable<ConquerableStation> {
-	private final int locationID;
-	private final int systemID;
+	private final long locationID;
+	private final long systemID;
 
 	public ConquerableStation(int locationID, int systemID) {
 		this.locationID = locationID;
 		this.systemID = systemID;
 	}
 
-	public int getLocationID() {
+	public long getLocationID() {
 		return locationID;
 	}
 
-	public int getSystemID() {
+	public long getSystemID() {
 		return systemID;
 	}
 
 	@Override
 	public int compareTo(ConquerableStation o) {
-		return Integer.compare(this.locationID, o.locationID);
+		return Long.compare(this.locationID, o.locationID);
 	}
 
 }

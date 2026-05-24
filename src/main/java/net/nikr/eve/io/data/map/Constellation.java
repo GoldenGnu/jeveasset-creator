@@ -25,10 +25,10 @@ import java.util.Map;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Constellation {
-	private int regionID;
+	private long regionID;
 	private Map<String, String> name;
 
-	public int getRegionID() {
+	public long getRegionID() {
 		return regionID;
 	}
 

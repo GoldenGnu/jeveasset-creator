@@ -30,11 +30,11 @@ public class Type {
 	private double volume; //invTypes.volume
 	private Map<String, String> name; //invTypes.typeName
 	private double basePrice; //invTypes.basePrice
-	private int marketGroupID; //invTypes.marketGroupID
-	private int portionSize; //invTypes.portionSize
+	private long marketGroupID; //invTypes.marketGroupID
+	private long portionSize; //invTypes.portionSize
 	private boolean published; //invTypes.published
-	private Integer metaGroupID; //invTypes.metaGroupID
-	private int groupID;
+	private Long metaGroupID; //invTypes.metaGroupID
+	private long groupID;
 	private double capacity;
 
 	public double getVolume() {
@@ -49,11 +49,11 @@ public class Type {
 		return basePrice;
 	}
 
-	public int getMarketGroupID() {
+	public long getMarketGroupID() {
 		return marketGroupID;
 	}
 
-	public int getPortionSize() {
+	public long getPortionSize() {
 		return portionSize;
 	}
 
@@ -61,11 +61,11 @@ public class Type {
 		return published;
 	}
 
-	public Integer getMetaGroupID() {
+	public Long getMetaGroupID() {
 		return metaGroupID;
 	}
 
-	public int getGroupID() {
+	public long getGroupID() {
 		return groupID;
 	}
 

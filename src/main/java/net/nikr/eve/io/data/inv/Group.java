@@ -29,7 +29,7 @@ public class Group {
 
 	private Map<String, String> name;
 	private boolean published;
-	private int categoryID;
+	private long categoryID;
 
 	public String getEnglishName() {
 		return name.get("en");
@@ -39,7 +39,7 @@ public class Group {
 		return published;
 	}
 
-	public int getCategoryID() {
+	public long getCategoryID() {
 		return categoryID;
 	}
 

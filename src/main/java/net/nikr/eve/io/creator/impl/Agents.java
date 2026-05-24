@@ -23,21 +23,15 @@ package net.nikr.eve.io.creator.impl;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import net.nikr.eve.Program;
 import net.nikr.eve.io.creator.Creator;
-import net.nikr.eve.io.data.Name;
 import net.nikr.eve.io.data.agents.Agent;
 import net.nikr.eve.io.data.agents.NpcCharacter;
-import net.nikr.eve.io.esi.EsiUpdater;
-import net.nikr.eve.io.esi.EsiUpdater.UpdateName;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.AgentReader;
 import net.nikr.eve.util.Duration;
-import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -118,32 +112,5 @@ public class Agents extends AbstractXmlWriter implements Creator {
 			LOG.error(ex.getMessage(), ex);
 		}
 		return false;
-	}
-
-	private String getName(Map<Integer, Name> names, int id) {
-		Name name = names.get(id);
-		String entryName;
-		if (name != null) {
-			entryName = name.getItemName();
-		} else {
-			entryName = updateName(id);
-			if (entryName == null) {
-				throw new RuntimeException("name is null for ID: " + id);
-			}
-		}
-		return entryName;
-	}
-
-	private String updateName(int id) {
-		List<UpdateName> updates = new ArrayList<>();
-		updates.add(new UpdateName(id));
-		List<EsiUpdater.UpdateValues<List<UniverseNamesResponse>, Integer>> responses = EsiUpdater.updateValues(updates);
-		for (EsiUpdater.UpdateValues<List<UniverseNamesResponse>, Integer> response : responses) {
-			if (response.getResponse().isEmpty()) {
-				return null;
-			}
-			return response.getResponse().get(0).getName();
-		}
-		return null;
 	}
 }

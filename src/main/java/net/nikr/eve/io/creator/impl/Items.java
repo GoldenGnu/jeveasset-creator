@@ -43,7 +43,6 @@ import net.nikr.eve.io.data.inv.MetaGroup;
 import net.nikr.eve.io.data.inv.Type;
 import net.nikr.eve.io.data.inv.TypeMaterial;
 import net.nikr.eve.io.esi.EsiUpdater;
-import static net.nikr.eve.io.esi.EsiUpdater.DATASOURCE;
 import static net.nikr.eve.io.esi.EsiUpdater.MARKET_API;
 import net.nikr.eve.io.esi.EsiUpdater.TypeData;
 import static net.nikr.eve.io.esi.EsiUpdater.UNIVERSE_API;
@@ -59,6 +58,7 @@ import net.nikr.eve.io.yaml.InvReader.TypeMaterialList;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiException;
 import net.troja.eve.esi.ApiResponse;
+import net.troja.eve.esi.api.MarketApi;
 import net.troja.eve.esi.model.MarketGroupResponse;
 import net.troja.eve.esi.model.TypeResponse;
 import org.slf4j.Logger;
@@ -109,33 +109,33 @@ public class Items extends AbstractXmlWriter implements Creator{
 	private boolean createItems(Document xmldoc) {
 		NumberFormat intFormat = new DecimalFormat("0");
 		try {
-			Set<Integer> missingNames = new HashSet<>();
+			Set<Long> missingNames = new HashSet<>();
 			Map<String, String> spacedItems = new HashMap<>();
 			Set<String> techLevelItems = new HashSet<>();
 			Set<String> productsItems = new HashSet<>();
 			LOG.info("	YAML: Loading...");
 			InvReader reader = new InvReader();
 			LOG.info("		Types...");
-			Map<Integer, Type> typeIDs = reader.loadTypes();
+			Map<Long, Type> typeIDs = reader.loadTypes();
 			LOG.info("		Groups...");
-			Map<Integer, Group> groupIDs = reader.loadGroups();
+			Map<Long, Group> groupIDs = reader.loadGroups();
 			LOG.info("		Categories...");
-			Map<Integer, Category> categories = reader.loadCategories();
+			Map<Long, Category> categories = reader.loadCategories();
 			LOG.info("		Attributes...");
 			Attributes attributes = reader.loadDogma();
 			LOG.info("		Meta Groups...");
-			Map<Integer, MetaGroup> metaGroups = reader.loadMetaGroups();
+			Map<Long, MetaGroup> metaGroups = reader.loadMetaGroups();
 			LOG.info("		Materials...");
-			Map<Integer, TypeMaterialList> typeMaterials = reader.loadTypeMaterials();
+			Map<Long, TypeMaterialList> typeMaterials = reader.loadTypeMaterials();
 			LOG.info("		Blueprints...");
-			Map<Integer, Blueprint> blueprints =  reader.loadBlueprints();
+			Map<Long, Blueprint> blueprints =  reader.loadBlueprints();
 			LOG.info("	ESI: Loading...");
 			LOG.info("		Market Groups...");
-			Set<Integer> marketGroupsTypeIDs = getMarketGroupsTypeIDs();
+			Set<Long> marketGroupsTypeIDs = getMarketGroupsTypeIDs();
 			LOG.info("		Types...");
-			Set<Integer> types = getTypes();
+			Set<Long> types = getTypes();
 			LOG.info("		Packaged Volume...");
-			Map<Integer, Float> volume = getVolume(typeIDs, types, categories, groupIDs);
+			Map<Long, Double> volume = getVolume(typeIDs, types, categories, groupIDs);
 			LOG.info("		Proving Filaments...");
 			updateProvingFilaments(typeIDs, types, groupIDs, categories);
 			LOG.info("	XML: Creating...");
@@ -143,9 +143,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 			if (metaGroups.size() != EXPECTED_META_GROUPS_SIZE) {
 				throw new RuntimeException("metaGroups size is: " + metaGroups.size() + " expected: " + EXPECTED_META_GROUPS_SIZE + " :: jEveAssets EsiItemsGetter likely needs to be updated!");
 			}
-			for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
+			for (Map.Entry<Long, Type> entry : typeIDs.entrySet()) {
 				Element node = xmldoc.createElement("row");
-				Integer typeID = entry.getKey();
+				Long typeID = entry.getKey();
 				Type type = entry.getValue();
 				Group group = groupIDs.get(type.getGroupID());
 				Category category = categories.get(group.getCategoryID());
@@ -202,7 +202,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 					node.setAttribute("price", intFormat.format(type.getBasePrice()));
 					node.setAttribute("volume", String.valueOf(type.getVolume()));
 			//Packaged Volume
-					Float packagedVolume = volume.get(typeID);
+					Double packagedVolume = volume.get(typeID);
 					if (packagedVolume != null) {
 						node.setAttribute("packagedvolume", String.valueOf(packagedVolume));
 					}
@@ -214,7 +214,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 					final String techLevel;
 					MetaGroup metaGroup = null;
 					//Get meta group from type
-					Integer metaGroupID =  type.getMetaGroupID();
+					Long metaGroupID =  type.getMetaGroupID();
 					if (metaGroup == null && metaGroupID != null) {
 						metaGroup = metaGroups.get(metaGroupID);
 					}
@@ -235,13 +235,13 @@ public class Items extends AbstractXmlWriter implements Creator{
 						node.setAttribute("slot", slot);
 					}
 			//Charge Size
-					Integer chargesSize = attributes.getChargesSize().get(typeID);
+					Long chargesSize = attributes.getChargesSize().get(typeID);
 					if (chargesSize != null) {
 						node.setAttribute("charges", String.valueOf(chargesSize));
 					}
 			//Meta Level
 					//Ref: https://www.eveonline.com/news/view/deciphering-tiericide
-					int metaLevel = attributes.getMetaLevelAttributes().getOrDefault(typeID, 0);
+					long metaLevel = attributes.getMetaLevelAttributes().getOrDefault(typeID, 0L);
 					node.setAttribute("meta", String.valueOf(metaLevel));
 					node.setAttribute("pi", category.getEnglishName().equals("Planetary Commodities") || category.getEnglishName().equals("Planetary Resources") ? "true" : "false");
 					node.setAttribute("portion", String.valueOf(type.getPortionSize()));
@@ -330,7 +330,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 				LOG.info("			none");
 			}
 			LOG.info("		Items missing names:");
-			for (Integer typeID : missingNames) {
+			for (Long typeID : missingNames) {
 				LOG.info("			" + typeID);
 			}
 			if (missingNames.isEmpty()) {
@@ -343,20 +343,20 @@ public class Items extends AbstractXmlWriter implements Creator{
 		}
 	}
 
-	private Set<Integer> getMarketGroupsTypeIDs() {
-		Set<Integer> typeIDs = new HashSet<>();
-		List<Integer> marketsGroups = EsiUpdater.update(new Update<List<Integer>>() {
+	private Set<Long> getMarketGroupsTypeIDs() {
+		Set<Long> typeIDs = new HashSet<>();
+		List<Long> marketsGroups = EsiUpdater.update(new Update<List<Long>>() {
 			@Override
-			public ApiResponse<List<Integer>> update() throws ApiException {
-				return MARKET_API.getMarketsGroupsWithHttpInfo(DATASOURCE, null);
+			public ApiResponse<List<Long>> update() throws ApiException {
+				return MARKET_API.getMarketGroupsWithHttpInfo(MarketApi.COMPATIBILITY_DATE, null, null, null);
 			}
 		});
 		List<Update<MarketGroupResponse>> updates = new ArrayList<>();
-		for (Integer marketGroup : marketsGroups) {
+		for (Long marketGroup : marketsGroups) {
 			updates.add(new Update<MarketGroupResponse>() {
 				@Override
 				public ApiResponse<MarketGroupResponse> update() throws ApiException {
-					return MARKET_API.getMarketsGroupsMarketGroupIdWithHttpInfo(marketGroup, null, DATASOURCE, null, null);
+					return MARKET_API.getMarketGroupWithHttpInfo(marketGroup, MarketApi.COMPATIBILITY_DATE, null, null, null);
 				}
 			});
 		}
@@ -367,24 +367,24 @@ public class Items extends AbstractXmlWriter implements Creator{
 		return typeIDs;
 	}
 
-	private Set<Integer> getTypes() {
-		Set<Integer> data = new HashSet<>();
-		List<List<Integer>> responses = EsiUpdater.updatePage(new UpdatePage<List<Integer>>() {
+	private Set<Long> getTypes() {
+		Set<Long> data = new HashSet<>();
+		List<List<Long>> responses = EsiUpdater.updatePage(new UpdatePage<List<Long>>() {
 			@Override
-			public ApiResponse<List<Integer>> update(int page) throws ApiException {
-				return UNIVERSE_API.getUniverseTypesWithHttpInfo(DATASOURCE, null, page);
+			public ApiResponse<List<Long>> update(int page) throws ApiException {
+				return UNIVERSE_API.getTypesWithHttpInfo(MarketApi.COMPATIBILITY_DATE, page, null, null, null);
 			}
 		});
-		for (List<Integer> h : responses) {
+		for (List<Long> h : responses) {
 			data.addAll(h);
 		}
 		return data;
 	}
 
-	private Map<Integer, Float> getVolume(Map<Integer, Type> typeIDs, Set<Integer> types, Map<Integer, Category> categories, Map<Integer, Group> groupIDs) {
+	private Map<Long, Double> getVolume(Map<Long, Type> typeIDs, Set<Long> types, Map<Long, Category> categories, Map<Long, Group> groupIDs) {
 		List<UpdateType> updates = new ArrayList<>();
 		Set<String> skipped = new HashSet<>();
-		for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
+		for (Map.Entry<Long, Type> entry : typeIDs.entrySet()) {
 			if (!types.contains(entry.getKey())) {
 				skipped.add(entry.getKey().toString());
 				continue;
@@ -395,9 +395,9 @@ public class Items extends AbstractXmlWriter implements Creator{
 				updates.add(new UpdateType(entry.getKey()));
 			}
 		}
-		List<UpdateValues<TypeResponse, Integer>> responses = EsiUpdater.updateValues(updates);
-		Map<Integer, Float> volume = new HashMap<>();
-		for (UpdateValues<TypeResponse, Integer> response : responses) {
+		List<UpdateValues<TypeResponse, Long>> responses = EsiUpdater.updateValues(updates);
+		Map<Long, Double> volume = new HashMap<>();
+		for (UpdateValues<TypeResponse, Long> response : responses) {
 			TypeData typeData = new TypeData(response);
 			if (typeData.havePackagedVolume()) {
 				volume.put(typeData.getTypeID(), typeData.getPackagedVolume());
@@ -409,10 +409,10 @@ public class Items extends AbstractXmlWriter implements Creator{
 		return volume;
 	}
 
-	private void updateProvingFilaments(Map<Integer, Type> typeIDs, Set<Integer> types, Map<Integer, Group> groupIDs, Map<Integer, Category> categories) {
+	private void updateProvingFilaments(Map<Long, Type> typeIDs, Set<Long> types, Map<Long, Group> groupIDs, Map<Long, Category> categories) {
 		List<UpdateType> updates = new ArrayList<>();
 		Set<String> skipped = new HashSet<>();
-		for (Map.Entry<Integer, Type> entry : typeIDs.entrySet()) {
+		for (Map.Entry<Long, Type> entry : typeIDs.entrySet()) {
 			if (!types.contains(entry.getKey())) {
 				skipped.add(entry.getKey().toString());
 				continue;
@@ -427,8 +427,8 @@ public class Items extends AbstractXmlWriter implements Creator{
 				updates.add(new UpdateType(entry.getKey()));
 			}
 		}
-		List<UpdateValues<TypeResponse, Integer>> responses = EsiUpdater.updateValues(updates);
-		for (UpdateValues<TypeResponse, Integer> response : responses) {
+		List<UpdateValues<TypeResponse, Long>> responses = EsiUpdater.updateValues(updates);
+		for (UpdateValues<TypeResponse, Long> response : responses) {
 			TypeData typeData = new TypeData(response);
 			if (typeData.haveName()) {
 				typeIDs.get(typeData.getTypeID()).setEnglishName(typeData.getName());

@@ -27,6 +27,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -40,7 +41,6 @@ import net.nikr.eve.io.data.map.Location;
 import net.nikr.eve.io.data.map.NpcStation;
 import net.nikr.eve.io.data.map.Region;
 import net.nikr.eve.io.data.map.SolarSystem;
-import static net.nikr.eve.io.esi.EsiUpdater.DATASOURCE;
 import static net.nikr.eve.io.esi.EsiUpdater.UNIVERSE_API;
 import net.nikr.eve.io.xml.AbstractXmlWriter;
 import net.nikr.eve.io.xml.ConquerableStationsReader;
@@ -48,8 +48,9 @@ import net.nikr.eve.io.xml.XmlException;
 import net.nikr.eve.io.yaml.LocationsReader;
 import net.nikr.eve.util.Duration;
 import net.troja.eve.esi.ApiException;
-import net.troja.eve.esi.model.UniverseNamesResponse;
-import net.troja.eve.esi.model.UniverseNamesResponse.CategoryEnum;
+import net.troja.eve.esi.api.UniverseApi;
+import net.troja.eve.esi.model.NamesResponse;
+import net.troja.eve.esi.model.NamesResponse.CategoryEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Comment;
@@ -101,47 +102,47 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			LOG.info("	YAML: Loading...");
 			LOG.info("		Map...");
 			LocationsReader locationsReader = new LocationsReader();
-			Map<Integer, NpcStation> stations = locationsReader.loadStations();
-			Map<Integer, SolarSystem> systems = locationsReader.loadSystems();
-			Map<Integer, Constellation> constellations = locationsReader.loadConstellation();
-			Map<Integer, Region> regions = locationsReader.loadRegions();
+			Map<Long, NpcStation> stations = locationsReader.loadStations();
+			Map<Long, SolarSystem> systems = locationsReader.loadSystems();
+			Map<Long, Constellation> constellations = locationsReader.loadConstellation();
+			Map<Long, Region> regions = locationsReader.loadRegions();
 			LOG.info("	ESI: Loading...");
 			LOG.info("		Station Names...");
-			Map<Integer, String> stationNames = loadStationNames(stations);
+			Map<Long, String> stationNames = loadStationNames(stations);
 			LOG.info("	YAML: Processing...");
 			Set<Location> locations = new TreeSet<>();
-			Map<Integer, Location> systemToLocation = new HashMap<>();
+			Map<Long, Location> systemToLocation = new HashMap<>();
 			//Regions
-			for (Map.Entry<Integer, Region> entry : regions.entrySet()) {
-				int regionID = entry.getKey();
+			for (Map.Entry<Long, Region> entry : regions.entrySet()) {
+				long regionID = entry.getKey();
 				Region region = entry.getValue();
 				String regionName = getName(region.getEnglishName(), regionID);
 				locations.add(new Location(0, "", 0, "", 0, "", regionID, regionName, 0));
 			}
 			//Constellations
-			for (Map.Entry<Integer, Constellation> entry : constellations.entrySet()) {
-				int constellationID = entry.getKey();
+			for (Map.Entry<Long, Constellation> entry : constellations.entrySet()) {
+				long constellationID = entry.getKey();
 				Constellation constellation = entry.getValue();
 				String constellationName = getName(constellation.getEnglishName(), constellationID);
 
-				int regionID = constellation.getRegionID();
+				long regionID = constellation.getRegionID();
 				Region region = regions.get(regionID);
 				String regionName = getName(region.getEnglishName(), regionID);
 
 				locations.add(new Location(0, "", 0, "", constellationID, constellationName, regionID, regionName, 0));
 			}
 			//Systems
-			for (Map.Entry<Integer, SolarSystem> entry : systems.entrySet()) {
-				int systemID = entry.getKey();
+			for (Map.Entry<Long, SolarSystem> entry : systems.entrySet()) {
+				long systemID = entry.getKey();
 				SolarSystem system = entry.getValue();
 				String systemName = getName(system.getEnglishName(), systemID);
-				float security = system.getSecurityStatus();
+				double security = system.getSecurityStatus();
 
-				int constellationID = system.getConstellationID();
+				long constellationID = system.getConstellationID();
 				Constellation constellation = constellations.get(constellationID);
 				String constellationName = getName(constellation.getEnglishName(), constellationID);
 
-				int regionID = system.getRegionID();
+				long regionID = system.getRegionID();
 				Region region = regions.get(regionID);
 				String regionName = getName(region.getEnglishName(), regionID);
 
@@ -150,21 +151,21 @@ public class Locations extends AbstractXmlWriter implements Creator {
 				systemToLocation.put(systemID, systemLocation);
 			}
 			//Stations
-			for (Map.Entry<Integer, NpcStation> entry : stations.entrySet()) {
-				int stationID = entry.getKey();
+			for (Map.Entry<Long, NpcStation> entry : stations.entrySet()) {
+				long stationID = entry.getKey();
 				NpcStation station = entry.getValue();
 				String stationName = stationNames.get(stationID);
 
-				int systemID = station.getSolarSystemID();
+				long systemID = station.getSolarSystemID();
 				SolarSystem system = systems.get(systemID);
 				String systemName = getName(system.getEnglishName(), systemID);
-				float security = system.getSecurityStatus();
+				double security = system.getSecurityStatus();
 
-				int constellationID = system.getConstellationID();
+				long constellationID = system.getConstellationID();
 				Constellation constellation = constellations.get(constellationID);
 				String constellationName = getName(constellation.getEnglishName(), constellationID);
 
-				int regionID = system.getRegionID();
+				long regionID = system.getRegionID();
 				Region region = regions.get(regionID);
 				String regionName = getName(region.getEnglishName(), regionID);
 
@@ -174,7 +175,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 			List<ConquerableStation> conquerableStations = ConquerableStationsReader.load();
 			LOG.info("	XML: Prcessing...");
 			for (ConquerableStation conqurableStation : conquerableStations) {
-				int fixedLocationID = conqurableStation.getLocationID();
+				long fixedLocationID = conqurableStation.getLocationID();
 				if (fixedLocationID >= 66000000) {
 					if (fixedLocationID < 66014933) {
 						fixedLocationID = fixedLocationID - 6000001;
@@ -182,16 +183,16 @@ public class Locations extends AbstractXmlWriter implements Creator {
 						fixedLocationID = fixedLocationID - 6000000;
 					}
 				}
-				int stationID = fixedLocationID;
-				int systemID = conqurableStation.getSystemID();
+				long stationID = fixedLocationID;
+				long systemID = conqurableStation.getSystemID();
 				Location systemLocation = systemToLocation.get(systemID);
 				if (systemLocation == null) {
 					continue; // Skip conquerable stations in systems that don't exist in our data
 				}
-				int regionID = systemLocation.getRegionID();
-				int constellationID = systemLocation.getConstellationID();
+				long regionID = systemLocation.getRegionID();
+				long constellationID = systemLocation.getConstellationID();
 				String constellationName = systemLocation.getConstellationName();
-				float security = systemLocation.getSecurity();
+				double security = systemLocation.getSecurity();
 				String stationName = "Conquerable Station #" + fixedLocationID;
 				String systemName = systemLocation.getSystemName();
 				String regionName = systemLocation.getRegionName();
@@ -221,7 +222,7 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		return false;
 	}
 
-	private String getName(String name, int id) {
+	private String getName(String name, long id) {
 		if (id == 19000001) {
 			return "Global PLEX Market Region";
 		} else if (id == 26000001) {
@@ -237,15 +238,15 @@ public class Locations extends AbstractXmlWriter implements Creator {
 		}
 	}
 
-	public Map<Integer, String> loadStationNames(Map<Integer, NpcStation> stations) throws XmlException {
-		Map<Integer, String> stationNames = new HashMap<>();
+	public Map<Long, String> loadStationNames(Map<Long, NpcStation> stations) throws XmlException {
+		Map<Long, String> stationNames = new HashMap<>();
 		int partitionSize = 1000;
-		List<Integer> yourlist = new ArrayList<>(stations.keySet());
+		List<Long> yourlist = new ArrayList<>(stations.keySet());
 		for (int i = 0; i < yourlist.size(); i += partitionSize) {
-			List<Integer> subList = yourlist.subList(i, Math.min(i + partitionSize, yourlist.size()));
+			Set<Long> subList = new HashSet<>(yourlist.subList(i, Math.min(i + partitionSize, yourlist.size())));
 			try {
-				List<UniverseNamesResponse> responses = UNIVERSE_API.postUniverseNames(subList, DATASOURCE);
-				for (UniverseNamesResponse response : responses) {
+				List<NamesResponse> responses = UNIVERSE_API.postNames(UniverseApi.COMPATIBILITY_DATE, subList, null, null, null);
+				for (NamesResponse response : responses) {
 					if (response.getCategory() == CategoryEnum.STATION) {
 						stationNames.put(response.getId(), response.getName());
 					}

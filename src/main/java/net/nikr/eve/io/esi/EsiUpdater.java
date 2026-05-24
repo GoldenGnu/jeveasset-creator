@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -41,9 +40,9 @@ import net.troja.eve.esi.ApiResponse;
 import net.troja.eve.esi.HeaderUtil;
 import net.troja.eve.esi.api.MarketApi;
 import net.troja.eve.esi.api.UniverseApi;
-import net.troja.eve.esi.model.TypeDogmaAttribute;
+import net.troja.eve.esi.model.DogmaAttribute;
+import net.troja.eve.esi.model.NamesResponse;
 import net.troja.eve.esi.model.TypeResponse;
-import net.troja.eve.esi.model.UniverseNamesResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +53,6 @@ public class EsiUpdater {
 
 	private static final ExecutorService EXECUTOR = Executors.newFixedThreadPool(50);
 
-	private static Set<Integer> STARGATE_IDS = null;
 	private static final ApiClient CLIENT = new ApiClientBuilder().userAgent("jEveAssets XML Builder").build();
 	public static final UniverseApi UNIVERSE_API = new UniverseApi(CLIENT);
 	public static final MarketApi MARKET_API = new MarketApi(CLIENT);
@@ -259,58 +257,58 @@ public class EsiUpdater {
 		}
 	}
 
-	public static class UpdateType implements UpdateValue<TypeResponse, Integer> {
+	public static class UpdateType implements UpdateValue<TypeResponse, Long> {
 
-		private final int typeID;
+		private final long typeID;
 
-		public UpdateType(int typeID) {
+		public UpdateType(long typeID) {
 			this.typeID = typeID;
 		}
 
 		@Override
-		public Integer getValue() {
+		public Long getValue() {
 			return typeID;
 		}
 
 		@Override
 		public ApiResponse<TypeResponse> update() throws ApiException {
-			return UNIVERSE_API.getUniverseTypesTypeIdWithHttpInfo(typeID, null, DATASOURCE, null, null);
+			return UNIVERSE_API.getTypeWithHttpInfo(typeID, UniverseApi.COMPATIBILITY_DATE, null, null, null);
 		}
 	}
 
-	public static class UpdateName implements UpdateValue<List<UniverseNamesResponse>, Integer> {
+	public static class UpdateName implements UpdateValue<List<NamesResponse>, Long> {
 
-		private final int id;
+		private final long id;
 
 		public UpdateName(int id) {
 			this.id = id;
 		}
 
 		@Override
-		public Integer getValue() {
+		public Long getValue() {
 			return id;
 		}
 
 		@Override
-		public ApiResponse<List<UniverseNamesResponse>> update() throws ApiException {
-			return UNIVERSE_API.postUniverseNamesWithHttpInfo(Collections.singletonList(id), DATASOURCE);
+		public ApiResponse<List<NamesResponse>> update() throws ApiException {
+			return UNIVERSE_API.postNamesWithHttpInfo(UniverseApi.COMPATIBILITY_DATE, Collections.singleton(id), null, null, null);
 		}
 	}
 
 	public static class TypeData {
-		private final int typeID;
+		private final long typeID;
 		private final TypeResponse response;
 		private final String name;
-		private final Float packagedVolume;
-		private final Float volume;
-		private final Map<Integer, Float> attributes = new HashMap<>();
-		private Integer metaGroupID;
+		private final Double packagedVolume;
+		private final Double volume;
+		private final Map<Long, Double> attributes = new HashMap<>();
+		private Long metaGroupID;
 
-		public TypeData(UpdateValues<TypeResponse, Integer> response) {
+		public TypeData(UpdateValues<TypeResponse, Long> response) {
 			this(response.getValue(), response.getResponse());
 		}
 
-		public TypeData(int typeID, TypeResponse response) {
+		public TypeData(long typeID, TypeResponse response) {
 			this.typeID = typeID;
 			this.response = response;
 			if (response != null) {
@@ -318,10 +316,10 @@ public class EsiUpdater {
 				volume = response.getVolume();
 				name = response.getName();
 				if (response.getDogmaAttributes() != null) {
-					for (TypeDogmaAttribute attribute : response.getDogmaAttributes()) {
+					for (DogmaAttribute attribute : response.getDogmaAttributes()) {
 						attributes.put(attribute.getAttributeId(), attribute.getValue());
 						if (attribute.getAttributeId() == 1692) { //1692 = meta group
-							metaGroupID = attribute.getValue().intValue();
+							metaGroupID = attribute.getValue().longValue();
 						}
 						
 					}
@@ -334,7 +332,7 @@ public class EsiUpdater {
 			
 		}
 
-		public int getTypeID() {
+		public long getTypeID() {
 			return typeID;
 		}
 
@@ -354,15 +352,15 @@ public class EsiUpdater {
 			return name;
 		}
 
-		public int getMetaGroupID() {
+		public long getMetaGroupID() {
 			return (metaGroupID == null || metaGroupID < 1) ? 1 : metaGroupID;
 		}
 
-		public Float getPackagedVolume() {
-			return getOrDefault(packagedVolume, 0f);
+		public Double getPackagedVolume() {
+			return getOrDefault(packagedVolume, 0.0);
 		}
 
-		public Map<Integer, Float> getAttributes() {
+		public Map<Long, Double> getAttributes() {
 			return attributes;
 		}
 

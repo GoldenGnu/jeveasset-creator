@@ -28,23 +28,23 @@ import java.util.Map;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SolarSystem {
 	private Map<String, Planet> planets;
-	private float securityStatus;
-	private int solarSystemID;
+	private double securityStatus;
+	private long solarSystemID;
 	private Map<String, Stargate> stargates;
 	private List<Integer> stargateIDs;
 	private Map<String, String> name;
-	private int constellationID;
-	private int regionID;
+	private long constellationID;
+	private long regionID;
 
 	public Map<String, Planet> getPlanets() {
 		return planets;
 	}
 
-	public float getSecurityStatus() {
+	public double getSecurityStatus() {
 		return securityStatus;
 	}
 
-	public int getSolarSystemID() {
+	public long getSolarSystemID() {
 		return solarSystemID;
 	}
 
@@ -68,11 +68,11 @@ public class SolarSystem {
 		return name != null ? name.get("en") : null;
 	}
 
-	public int getConstellationID() {
+	public long getConstellationID() {
 		return constellationID;
 	}
 
-	public int getRegionID() {
+	public long getRegionID() {
 		return regionID;
 	}
 }

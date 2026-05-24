@@ -96,24 +96,24 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 		try {
 			LOG.info("	YAML: Loading...");
 			LOG.info("		Attributes...");
-			Map<Integer, DogmeAttribute> dogmaTypes = YamlHelper.read(YamlHelper.SdeFile.DOGMAATTRIBUTES, new TypeReference<TreeMap<Integer, DogmeAttribute>>(){});
+			Map<Long, DogmeAttribute> dogmaTypes = YamlHelper.read(YamlHelper.SdeFile.DOGMAATTRIBUTES, new TypeReference<TreeMap<Long, DogmeAttribute>>(){});
 			LOG.info("	Hoboleaks: Loading...");
 			LOG.info("		Dynamic Attributes...");
-			Map<Integer, DogmaType> values = MAPPER.readValue(new URL("https://sde.hoboleaks.space/tq/dynamicitemattributes.json"), new TypeReference<HashMap<Integer, DogmaType>>() {});
+			Map<Long, DogmaType> values = MAPPER.readValue(new URL("https://sde.hoboleaks.space/tq/dynamicitemattributes.json"), new TypeReference<HashMap<Long, DogmaType>>() {});
 			LOG.info("		Attributes Localization...");
-			Localization localization = new Localization(MAPPER.readValue(new URL("https://sde.hoboleaks.space/tq/localization_dgmattributes.json"), new TypeReference<HashMap<Integer, HashMap<String, DogmeLocalization>>>() {}));
+			Localization localization = new Localization(MAPPER.readValue(new URL("https://sde.hoboleaks.space/tq/localization_dgmattributes.json"), new TypeReference<HashMap<Long, HashMap<String, DogmeLocalization>>>() {}));
 			LOG.info("	ESI: Loading...");
 			LOG.info("		Type Dogma...");
-			Map<Integer, TypeData> typies = update(values);
+			Map<Long, TypeData> typies = update(values);
 			LOG.info("	XML: Creating...");
 			Element parentNode = xmldoc.getDocumentElement();
-			Map<Integer, String> names = new HashMap<>();
+			Map<Long, String> names = new HashMap<>();
 
-			Map<Integer, List<Attribute>> t = new HashMap<>();
-			Map<Integer, Set<Integer>> applicableTypes = new HashMap<>();
-			for (Map.Entry<Integer, DogmaType> entry : values.entrySet()) {
+			Map<Long, List<Attribute>> t = new HashMap<>();
+			Map<Long, Set<Long>> applicableTypes = new HashMap<>();
+			for (Map.Entry<Long, DogmaType> entry : values.entrySet()) {
 				DogmaType type = entry.getValue();
-				Integer typeID = type.getTypeID();
+				Long typeID = type.getTypeID();
 				List<Attribute> current = t.get(typeID);
 				if (current == null) {
 					current = type.getAttributes();
@@ -121,7 +121,7 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 					current = compare(current, type.getAttributes());
 				}
 				t.put(typeID, current);
-				Set<Integer> set = applicableTypes.get(typeID);
+				Set<Long> set = applicableTypes.get(typeID);
 				if (set == null) {
 					set = new HashSet<>();
 					applicableTypes.put(typeID, set);
@@ -130,15 +130,15 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 			}
 			
 			Element typesNode = xmldoc.createElement("types");
-			for (Map.Entry<Integer, List<Attribute>> entry : t.entrySet()) {
-				Integer typeID = entry.getKey();
+			for (Map.Entry<Long, List<Attribute>> entry : t.entrySet()) {
+				Long typeID = entry.getKey();
 				Element typeNode = xmldoc.createElement("type");
 				typesNode.appendChild(typeNode);
 				typeNode.setAttribute("id", String.valueOf(typeID));
-				Map<Integer, Map<Integer, Double>> max = getValues(typies, applicableTypes.get(typeID), true);
-				Map<Integer, Map<Integer, Double>> min = getValues(typies, applicableTypes.get(typeID), false);
+				Map<Long, Map<Long, Double>> max = getValues(typies, applicableTypes.get(typeID), true);
+				Map<Long, Map<Long, Double>> min = getValues(typies, applicableTypes.get(typeID), false);
 				for (Attribute attribute : entry.getValue()) {
-					final int attributeID = attribute.attributeID;
+					final long attributeID = attribute.attributeID;
 					TotalAttribute totalAttribute = create(attribute, dogmaTypes.get(attributeID));
 					Element attributeNode = xmldoc.createElement("attr");
 					names.put(attributeID, localization.getLocalization(attributeID).getName());
@@ -147,10 +147,10 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 					attributeNode.setAttribute("min", String.valueOf(totalAttribute.min));
 					attributeNode.setAttribute("high", String.valueOf(totalAttribute.highIsGood));
 					typeNode.appendChild(attributeNode);
-					Set<Integer> meta = new HashSet<>();
+					Set<Long> meta = new HashSet<>();
 					meta.addAll(max.get(attributeID).keySet());
 					meta.addAll(min.get(attributeID).keySet());
-					for (Integer metaGroupID: meta) {
+					for (Long metaGroupID: meta) {
 						Element defaultsNode = xmldoc.createElement("default");
 						defaultsNode.setAttribute("meta", String.valueOf(metaGroupID));
 						defaultsNode.setAttribute("dmax", String.valueOf(max.get(attributeID).get(metaGroupID)));
@@ -163,7 +163,7 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 			parentNode.appendChild(typesNode);
 
 			Element namesNode = xmldoc.createElement("attributes");
-			for (Map.Entry<Integer, String> entry : names.entrySet()) {
+			for (Map.Entry<Long, String> entry : names.entrySet()) {
 				Element nameNode = xmldoc.createElement("attribute");
 				nameNode.setAttribute("id", String.valueOf(entry.getKey()));
 				nameNode.setAttribute("name", entry.getValue());
@@ -179,20 +179,20 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 	}
 
 	private List<Attribute> compare(List<Attribute> a, List<Attribute> b) {
-		Map<Integer, Attribute> lookupA = new HashMap<>();
+		Map<Long, Attribute> lookupA = new HashMap<>();
 		
 		for (Attribute attribute : a) {
 			lookupA.put(attribute.getAttributeID(), attribute);
 		}
-		Map<Integer, Attribute> lookupB = new HashMap<>();
+		Map<Long, Attribute> lookupB = new HashMap<>();
 		for (Attribute attribute : b) {
 			lookupB.put(attribute.getAttributeID(), attribute);
 		}
-		Set<Integer> attributesIDs = new HashSet<>();
+		Set<Long> attributesIDs = new HashSet<>();
 		attributesIDs.addAll(lookupA.keySet());
 		attributesIDs.addAll(lookupB.keySet());
 		List<Attribute> attributes = new ArrayList<>();
-		for (Integer attributesID : attributesIDs) {
+		for (Long attributesID : attributesIDs) {
 			Attribute attributeA = lookupA.get(attributesID);
 			Attribute attributeB = lookupB.get(attributesID);
 			attributes.add(compare(attributeB, attributeA));
@@ -212,15 +212,15 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 		return new Attribute(a.attributeID, max, min);
 	}
 
-	private Map<Integer, Map<Integer, Double>> getValues(Map<Integer, TypeData> typies, Set<Integer> applicableTypes, boolean max) {
-		Map<Integer, Map<Integer, Double>> values = new HashMap<>();
-		for (Integer typeID : applicableTypes) {
+	private Map<Long, Map<Long, Double>> getValues(Map<Long, TypeData> typies, Set<Long> applicableTypes, boolean max) {
+		Map<Long, Map<Long, Double>> values = new HashMap<>();
+		for (Long typeID : applicableTypes) {
 			TypeData typeData = typies.get(typeID);
-			Integer metaGroupID = typeData.getMetaGroupID();
-			for (Map.Entry<Integer, Float> entry : typeData.getAttributes().entrySet()) {
-				Integer attributeID = entry.getKey();
+			Long metaGroupID = typeData.getMetaGroupID();
+			for (Map.Entry<Long, Double> entry : typeData.getAttributes().entrySet()) {
+				Long attributeID = entry.getKey();
 				Double value = (double)entry.getValue();
-				Map<Integer, Double> map = values.get(attributeID);
+				Map<Long, Double> map = values.get(attributeID);
 				if (map == null) {
 					map = new HashMap<>();
 					values.put(attributeID, map);
@@ -246,47 +246,47 @@ public class Dogma extends AbstractXmlWriter implements Creator{
 	}
 
 	private static class Localization {
-		HashMap<Integer, DogmeLocalization> localization = new HashMap<>();
+		HashMap<Long, DogmeLocalization> localization = new HashMap<>();
 
-		public Localization(HashMap<Integer, HashMap<String, DogmeLocalization>> localization) {
-			for (HashMap.Entry<Integer, HashMap<String, DogmeLocalization>> entry : localization.entrySet()) {
-				int attributeID = entry.getKey();
+		public Localization(HashMap<Long, HashMap<String, DogmeLocalization>> localization) {
+			for (HashMap.Entry<Long, HashMap<String, DogmeLocalization>> entry : localization.entrySet()) {
+				long attributeID = entry.getKey();
 				DogmeLocalization localizationDogme = entry.getValue().get("en-us");
 				this.localization.put(attributeID, localizationDogme);
 			}
 		}
 
-		public DogmeLocalization getLocalization(int attributeID) {
+		public DogmeLocalization getLocalization(long attributeID) {
 			return this.localization.get(attributeID);
 		}
 	}
 
-	private Map<Integer, TypeData> update(Map<Integer, DogmaType> values) {
-		Set<Integer> typeIDs = new HashSet<>();
-		for (Map.Entry<Integer, DogmaType> entry : values.entrySet()) {
+	private Map<Long, TypeData> update(Map<Long, DogmaType> values) {
+		Set<Long> typeIDs = new HashSet<>();
+		for (Map.Entry<Long, DogmaType> entry : values.entrySet()) {
 			DogmaType type = entry.getValue();
 			typeIDs.addAll(type.getApplicableTypes());
 		}
 
 		List<UpdateType> updates = new ArrayList<>();
-		for (int typeID : typeIDs) {
+		for (long typeID : typeIDs) {
 			updates.add(new UpdateType(typeID));
 		}
-		List<UpdateValues<TypeResponse, Integer>> responses = EsiUpdater.updateValues(updates);
-		Map<Integer, TypeData> types = new HashMap<>();
-		for (UpdateValues<TypeResponse, Integer> response : responses) {
+		List<UpdateValues<TypeResponse, Long>> responses = EsiUpdater.updateValues(updates);
+		Map<Long, TypeData> types = new HashMap<>();
+		for (UpdateValues<TypeResponse, Long> response : responses) {
 			types.put(response.getValue(), new TypeData(response));
 		}
 		return types;
 	}
 
 	public static class TotalAttribute {
-		private int attributeID;
+		private long attributeID;
 		private double max;
 		private double min;
 		private boolean highIsGood;
 
-		public TotalAttribute(int attributeID, double max, double min, boolean highIsGood) {
+		public TotalAttribute(long attributeID, double max, double min, boolean highIsGood) {
 			this.attributeID = attributeID;
 			this.max = max;
 			this.min = min;

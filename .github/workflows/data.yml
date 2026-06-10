@@ -13,23 +13,23 @@ jobs:
       release: nope
     steps:
     - name: Checkout
-      uses: actions/checkout
+      uses: actions/checkout@v6
     - name: Cache Maven
-      uses: actions/cache
+      uses: actions/cache@v5
       with:
         path: ~/.m2/repository
         key: maven-${{ hashFiles('**/pom.xml') }}
         restore-keys: |
           maven-
     - name: Cache SDE
-      uses: actions/cache
+      uses: actions/cache@v5
       with:
         path: ~/.jeveassets-creator-cache
         key: sde-${{ github.run_number }}
         restore-keys: |
           sde-
     - name: JDK
-      uses: actions/setup-java
+      uses: actions/setup-java@v5
       with:
         distribution: 'temurin'
         java-version: 8
@@ -44,6 +44,6 @@ jobs:
       if: failure() && env.release == 'done'
       env:
         DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
-      uses: Ilshidur/action-discord
+      uses: Ilshidur/action-discord@cf9b729d74ae8cd2de75a32a02594d4d4a1d4a77
       with:
         args: ':exclamation: static data needs to be updated <https://github.com/GoldenGnu/jeveasset-creator/actions>'

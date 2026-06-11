@@ -8,6 +8,11 @@
 			<id>eve-nikr-net</id>
 			<username>${ftp.user}</username>
 			<password>${ftp.pass}</password>
+			<configuration>
+				<knownHostsProvider implementation="org.apache.maven.wagon.providers.ssh.knownhost.NullKnownHostProvider">
+					<hostKeyChecking>no</hostKeyChecking>
+				</knownHostsProvider>
+			</configuration>
 		</server>
 	</servers>
 </settings>

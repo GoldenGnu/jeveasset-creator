@@ -184,6 +184,12 @@
 								<include>installer.jar</include>
 							</includes>
 						</fileSet>
+						<fileSet>
+							<directory>${project.build.directory}//data</directory>
+							<includes>
+								<include>flags.xml</include>
+							</includes>
+						</fileSet>
 					</fileSets>
 					<algorithms>
 						<algorithm>MD5</algorithm>

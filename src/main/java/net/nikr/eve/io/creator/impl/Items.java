@@ -72,7 +72,7 @@ public class Items extends AbstractXmlWriter implements Creator{
 
 	private static final Logger LOG = LoggerFactory.getLogger(Items.class);
 
-	private static final int EXPECTED_META_GROUPS_SIZE = 13; //On Change: Check if jEveAssets EsiItemsGetter needs to be updated!
+	private static final int EXPECTED_META_GROUPS_SIZE = 15; //On Change: Check if jEveAssets EsiItemsGetter needs to be updated!
 
 	@Override
 	public boolean create() {
